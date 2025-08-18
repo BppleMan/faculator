@@ -1,0 +1,379 @@
+[[items]]
+name = "铁矿"
+
+[[items]]
+name = "铁板"
+
+[[items]]
+name = "铁齿轮"
+
+[[items]]
+name = "铜矿"
+
+[[items]]
+name = "铜板"
+
+[[items]]
+name = "红瓶"
+
+[[items]]
+name = "大型采矿机"
+
+[[items]]
+name = "电炉"
+
+[[items]]
+name = "组装机型"
+
+[[items]]
+name = "速度模块"
+
+[[items]]
+name = "生产力模块"
+
+[[items]]
+name = "品质模块"
+
+[[machines]]
+speed = 2.5
+module_slots = 4
+
+[machines.item]
+name = "大型采矿机"
+
+[[machines]]
+speed = 2.0
+module_slots = 2
+
+[machines.item]
+name = "电炉"
+
+[[machines]]
+speed = 1.25
+module_slots = 4
+
+[machines.item]
+name = "组装机型"
+
+[[modules]]
+capacity_bonus = 0.0
+speed_bonus = 0.5
+power_bonus = 0.7
+quality_bonus = -2.5
+
+[modules.item]
+name = "速度模块"
+
+[[modules]]
+capacity_bonus = 0.1
+speed_bonus = -0.15
+power_bonus = 0.8
+quality_bonus = 0.0
+
+[modules.item]
+name = "生产力模块"
+
+[[modules]]
+capacity_bonus = 0.0
+speed_bonus = -5.0
+power_bonus = 0.0
+quality_bonus = 2.5
+
+[modules.item]
+name = "品质模块"
+
+[[recipes]]
+name = "铁矿 开采"
+time = 1.0
+inputs = []
+
+[recipes.machine]
+speed = 2.5
+module_slots = 4
+
+[recipes.machine.item]
+name = "大型采矿机"
+
+[[recipes.output]]
+amount = 1
+
+[recipes.output.item]
+name = "铁矿"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = 0.5
+power_bonus = 0.7
+quality_bonus = -2.5
+
+[recipes.allowed_modules.item]
+name = "速度模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.1
+speed_bonus = -0.15
+power_bonus = 0.8
+quality_bonus = 0.0
+
+[recipes.allowed_modules.item]
+name = "生产力模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = -5.0
+power_bonus = 0.0
+quality_bonus = 2.5
+
+[recipes.allowed_modules.item]
+name = "品质模块"
+
+[[recipes]]
+name = "铁板 制造"
+time = 3.2
+
+[recipes.machine]
+speed = 2.0
+module_slots = 2
+
+[recipes.machine.item]
+name = "电炉"
+
+[[recipes.inputs]]
+amount = 1
+
+[recipes.inputs.item]
+name = "铁矿"
+
+[[recipes.output]]
+amount = 1
+
+[recipes.output.item]
+name = "铁板"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = 0.5
+power_bonus = 0.7
+quality_bonus = -2.5
+
+[recipes.allowed_modules.item]
+name = "速度模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.1
+speed_bonus = -0.15
+power_bonus = 0.8
+quality_bonus = 0.0
+
+[recipes.allowed_modules.item]
+name = "生产力模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = -5.0
+power_bonus = 0.0
+quality_bonus = 2.5
+
+[recipes.allowed_modules.item]
+name = "品质模块"
+
+[[recipes]]
+name = "铁齿轮 制造"
+time = 0.5
+
+[recipes.machine]
+speed = 1.25
+module_slots = 4
+
+[recipes.machine.item]
+name = "组装机型"
+
+[[recipes.inputs]]
+amount = 2
+
+[recipes.inputs.item]
+name = "铁板"
+
+[[recipes.output]]
+amount = 1
+
+[recipes.output.item]
+name = "铁齿轮"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = 0.5
+power_bonus = 0.7
+quality_bonus = -2.5
+
+[recipes.allowed_modules.item]
+name = "速度模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.1
+speed_bonus = -0.15
+power_bonus = 0.8
+quality_bonus = 0.0
+
+[recipes.allowed_modules.item]
+name = "生产力模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = -5.0
+power_bonus = 0.0
+quality_bonus = 2.5
+
+[recipes.allowed_modules.item]
+name = "品质模块"
+
+[[recipes]]
+name = "铜矿 开采"
+time = 1.0
+inputs = []
+
+[recipes.machine]
+speed = 2.5
+module_slots = 4
+
+[recipes.machine.item]
+name = "大型采矿机"
+
+[[recipes.output]]
+amount = 1
+
+[recipes.output.item]
+name = "铜矿"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = 0.5
+power_bonus = 0.7
+quality_bonus = -2.5
+
+[recipes.allowed_modules.item]
+name = "速度模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.1
+speed_bonus = -0.15
+power_bonus = 0.8
+quality_bonus = 0.0
+
+[recipes.allowed_modules.item]
+name = "生产力模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = -5.0
+power_bonus = 0.0
+quality_bonus = 2.5
+
+[recipes.allowed_modules.item]
+name = "品质模块"
+
+[[recipes]]
+name = "铜板 制造"
+time = 3.2
+
+[recipes.machine]
+speed = 2.0
+module_slots = 2
+
+[recipes.machine.item]
+name = "电炉"
+
+[[recipes.inputs]]
+amount = 1
+
+[recipes.inputs.item]
+name = "铜矿"
+
+[[recipes.output]]
+amount = 1
+
+[recipes.output.item]
+name = "铜板"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = 0.5
+power_bonus = 0.7
+quality_bonus = -2.5
+
+[recipes.allowed_modules.item]
+name = "速度模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.1
+speed_bonus = -0.15
+power_bonus = 0.8
+quality_bonus = 0.0
+
+[recipes.allowed_modules.item]
+name = "生产力模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = -5.0
+power_bonus = 0.0
+quality_bonus = 2.5
+
+[recipes.allowed_modules.item]
+name = "品质模块"
+
+[[recipes]]
+name = "红瓶 制造"
+time = 5.0
+
+[recipes.machine]
+speed = 1.25
+module_slots = 4
+
+[recipes.machine.item]
+name = "组装机型"
+
+[[recipes.inputs]]
+amount = 1
+
+[recipes.inputs.item]
+name = "铁齿轮"
+
+[[recipes.inputs]]
+amount = 1
+
+[recipes.inputs.item]
+name = "铜板"
+
+[[recipes.output]]
+amount = 1
+
+[recipes.output.item]
+name = "红瓶"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = 0.5
+power_bonus = 0.7
+quality_bonus = -2.5
+
+[recipes.allowed_modules.item]
+name = "速度模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.1
+speed_bonus = -0.15
+power_bonus = 0.8
+quality_bonus = 0.0
+
+[recipes.allowed_modules.item]
+name = "生产力模块"
+
+[[recipes.allowed_modules]]
+capacity_bonus = 0.0
+speed_bonus = -5.0
+power_bonus = 0.0
+quality_bonus = 2.5
+
+[recipes.allowed_modules.item]
+name = "品质模块"
