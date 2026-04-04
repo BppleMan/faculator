@@ -1,10 +1,8 @@
-use crate::game::Game;
-use crate::game::item::Item;
-use crate::game::machine::Machine;
-use crate::game::module::Module;
-use crate::game::recipe::{Recipe, RecipeIO};
-
-mod game;
+use faculator_data::game::Game;
+use faculator_data::game::item::Item;
+use faculator_data::game::machine::Machine;
+use faculator_data::game::module::Module;
+use faculator_data::game::recipe::{Recipe, RecipeItem};
 
 fn main() {
     // 物品
@@ -41,21 +39,21 @@ fn main() {
     // 模块
     let speed_module = Module {
         item: speed_module_item.clone(),
-        capacity_bonus: 0.0,
+        production_bonus: 0.0,
         speed_bonus: 0.5,
         power_bonus: 0.7,
         quality_bonus: -2.5,
     };
     let productivity_module = Module {
         item: productivity_module_item.clone(),
-        capacity_bonus: 0.1,
+        production_bonus: 0.1,
         speed_bonus: -0.15,
         power_bonus: 0.8,
         quality_bonus: 0.0,
     };
     let quality_module = Module {
         item: quality_module_item.clone(),
-        capacity_bonus: 0.0,
+        production_bonus: 0.0,
         speed_bonus: -5.0,
         power_bonus: 0.0,
         quality_bonus: 2.5,
@@ -67,108 +65,84 @@ fn main() {
         machine: big_drill_machine.clone(),
         time: 1.0,
         inputs: vec![],
-        output: vec![RecipeIO {
+        output: vec![RecipeItem {
             item: iron_item.clone(),
             amount: 1,
         }],
-        allowed_modules: vec![
-            speed_module.clone(),
-            productivity_module.clone(),
-            quality_module.clone(),
-        ],
+        allowed_modules: vec![speed_module.clone(), productivity_module.clone(), quality_module.clone()],
     };
     let iron_plate_recipe = Recipe {
         name: "铁板 制造".to_string(),
         machine: furnace_machine.clone(),
         time: 3.2,
-        inputs: vec![RecipeIO {
+        inputs: vec![RecipeItem {
             item: iron_item.clone(),
             amount: 1,
         }],
-        output: vec![RecipeIO {
+        output: vec![RecipeItem {
             item: iron_plate_item.clone(),
             amount: 1,
         }],
-        allowed_modules: vec![
-            speed_module.clone(),
-            productivity_module.clone(),
-            quality_module.clone(),
-        ],
+        allowed_modules: vec![speed_module.clone(), productivity_module.clone(), quality_module.clone()],
     };
     let iron_gear_recipe = Recipe {
         name: "铁齿轮 制造".to_string(),
         machine: assembler_machine.clone(),
         time: 0.5,
-        inputs: vec![RecipeIO {
+        inputs: vec![RecipeItem {
             item: iron_plate_item.clone(),
             amount: 2,
         }],
-        output: vec![RecipeIO {
+        output: vec![RecipeItem {
             item: iron_gear_item.clone(),
             amount: 1,
         }],
-        allowed_modules: vec![
-            speed_module.clone(),
-            productivity_module.clone(),
-            quality_module.clone(),
-        ],
+        allowed_modules: vec![speed_module.clone(), productivity_module.clone(), quality_module.clone()],
     };
     let copper_recipe = Recipe {
         name: "铜矿 开采".to_string(),
         machine: big_drill_machine.clone(),
         time: 1.0,
         inputs: vec![],
-        output: vec![RecipeIO {
+        output: vec![RecipeItem {
             item: copper_item.clone(),
             amount: 1,
         }],
-        allowed_modules: vec![
-            speed_module.clone(),
-            productivity_module.clone(),
-            quality_module.clone(),
-        ],
+        allowed_modules: vec![speed_module.clone(), productivity_module.clone(), quality_module.clone()],
     };
     let copper_plate_recipe = Recipe {
         name: "铜板 制造".to_string(),
         machine: furnace_machine.clone(),
         time: 3.2,
-        inputs: vec![RecipeIO {
+        inputs: vec![RecipeItem {
             item: copper_item.clone(),
             amount: 1,
         }],
-        output: vec![RecipeIO {
+        output: vec![RecipeItem {
             item: copper_plate_item.clone(),
             amount: 1,
         }],
-        allowed_modules: vec![
-            speed_module.clone(),
-            productivity_module.clone(),
-            quality_module.clone(),
-        ],
+        allowed_modules: vec![speed_module.clone(), productivity_module.clone(), quality_module.clone()],
     };
     let red_bottle_recipe = Recipe {
         name: "红瓶 制造".to_string(),
         machine: assembler_machine.clone(),
         time: 5.0,
         inputs: vec![
-            RecipeIO {
+            RecipeItem {
                 item: iron_gear_item.clone(),
                 amount: 1,
             },
-            RecipeIO {
+            RecipeItem {
                 item: copper_plate_item.clone(),
                 amount: 1,
             },
         ],
-        output: vec![RecipeIO {
+        output: vec![RecipeItem {
             item: red_bottle_item.clone(),
             amount: 1,
         }],
-        allowed_modules: vec![
-            speed_module.clone(),
-            productivity_module.clone(),
-            quality_module.clone(),
-        ],
+        allowed_modules: vec![speed_module.clone(), productivity_module.clone(), quality_module.clone()],
     };
 
     let game = Game {
@@ -198,10 +172,10 @@ fn main() {
         ],
     };
 
-    let content = toml::to_string_pretty(&game).unwrap();
+    let content = serde_json::to_string_pretty(&game).unwrap();
     println!("{}", content);
-    std::fs::write("game.toml", &content).unwrap();
+    std::fs::write("game.json", &content).unwrap();
 
-    let loaded_game: Game = toml::from_str(&content).unwrap();
+    let loaded_game: Game = serde_json::from_str(&content).unwrap();
     println!("{:#?}", loaded_game);
 }

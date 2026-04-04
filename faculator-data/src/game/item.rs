@@ -1,3 +1,5 @@
+mod repository;
+
 use crate::game::recipe::Recipe;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;

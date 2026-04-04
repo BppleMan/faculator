@@ -1,0 +1,7 @@
+[package]
+name = "faculator-solver"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+good_lp = "1.14.0"

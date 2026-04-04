@@ -1,0 +1,422 @@
+{
+  "items": [
+    {
+      "name": "铁矿"
+    },
+    {
+      "name": "铁板"
+    },
+    {
+      "name": "铁齿轮"
+    },
+    {
+      "name": "铜矿"
+    },
+    {
+      "name": "铜板"
+    },
+    {
+      "name": "红瓶"
+    },
+    {
+      "name": "大型采矿机"
+    },
+    {
+      "name": "电炉"
+    },
+    {
+      "name": "组装机型"
+    },
+    {
+      "name": "速度模块"
+    },
+    {
+      "name": "生产力模块"
+    },
+    {
+      "name": "品质模块"
+    }
+  ],
+  "machines": [
+    {
+      "item": {
+        "name": "大型采矿机"
+      },
+      "speed": 2.5,
+      "module_slots": 4
+    },
+    {
+      "item": {
+        "name": "电炉"
+      },
+      "speed": 2.0,
+      "module_slots": 2
+    },
+    {
+      "item": {
+        "name": "组装机型"
+      },
+      "speed": 1.25,
+      "module_slots": 4
+    }
+  ],
+  "modules": [
+    {
+      "item": {
+        "name": "速度模块"
+      },
+      "production_bonus": 0.0,
+      "speed_bonus": 0.5,
+      "power_bonus": 0.7,
+      "quality_bonus": -2.5
+    },
+    {
+      "item": {
+        "name": "生产力模块"
+      },
+      "production_bonus": 0.1,
+      "speed_bonus": -0.15,
+      "power_bonus": 0.8,
+      "quality_bonus": 0.0
+    },
+    {
+      "item": {
+        "name": "品质模块"
+      },
+      "production_bonus": 0.0,
+      "speed_bonus": -5.0,
+      "power_bonus": 0.0,
+      "quality_bonus": 2.5
+    }
+  ],
+  "recipes": [
+    {
+      "name": "铁矿 开采",
+      "machine": {
+        "item": {
+          "name": "大型采矿机"
+        },
+        "speed": 2.5,
+        "module_slots": 4
+      },
+      "time": 1.0,
+      "inputs": [],
+      "output": [
+        {
+          "item": {
+            "name": "铁矿"
+          },
+          "amount": 1
+        }
+      ],
+      "allowed_modules": [
+        {
+          "item": {
+            "name": "速度模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": 0.5,
+          "power_bonus": 0.7,
+          "quality_bonus": -2.5
+        },
+        {
+          "item": {
+            "name": "生产力模块"
+          },
+          "production_bonus": 0.1,
+          "speed_bonus": -0.15,
+          "power_bonus": 0.8,
+          "quality_bonus": 0.0
+        },
+        {
+          "item": {
+            "name": "品质模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": -5.0,
+          "power_bonus": 0.0,
+          "quality_bonus": 2.5
+        }
+      ]
+    },
+    {
+      "name": "铁板 制造",
+      "machine": {
+        "item": {
+          "name": "电炉"
+        },
+        "speed": 2.0,
+        "module_slots": 2
+      },
+      "time": 3.2,
+      "inputs": [
+        {
+          "item": {
+            "name": "铁矿"
+          },
+          "amount": 1
+        }
+      ],
+      "output": [
+        {
+          "item": {
+            "name": "铁板"
+          },
+          "amount": 1
+        }
+      ],
+      "allowed_modules": [
+        {
+          "item": {
+            "name": "速度模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": 0.5,
+          "power_bonus": 0.7,
+          "quality_bonus": -2.5
+        },
+        {
+          "item": {
+            "name": "生产力模块"
+          },
+          "production_bonus": 0.1,
+          "speed_bonus": -0.15,
+          "power_bonus": 0.8,
+          "quality_bonus": 0.0
+        },
+        {
+          "item": {
+            "name": "品质模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": -5.0,
+          "power_bonus": 0.0,
+          "quality_bonus": 2.5
+        }
+      ]
+    },
+    {
+      "name": "铁齿轮 制造",
+      "machine": {
+        "item": {
+          "name": "组装机型"
+        },
+        "speed": 1.25,
+        "module_slots": 4
+      },
+      "time": 0.5,
+      "inputs": [
+        {
+          "item": {
+            "name": "铁板"
+          },
+          "amount": 2
+        }
+      ],
+      "output": [
+        {
+          "item": {
+            "name": "铁齿轮"
+          },
+          "amount": 1
+        }
+      ],
+      "allowed_modules": [
+        {
+          "item": {
+            "name": "速度模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": 0.5,
+          "power_bonus": 0.7,
+          "quality_bonus": -2.5
+        },
+        {
+          "item": {
+            "name": "生产力模块"
+          },
+          "production_bonus": 0.1,
+          "speed_bonus": -0.15,
+          "power_bonus": 0.8,
+          "quality_bonus": 0.0
+        },
+        {
+          "item": {
+            "name": "品质模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": -5.0,
+          "power_bonus": 0.0,
+          "quality_bonus": 2.5
+        }
+      ]
+    },
+    {
+      "name": "铜矿 开采",
+      "machine": {
+        "item": {
+          "name": "大型采矿机"
+        },
+        "speed": 2.5,
+        "module_slots": 4
+      },
+      "time": 1.0,
+      "inputs": [],
+      "output": [
+        {
+          "item": {
+            "name": "铜矿"
+          },
+          "amount": 1
+        }
+      ],
+      "allowed_modules": [
+        {
+          "item": {
+            "name": "速度模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": 0.5,
+          "power_bonus": 0.7,
+          "quality_bonus": -2.5
+        },
+        {
+          "item": {
+            "name": "生产力模块"
+          },
+          "production_bonus": 0.1,
+          "speed_bonus": -0.15,
+          "power_bonus": 0.8,
+          "quality_bonus": 0.0
+        },
+        {
+          "item": {
+            "name": "品质模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": -5.0,
+          "power_bonus": 0.0,
+          "quality_bonus": 2.5
+        }
+      ]
+    },
+    {
+      "name": "铜板 制造",
+      "machine": {
+        "item": {
+          "name": "电炉"
+        },
+        "speed": 2.0,
+        "module_slots": 2
+      },
+      "time": 3.2,
+      "inputs": [
+        {
+          "item": {
+            "name": "铜矿"
+          },
+          "amount": 1
+        }
+      ],
+      "output": [
+        {
+          "item": {
+            "name": "铜板"
+          },
+          "amount": 1
+        }
+      ],
+      "allowed_modules": [
+        {
+          "item": {
+            "name": "速度模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": 0.5,
+          "power_bonus": 0.7,
+          "quality_bonus": -2.5
+        },
+        {
+          "item": {
+            "name": "生产力模块"
+          },
+          "production_bonus": 0.1,
+          "speed_bonus": -0.15,
+          "power_bonus": 0.8,
+          "quality_bonus": 0.0
+        },
+        {
+          "item": {
+            "name": "品质模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": -5.0,
+          "power_bonus": 0.0,
+          "quality_bonus": 2.5
+        }
+      ]
+    },
+    {
+      "name": "红瓶 制造",
+      "machine": {
+        "item": {
+          "name": "组装机型"
+        },
+        "speed": 1.25,
+        "module_slots": 4
+      },
+      "time": 5.0,
+      "inputs": [
+        {
+          "item": {
+            "name": "铁齿轮"
+          },
+          "amount": 1
+        },
+        {
+          "item": {
+            "name": "铜板"
+          },
+          "amount": 1
+        }
+      ],
+      "output": [
+        {
+          "item": {
+            "name": "红瓶"
+          },
+          "amount": 1
+        }
+      ],
+      "allowed_modules": [
+        {
+          "item": {
+            "name": "速度模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": 0.5,
+          "power_bonus": 0.7,
+          "quality_bonus": -2.5
+        },
+        {
+          "item": {
+            "name": "生产力模块"
+          },
+          "production_bonus": 0.1,
+          "speed_bonus": -0.15,
+          "power_bonus": 0.8,
+          "quality_bonus": 0.0
+        },
+        {
+          "item": {
+            "name": "品质模块"
+          },
+          "production_bonus": 0.0,
+          "speed_bonus": -5.0,
+          "power_bonus": 0.0,
+          "quality_bonus": 2.5
+        }
+      ]
+    }
+  ]
+}

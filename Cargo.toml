@@ -1,8 +1,25 @@
-[package]
-name = "faculator"
+[workspace]
+resolver = "3"
+members = [
+    "faculator-core",
+    "faculator-app",
+    "faculator-data",
+    "faculator-solver",
+    "faculator-migration",
+]
+
+[workspace.package]
 version = "0.1.0"
+description = "一个基于 Rust 实现的 factorio 量化计算器，支持多平台，提供丰富的功能和友好的用户界面。"
+repository = "https://github.com/BppleMan/faculator"
+authors = ["BppleMan"]
+license = "Apache-2.0"
 edition = "2024"
 
 [dependencies]
-serde = { version = "1.0.219", features = ["derive"] }
-toml = "0.9.5"
+# 异步运行时
+tokio = { version = "1.48.0", default-features = false }
+
+# 序列化
+serde = { version = "1.0.228", default-features = false }
+serde_json = { version = "1.0.149", default-features = false }
