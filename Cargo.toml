@@ -16,7 +16,7 @@ authors = ["BppleMan"]
 license = "Apache-2.0"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
 # 异步运行时
 tokio = { version = "1.48.0", default-features = false }
 

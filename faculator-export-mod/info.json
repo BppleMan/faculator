@@ -1,0 +1,14 @@
+{
+    "name": "faculator-export",
+    "version": "0.1.0",
+    "title": "Faculator Data Export",
+    "author": "bppleman",
+    "contact": "",
+    "homepage": "",
+    "description": "Export all game prototype data (items, recipes, machines, technologies, etc.) to JSON for the Faculator calculator tool.",
+    "factorio_version": "2.0",
+    "dependencies": [
+        "base >= 2.0",
+        "? space-age"
+    ]
+}
