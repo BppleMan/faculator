@@ -26,8 +26,6 @@ impl MigrationTrait for Migration {
         // Replace the sample below with your own migration scripts
         todo!();
 
-        manager
-            .drop_table(Table::drop().table("post").to_owned())
-            .await
+        manager.drop_table(Table::drop().table("post").to_owned()).await
     }
 }

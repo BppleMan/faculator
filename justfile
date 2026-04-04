@@ -2,7 +2,7 @@
 # 使用方法: just <命令>
 
 # Factorio mods 目录（macOS 默认路径）
-mods_dir := env("FACTORIO_MODS_DIR", "~/Library/Application Support/factorio/mods")
+mods_dir := env("FACTORIO_MODS_DIR", env("HOME") / "Library/Application Support/factorio/mods")
 
 # mod 在 mods 目录中的文件夹名（Factorio 要求 {mod-name}_{version} 或 {mod-name} 格式）
 # @see https://lua-api.factorio.com/latest/auxiliary/mod-structure.html
@@ -78,7 +78,7 @@ unlink:
 # ─── 导出数据查看 ─────────────────────────────────────────────
 
 # Factorio script-output 目录
-output_dir := env("FACTORIO_OUTPUT_DIR", "~/Library/Application Support/factorio/script-output/faculator")
+output_dir := env("FACTORIO_OUTPUT_DIR", env("HOME") / "Library/Application Support/factorio/script-output/faculator")
 
 # 查看导出的数据文件
 show-data:
@@ -88,10 +88,33 @@ show-data:
 # 将导出数据复制到项目的 assets 目录
 import-data:
     @echo "📥 从 script-output 导入数据到 assets/"
-    mkdir -p assets/exported
-    cp "{{output_dir}}/game-data.json" assets/exported/ 2>/dev/null && echo "  ✅ game-data.json" || echo "  ⚠️  game-data.json 不存在"
-    cp "{{output_dir}}/translations.json" assets/exported/ 2>/dev/null && echo "  ✅ translations.json" || echo "  ⚠️  translations.json 不存在"
+    @mkdir -p assets/exported
+    @cp "{{output_dir}}/game-data.json" assets/exported/ 2>/dev/null && echo "  ✅ game-data.json" || echo "  ⚠️  game-data.json 不存在"
+    @cp "{{output_dir}}/translations*.json" assets/exported/ 2>/dev/null && echo "  ✅ translations.json" || echo "  ⚠️  translations.json 不存在"
     @echo "📥 导入完成"
+
+# ─── 图标导出 ──────────────────────────────────────────────────
+
+# Factorio 可执行文件路径（macOS Steam 默认路径）
+factorio_bin := env("FACTORIO_BIN", env("HOME") / "Library/Application Support/Steam/steamapps/common/Factorio/factorio.app/Contents/MacOS/factorio")
+
+# 运行 Factorio --dump-data 导出图标精灵和 data.raw
+dump-icons:
+    cargo run -p faculator-export-icon -- dump --factorio-bin "{{factorio_bin}}"
+
+# 将导出的图标按 game-data.json 分类组织到 assets/icons/
+organize-icons:
+    cargo run -p faculator-export-icon -- organize
+
+# 从已整理的 assets/icons 生成 atlas 与 manifest 到 assets/
+atlas-icons:
+    cargo run -p faculator-export-icon -- atlas
+
+# 一键导出图标（dump + organize）
+export-icons: dump-icons organize-icons
+
+# 一键导出 atlas（dump + organize + atlas）
+export-icon-atlas: dump-icons organize-icons atlas-icons
 
 # ─── Rust 项目 ────────────────────────────────────────────────
 

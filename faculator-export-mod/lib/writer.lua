@@ -27,8 +27,9 @@ end
 
 --- 写入翻译数据文件
 --- @param translations table 翻译映射表 { key = translated_string }
-function Writer.write_translations(translations)
-  Writer.write_json(Constants.TRANSLATIONS_FILENAME, translations)
+--- @param locale string|nil 语言代码，非 nil 则文件名带后缀
+function Writer.write_translations(translations, locale)
+  Writer.write_json(Constants.translations_filename(locale), translations)
 end
 
 return Writer

@@ -13,8 +13,18 @@ Constants.OUTPUT_DIR = "faculator/"
 --- 原型数据输出文件名
 Constants.DATA_FILENAME = "game-data.json"
 
---- 翻译数据输出文件名
+--- 翻译数据输出文件名（不带语言后缀的默认名，向后兼容）
 Constants.TRANSLATIONS_FILENAME = "translations.json"
+
+--- 生成带语言后缀的翻译文件名
+--- @param locale string|nil 语言代码（如 "en", "zh-CN"），nil 则不带后缀
+--- @return string
+function Constants.translations_filename(locale)
+  if locale and locale ~= "" then
+    return "translations-" .. locale .. ".json"
+  end
+  return Constants.TRANSLATIONS_FILENAME
+end
 
 --- 翻译进度汇报间隔（每翻译多少条打印一次进度）
 Constants.TRANSLATION_PROGRESS_INTERVAL = 500

@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/faculator-data/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/faculator-core/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/faculator-migration/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/faculator-export-icon/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

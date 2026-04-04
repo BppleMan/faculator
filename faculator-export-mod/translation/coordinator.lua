@@ -25,6 +25,7 @@ function Coordinator.init_storage()
   storage.total         = storage.total or 0
   storage.completed     = storage.completed or 0
   storage.exporting     = storage.exporting or false
+  storage.trans_locale  = storage.trans_locale or nil  -- 当前翻译语言
 end
 
 --- 重置翻译状态（开始新一轮导出前调用）
@@ -35,12 +36,15 @@ function Coordinator.reset()
   storage.total        = 0
   storage.completed    = 0
   storage.exporting    = false
+  storage.trans_locale = nil
   log.debug("翻译状态已重置")
 end
 
 --- 发起异步翻译请求
 --- @param player LuaPlayer 用于发送翻译请求的玩家对象
 function Coordinator.start(player)
+  -- 记录玩家当前语言，player.locale 返回如 "en", "zh-CN" 等
+  storage.trans_locale = player.locale
   local ls_list = Collector.collect_all()
   if #ls_list == 0 then
     storage.exporting = false
@@ -78,22 +82,33 @@ function Coordinator.start(player)
   end
 end
 
+--- 仅导出翻译数据（跳过原型数据导出）
+--- @param player LuaPlayer 用于发送翻译请求的玩家对象
+function Coordinator.start_translations_only(player)
+  Coordinator.init_storage()
+  Coordinator.reset()
+  storage.exporting = true
+  Coordinator.start(player)
+end
+
 --- 翻译全部完成后的回调
 --- 写入翻译文件并通知所有玩家。
 function Coordinator.finalize()
-  Writer.write_translations(storage.translations)
+  local locale = storage.trans_locale
+  Writer.write_translations(storage.translations, locale)
 
   local count = 0
   for _ in pairs(storage.translations) do count = count + 1 end
 
-  local msg = string.format("翻译完成！共 %d 条翻译已写入", count)
+  local filename = Constants.translations_filename(locale)
+  local msg = string.format("翻译完成！语言=%s，共 %d 条翻译已写入", locale or "?", count)
   log.info(msg)
 
   -- 通知所有在线玩家
   for _, p in pairs(game.players) do
     if p.connected then
       p.print(Constants.MSG_PREFIX .. msg)
-      p.print(Constants.MSG_PREFIX .. "文件路径: script-output/" .. Constants.OUTPUT_DIR .. Constants.TRANSLATIONS_FILENAME)
+      p.print(Constants.MSG_PREFIX .. "文件路径: script-output/" .. Constants.OUTPUT_DIR .. filename)
     end
   end
 
