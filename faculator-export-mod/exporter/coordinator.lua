@@ -121,6 +121,9 @@ end
 function Coordinator.export()
   local data = Coordinator.collect_all_data()
   Writer.write_data(data)
+  Writer.write_manifest({ Constants.DATA_FILENAME }, {
+    phase = "data-only",
+  })
   log.info("数据导出完成，文件已写入")
   return data
 end
@@ -132,6 +135,10 @@ end
 function Coordinator.export_selected(selection, exclusions)
   local data = Coordinator.collect_selected_data(selection, exclusions)
   Writer.write_data(data)
+  Writer.write_manifest({ Constants.DATA_FILENAME }, {
+    phase = "data-only",
+    mode = "selected",
+  })
   log.info("选择性数据导出完成，文件已写入")
   return data
 end

@@ -6,6 +6,18 @@ local log = require("lib.logger").create("文件输出")
 
 local Writer = {}
 
+--- 记录本轮导出清单。
+--- Factorio runtime 只能可靠写文件，无法方便列目录/删文件，
+--- 因此通过 manifest 告诉外部同步脚本哪些文件才是当前有效导出结果。
+--- @param files string[] 当前有效文件名列表
+--- @param context table|nil 附加上下文
+function Writer.write_manifest(files, context)
+  Writer.write_json(Constants.MANIFEST_FILENAME, {
+    files = files,
+    context = context or {},
+  })
+end
+
 --- 将 Lua 表序列化为 JSON 并写入 script-output 目录
 --- @see https://lua-api.factorio.com/latest/auxiliary/helpers.html#table_to_json
 --- @see https://lua-api.factorio.com/latest/auxiliary/helpers.html#write_file

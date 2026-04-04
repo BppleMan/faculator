@@ -26,6 +26,7 @@ function Coordinator.init_storage()
   storage.completed     = storage.completed or 0
   storage.exporting     = storage.exporting or false
   storage.trans_locale  = storage.trans_locale or nil  -- 当前翻译语言
+  storage.export_has_data = storage.export_has_data or false
 end
 
 --- 重置翻译状态（开始新一轮导出前调用）
@@ -37,6 +38,7 @@ function Coordinator.reset()
   storage.completed    = 0
   storage.exporting    = false
   storage.trans_locale = nil
+  storage.export_has_data = false
   log.debug("翻译状态已重置")
 end
 
@@ -88,6 +90,7 @@ function Coordinator.start_translations_only(player)
   Coordinator.init_storage()
   Coordinator.reset()
   storage.exporting = true
+  storage.export_has_data = false
   Coordinator.start(player)
 end
 
@@ -96,6 +99,15 @@ end
 function Coordinator.finalize()
   local locale = storage.trans_locale
   Writer.write_translations(storage.translations, locale)
+  local files = { Constants.translations_filename(locale) }
+  if storage.export_has_data then
+    table.insert(files, 1, Constants.DATA_FILENAME)
+  end
+  Writer.write_manifest(files, {
+    phase = "full-export",
+    locale = locale,
+    includes_data = storage.export_has_data,
+  })
 
   local count = 0
   for _ in pairs(storage.translations) do count = count + 1 end

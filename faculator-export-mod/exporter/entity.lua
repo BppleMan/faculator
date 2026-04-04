@@ -31,17 +31,32 @@ function Entity.export()
         --- 制造属性
         --- @see https://lua-api.factorio.com/latest/classes/LuaEntityPrototype.html#crafting_categories
         crafting_categories = safe(function() return keys(proto.crafting_categories) end),
-        crafting_speed      = safe(function() return proto.crafting_speed end),
+        crafting_speed      = safe(function() return proto.get_crafting_speed() end) or safe(function() return proto.crafting_speed end),
 
         --- 模块插槽
         --- @see https://lua-api.factorio.com/latest/classes/LuaEntityPrototype.html#module_inventory_size
         module_inventory_size     = safe(function() return proto.module_inventory_size end),
         allowed_effects           = safe(function() return keys(proto.allowed_effects) end),
         allowed_module_categories = safe(function() return keys(proto.allowed_module_categories) end),
+        effect_receiver           = safe(function() return S.effect_receiver(proto.effect_receiver) end),
 
         --- 能耗
         energy_usage     = safe(function() return proto.energy_usage end),
-        max_energy_usage = safe(function() return proto.max_energy_usage end),
+        max_energy_usage = safe(function() return proto.get_max_energy_usage() end) or safe(function() return proto.max_energy_usage end),
+        max_energy_production = safe(function() return proto.get_max_energy_production() end),
+        max_power_output      = safe(function() return proto.get_max_power_output() end) or safe(function() return proto.max_power_output end),
+        effectivity           = safe(function() return proto.effectivity end),
+        energy_sources        = safe(function() return S.entity_energy_sources(proto) end),
+        fluid_usage_per_tick  = safe(function() return proto.get_fluid_usage_per_tick() end) or safe(function() return proto.fluid_usage_per_tick end),
+        maximum_temperature   = safe(function() return proto.maximum_temperature end),
+        burns_fluid           = safe(function() return proto.burns_fluid end),
+        scale_fluid_usage     = safe(function() return proto.scale_fluid_usage end),
+        destroy_non_fuel_fluid = safe(function() return proto.destroy_non_fuel_fluid end),
+        target_temperature    = safe(function() return proto.target_temperature end),
+        boiler_mode           = safe(function() return proto.boiler_mode end),
+        neighbour_bonus       = safe(function() return proto.neighbour_bonus end),
+        solar_panel_performance_at_day   = safe(function() return proto.solar_panel_performance_at_day end),
+        solar_panel_performance_at_night = safe(function() return proto.solar_panel_performance_at_night end),
 
         --- 采矿机属性
         --- @see https://lua-api.factorio.com/latest/classes/LuaEntityPrototype.html#mining_speed
@@ -50,12 +65,21 @@ function Entity.export()
         resource_categories = safe(function() return keys(proto.resource_categories) end),
 
         --- 实验室属性
-        lab_inputs = safe(function() return proto.lab_inputs end),
+        lab_inputs                     = safe(function() return proto.lab_inputs end),
+        researching_speed             = safe(function() return proto.get_researching_speed() end),
+        science_pack_drain_rate_percent = safe(function() return proto.science_pack_drain_rate_percent end),
 
         --- 插件效果分享塔属性
         --- @see https://lua-api.factorio.com/latest/classes/LuaEntityPrototype.html#distribution_effectivity
         distribution_effectivity = safe(function() return proto.distribution_effectivity end),
-        supply_area_distance     = safe(function() return proto.supply_area_distance end),
+        distribution_effectivity_bonus_per_quality_level = safe(function()
+          return proto.distribution_effectivity_bonus_per_quality_level
+        end),
+        beacon_profile       = safe(function() return proto.profile end),
+        beacon_counter       = safe(function() return proto.beacon_counter end),
+        supply_area_distance = safe(function() return proto.get_supply_area_distance() end) or safe(function()
+          return proto.supply_area_distance
+        end),
 
         --- 流体接口
         --- @see https://lua-api.factorio.com/latest/classes/LuaFluidBoxPrototype.html
@@ -87,7 +111,7 @@ function Entity.export()
     end
   end
   table.sort(result, function(a, b) return a.name < b.name end)
-  log.info("导出实体: " .. #result .. " 个（共筛选 " .. #Constants.EXPORTABLE_ENTITY_TYPES .. " 种类型）")
+  log.info("导出实体: " .. #result .. " 个（共筛选 " .. Util.count_table(Constants.EXPORTABLE_ENTITY_TYPES) .. " 种类型）")
   return result
 end
 

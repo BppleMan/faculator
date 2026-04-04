@@ -43,7 +43,8 @@ Mod 在以下情况自动触发导出：
 导出文件位于 Factorio 的 `script-output/faculator/` 目录：
 
 - **`game-data.json`** — 所有原型数据（物品、配方、机器、科技、品质、太空等）
-- **`translations.json`** — 所有名称和描述的中文翻译
+- **`translations-<locale>.json`** — 当前语言的名称和描述翻译，如 `translations-en.json`、`translations-zh-CN.json`
+- **`export-manifest.json`** — 当前有效导出文件清单，供外部同步脚本使用
 
 `script-output` 目录位置：
 
@@ -113,7 +114,13 @@ faculator-export-mod/
 导出分两个阶段：
 
 1. **同步阶段** — 立即收集所有原型数据并写入 `game-data.json`
-2. **异步阶段** — 通过 `request_translation` API 请求游戏当前语言的翻译文本，完成后写入 `translations.json`
+2. **异步阶段** — 通过 `request_translation` API 请求游戏当前语言的翻译文本，完成后写入 `translations-<locale>.json`
+
+## 关于“清理导出目录”
+
+Factorio runtime 侧当前可靠可用的是写文件能力；为了避免文件名演进后外部同步误拿到旧文件，mod 会额外写出 `export-manifest.json`，把“本轮有效结果文件”列出来。
+
+因此推荐外部工具按 manifest 同步，而不是直接把整个 `script-output/faculator/` 目录无差别复制。
 
 翻译是异步的，大约需要几秒到几十秒（取决于字符串数量）。进度会在聊天窗口和日志文件中显示。
 

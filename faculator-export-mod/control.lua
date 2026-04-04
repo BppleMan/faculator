@@ -2,8 +2,9 @@
 --- 导出所有游戏原型数据 + 中文翻译到 JSON 文件。
 ---
 --- 输出目录: script-output/faculator/
----   - game-data.json     原型数据
----   - translations.json  本地化翻译
+---   - game-data.json        原型数据
+---   - translations*.json    本地化翻译（语言后缀文件）
+---   - export-manifest.json  当前有效导出文件清单
 ---
 --- 触发方式:
 ---   1. 游戏内 GUI 面板（mod 按钮栏中的 Faculator 按钮）
@@ -51,6 +52,7 @@ local function start_full_export(player)
   end
 
   ExportCoordinator.export()
+  storage.export_has_data = true
 
   if player then
     player.print(Constants.MSG_PREFIX .. "原型数据已写入 script-output/" .. Constants.OUTPUT_DIR .. Constants.DATA_FILENAME)

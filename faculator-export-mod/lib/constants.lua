@@ -13,6 +13,10 @@ Constants.OUTPUT_DIR = "faculator/"
 --- 原型数据输出文件名
 Constants.DATA_FILENAME = "game-data.json"
 
+--- 导出清单文件名
+--- 用于告诉外部同步脚本“本轮导出哪些文件是当前有效结果”。
+Constants.MANIFEST_FILENAME = "export-manifest.json"
+
 --- 翻译数据输出文件名（不带语言后缀的默认名，向后兼容）
 Constants.TRANSLATIONS_FILENAME = "translations.json"
 
@@ -41,8 +45,11 @@ Constants.EXPORTABLE_ENTITY_TYPES = {
   ["mining-drill"]       = true,  -- 采矿机
   ["offshore-pump"]      = true,  -- 近海泵
   ["boiler"]             = true,  -- 锅炉
+  ["burner-generator"]   = true,  -- 热能发电机
   ["generator"]          = true,  -- 发电机
+  ["fusion-generator"]   = true,  -- 聚变发电机
   ["reactor"]            = true,  -- 核反应堆
+  ["fusion-reactor"]     = true,  -- 聚变反应堆
   ["solar-panel"]        = true,  -- 太阳能电池板
   ["accumulator"]        = true,  -- 蓄电器
   ["beacon"]             = true,  -- 插件效果分享塔

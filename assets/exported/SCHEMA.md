@@ -27,6 +27,217 @@ game-data.json (~1.8MB)
 
 ---
 
+## 领域建模优先视角
+
+> 本节优先定义各 JSON 集合在 DDD 中承担的角色。
+> 本文同时覆盖当前仓库中的样例 `game-data.json`，以及导出 mod 已补充的目标 schema；若样例文件尚未重新导出，新增字段需在重新执行 mod 导出后才会出现在 JSON 中。
+> 本文定位为伪 UML / 开发指导文档，默认按“保真优先”原则组织：导出中存在的字段应尽量逐项列出，不预先进行领域裁剪。
+
+### 1. 参与量化计算的核心对象
+
+- `items` 和 `fluids` 在**物理存储上宜分表**，因为字段差异很大。
+- 但在**领域层**它们属于同一类“可被配方消耗、也可被配方产出”的对象。
+- 在 Rust 中宜统一抽象成 `Goods` 之类的枚举，而不是直接把两者混成一张宽表。
+
+```rust
+enum Goods {
+      Item { name: String },
+      Fluid { name: String },
+}
+```
+
+`Goods` 一词用于强调“产线中流动的物料项”这一语义，而不是地图实体或 UI 项。
+
+### 2. `item` 和 `entity` 不是同一个对象
+
+- `item: assembling-machine-1` 表示背包里的物品，可被制造、运输、放置。
+- `entity: assembling-machine-1` 表示地图上的机器，可执行配方、消耗能源、安装模块。
+- 二者**名称相同但语义不同**，只能通过关系关联，不能直接等同。
+
+对应关系是：
+
+- `items.place_result -> entities.name`
+- `entities.items_to_place_this[] -> items.name`
+
+这也是为什么 `item` 和 `entity` 应该在 DDD 中是两个独立对象。
+
+### 2.5 能源能力是“组件”，不是另一张隐藏实体表
+
+- 像 `burner`、`electric`、`fluid`、`heat` 这种能力，在 Factorio 运行时 API 里表现为挂在 `LuaEntityPrototype` 上的**能量源子原型**。
+- 它们确实在概念上像“给实体插了一个能力模块”，但在建模时更接近 **Entity 的组件 / Value Object**，而不是另一条独立 `entity` 记录。
+- 在 DDD/数据库中，“燃烧器”不宜再建成一张独立实体表与机器做 1:1 关联；更自然的建模方式如下：
+
+```text
+Entity
+ ├── ProductionCapability
+ ├── ModuleCapability
+ └── EnergySource
+      ├── BurnerEnergySource
+      ├── ElectricEnergySource
+      ├── FluidEnergySource
+      ├── HeatEnergySource
+      └── VoidEnergySource
+```
+
+- 其中 `BurnerEnergySource` 负责回答：这台机器能接受哪些燃料类别、燃料槽多大、燃烧效率是多少。
+- “某个实体能烧什么”并不是由 `entity` 直接写死一个布尔值，而是由其挂载的 `energy_sources.burner` 组件提供该能力。
+
+### 3. `recipe` 才拥有 `category`，`item` 本身没有
+
+- `recipe.category` 决定这个配方需要什么类型的机器来执行。
+- `entity.crafting_categories[]` 决定这台机器支持哪些配方类别。
+- `item` 或 `fluid` 本身**不属于某个 crafting category**。
+
+真实关系如下：
+
+```text
+Goods ──作为原料/产物──→ Recipe ──按 category 约束──→ Entity
+```
+
+### 4. `item_groups` 是“百科目录 / UI 导航树”
+
+- `item_groups -> subgroups -> items/recipes/entities` 这条链路是给用户看的。
+- 它适合在 DDD 中作为“目录/展示子域”，服务于百科浏览、搜索过滤、分组展示。
+- 它不负责机器兼容性、能量学、模块效果这些量化规则。
+
+### 5. `xxx_categories` 更像值对象/枚举，不是核心实体
+
+- `recipe_categories`、`fuel_categories`、`resource_categories`、`module_categories` 本质上是**受控取值集合**。
+- 它们的主要作用是给字符串字段提供边界、让关联更安全。
+- 在 Rust 中可落成 enum / value object；若未来需要支持 mod，宜使用 `Unknown(String)` 作为兜底分支。
+
+```rust
+enum CraftingCategory {
+      Crafting,
+      Smelting,
+      Chemistry,
+      Unknown(String),
+}
+```
+
+### 6. 可以粗分成三层子域
+
+- **核心计算域**：`Goods`、`recipes`、`entities`
+- **约束/能力域**：`technologies`、`qualities`、`space_locations`、各种 `*_categories`、能源系统字段、模块/信标字段
+- **展示/百科域**：`item_groups`、翻译、图标、排序字段
+
+### 7. 字段联动与用法规则
+
+> 本节不重复罗列字段，而是说明字段用途、联动关系与建模解释方式。
+
+#### 7.1 `group` / `subgroup` / `order` 是展示排序链，不是生产规则
+
+- `group` 和 `subgroup` 主要用于 UI、百科目录、筛选面板、默认列表排序。
+- `order` 是同一层级中的字符串排序键，Factorio UI 会按它做字典序排序，而不是按数值排序。
+- 这三个字段通常一起使用：
+
+```text
+group -> subgroup -> order -> name
+```
+
+- 在数据库或 Rust 模型中，宜将它们视为“展示排序元数据”，不应误当成生产兼容性规则。
+- 例子：- `item.group = production` - `item.subgroup = production-machine` - `item.order = z-a[assembling-machine-1]` - 含义是“显示在生产组 / 生产机器子组 / 该子组中的某个排序位置”，而不是“它能做 z-a 类配方”。
+
+#### 7.2 `items.place_result` 和 `entities.items_to_place_this[]` 构成物品 <-> 实体双向映射
+
+- `items.place_result -> entities.name` 表示“背包里的这个物品，放下后会变成哪台地图实体”。
+- `entities.items_to_place_this[] -> items.name` 表示“要在地图上放出这个实体，需要消耗哪些物品”。
+- 通常大多数简单机器是 1:1，例如：- `item: assembling-machine-2.place_result = assembling-machine-2` - `entity: assembling-machine-2.items_to_place_this = [{ name: assembling-machine-2, count: 1 }]`
+- 但建模时不要假设永远 1:1，因为某些实体可能来自多个物品组合，或不同放置路径。
+
+#### 7.3 `fuel_value` / `fuel_category` / `energy_sources.burner.fuel_categories[]` 一起决定燃料兼容性
+
+- `items.fuel_value > 0` 或 `fluids.fuel_value > 0` 说明它是“有热值的可燃物”。
+- `items.fuel_category` / `fluids.fuel_category` 说明它属于哪一类燃料。
+- `entities.energy_sources.burner.fuel_categories[]` 说明这台机器接受哪些燃料类。
+- 三者联动关系是：
+
+```text
+goods.fuel_value > 0
+goods.fuel_category == chemical
+entity.energy_sources.burner.fuel_categories contains chemical
+=> 该 goods 可以作为该 entity 的燃料
+```
+
+- 例子：煤炭 `fuel_category = chemical`，锅炉 `energy_sources.burner.fuel_categories = [chemical]`，所以锅炉能烧煤。
+
+#### 7.4 `item.category` / `item.module_effects` / `entity.allowed_effects` / `entity.allowed_module_categories` 一起决定模块兼容性
+
+- `item.category` 是模块所属类别，如 `speed` / `productivity` / `efficiency` / `quality`。
+- `item.module_effects` 是该模块实际提供的效果数值。
+- `entity.allowed_effects` 是机器允许接收哪些效果。
+- `entity.allowed_module_categories` 是机器额外限制的模块类别白名单。
+- 建模时宜按“先类别，再效果，再数值”的顺序理解：
+
+```text
+module.item.category == speed
+module.item.module_effects.speed = +0.2
+entity.allowed_effects contains speed
+entity.allowed_module_categories is nil or contains speed
+=> 该模块可插入该机器，并提供 speed 加成
+```
+
+- 例子：速度模块的 `category = speed`，组装机 `allowed_effects` 包含 `speed`，所以可插；炼油厂若禁止某效果，即使名字上像模块，也不应允许。
+
+#### 7.5 `effect_receiver` 决定模块、beacon、地表效果是否真正生效
+
+- `allowed_effects` 只回答“允许哪些效果类型进入规则系统”。
+- `effect_receiver` 才回答“这台机器实际上是否接收模块效果 / beacon 效果 / surface 效果”。
+- 联动时要同时判断：- `module_inventory_size > 0` - `allowed_effects` 包含该效果 - `effect_receiver.uses_module_effects == true`
+- 对 beacon 也是同理：- `effect_receiver.uses_beacon_effects == true` - 再乘 `distribution_effectivity` 和 `beacon_profile`
+
+#### 7.6 `recipes.allowed_effects` / `recipes.allowed_module_categories` 是“配方层限制”，会覆盖机器层能力
+
+- 机器允许插模块，不等于所有配方都允许吃该模块效果。
+- `recipes.allowed_effects` 表示该配方允许哪些效果参与运算。
+- `recipes.allowed_module_categories` 表示该配方允许哪些模块类别。
+- 所以最终判断通常是“实体能力 ∩ 配方能力”。
+- 例子：某机器允许 `productivity`，但某回收配方可能不允许 `productivity`，那么该配方执行时就不能吃产能插件。
+
+#### 7.7 `lab_inputs` / `research_unit_ingredients` / `researching_speed` / `science_pack_drain_rate_percent` 一起决定科研速率
+
+- `technologies.research_unit_ingredients` 定义某科技需要哪些科技包。
+- `entities.lab_inputs` 定义某实验室接受哪些科技包。
+- 只有当 `research_unit_ingredients` 中的每种科技包都包含在 `lab_inputs` 里，这个实验室才能研究该科技。
+- `researching_speed` 是实验室研究速度倍率。
+- `science_pack_drain_rate_percent` 是每个研究点消耗科技瓶耐久的比例。
+- 常见计算：
+
+```text
+实验室每秒研究点数 = researching_speed
+实验室每秒单种科技瓶消耗 = researching_speed * science_pack_drain_rate_percent / 100
+```
+
+#### 7.8 `technologies.effects` 与 `recipes` / `space_locations` / `qualities` 联动
+
+- `unlock-recipe`：`technology.effects[].recipe -> recipes.name`
+- `unlock-space-location`：`technology.effects[].space_location -> space_locations.name`
+- `unlock-quality`：启用品质系统，与 `qualities` 集合联动
+- 这意味着科技树不是独立表，而是“解锁其他域对象的规则表”。
+
+#### 7.9 `qualities` 会反向影响实体与科研消耗
+
+- `qualities.science_pack_drain_multiplier` 会影响科技包消耗倍率。
+- `qualities.beacon_power_usage_multiplier` 会影响 beacon 的能耗。
+- `entities.quality_affects_module_slots` 表示实体模块槽是否随品质变化。
+- 所以品质不是单独的 UI 标签，而是会反过来改写生产和科研参数的约束层。
+
+#### 7.10 `surface_conditions` / `space_locations.surface_properties` / `space_connections` 构成星球约束系统
+
+- `recipes.surface_conditions` 和 `entities.surface_conditions` 说明对象在什么地表属性下可用。
+- `space_locations.surface_properties` 给出星球实际属性。
+- `space_connections` 描述地点之间如何相连。
+- 例子：- 某配方要求 `pressure = 4000` - 只有满足该压力属性的 `space_location` 上才允许执行
+
+#### 7.11 `hidden` / `enabled` / `visible_when_disabled` 是“可见性状态”，不要和“可计算性”混淆
+
+- `hidden` 说明默认不面向玩家显示，但对象可能仍然存在并参与系统运算。
+- `enabled` 说明是否初始可用，特别常见于配方和科技。
+- `visible_when_disabled` 说明未解锁时是否仍展示在科技树中。
+- 例子：很多回收配方是 `hidden = true`，但量化器仍可能需要识别它们。
+
+---
+
 ## 数据关系图
 
 ```
@@ -231,34 +442,36 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 
 ### `items` — 物品（342 条）
 
-| 字段                             | 类型     | 必填 | 说明                                                                                             |
-| -------------------------------- | -------- | ---- | ------------------------------------------------------------------------------------------------ |
-| **name**                         | string   | ✅   | 物品内部 ID                                                                                      |
-| **type**                         | string   | ✅   | 物品类型，共 18 种：item, tool, ammo, armor, module, capsule, blueprint, repair-tool...          |
-| **stack_size**                   | int      | ✅   | 堆叠数量，1~100000                                                                               |
-| **weight**                       | number   | ✅   | 重量（太空平台运载相关），0~10000000                                                             |
-| **group**                        | string   | ✅   | 所属大分组：combat / intermediate-products / logistics / production / space / other              |
-| **subgroup**                     | string   | ✅   | 所属子分组，46 种                                                                                |
-| **order**                        | string   | ✅   | 排序键                                                                                           |
-| **hidden**                       | bool     | ✅   | 是否隐藏（39 个隐藏）                                                                            |
-| **default_import_location**      | string   | ✅   | 默认导入星球：nauvis / vulcanus / fulgora / gleba / aquilo                                       |
-| **fuel_value**                   | int      | ✅   | 燃料热值（焦耳），0 表示不是燃料                                                                 |
-| **fuel_acceleration_multiplier** | number   | ✅   | 燃料加速倍率                                                                                     |
-| **fuel_top_speed_multiplier**    | number   | ✅   | 燃料极速倍率                                                                                     |
-| **fuel_emissions_multiplier**    | int      | ✅   | 燃料排放倍率                                                                                     |
-| **flags**                        | string[] | ✅   | 物品标记，可能值：not-stackable, only-in-cursor, spawnable, hide-from-bonus-gui, spoil-result... |
-| fuel_category                    | string   | ❌   | 燃料类别（仅 20 个有）：chemical / nuclear / food / nutrients / fusion                           |
-| category                         | string   | ❌   | 模块类别（仅 12 个模块有）：speed / productivity / efficiency / quality                          |
-| tier                             | int      | ❌   | 模块等级（仅 12 个模块有）：1~3                                                                  |
-| place_result                     | string   | ❌   | 放置后变成的实体名（137 个有）                                                                   |
-| place_as_equipment_result        | string   | ❌   | 放置后变成的装备名（17 个有）                                                                    |
-| spoil_result                     | string   | ❌   | 腐烂产物（10 个有）：spoilage / iron-ore / copper-ore                                            |
-| burnt_result                     | string   | ❌   | 燃烧产物（仅 1 个：depleted-uranium-fuel-cell）                                                  |
+| 字段                             | 类型        | 必填 | 说明                                                                                             |
+| -------------------------------- | ----------- | ---- | ------------------------------------------------------------------------------------------------ |
+| **name**                         | string      | ✅   | 物品内部 ID                                                                                      |
+| **type**                         | string      | ✅   | 物品类型，共 18 种：item, tool, ammo, armor, module, capsule, blueprint, repair-tool...          |
+| **stack_size**                   | int         | ✅   | 堆叠数量，1~100000                                                                               |
+| **weight**                       | number      | ✅   | 重量（太空平台运载相关），0~10000000                                                             |
+| **group**                        | string      | ✅   | 所属大分组：combat / intermediate-products / logistics / production / space / other              |
+| **subgroup**                     | string      | ✅   | 所属子分组，46 种                                                                                |
+| **order**                        | string      | ✅   | 排序键                                                                                           |
+| **hidden**                       | bool        | ✅   | 是否隐藏（39 个隐藏）                                                                            |
+| **default_import_location**      | string      | ✅   | 默认导入星球：nauvis / vulcanus / fulgora / gleba / aquilo                                       |
+| **fuel_value**                   | int         | ✅   | 燃料热值（焦耳），0 表示不是燃料                                                                 |
+| **fuel_acceleration_multiplier** | number      | ✅   | 燃料加速倍率                                                                                     |
+| **fuel_top_speed_multiplier**    | number      | ✅   | 燃料极速倍率                                                                                     |
+| **fuel_emissions_multiplier**    | int         | ✅   | 燃料排放倍率                                                                                     |
+| **flags**                        | string[]    | ✅   | 物品标记，可能值：not-stackable, only-in-cursor, spawnable, hide-from-bonus-gui, spoil-result... |
+| fuel_category                    | string      | ❌   | 燃料类别（仅 20 个有）：chemical / nuclear / food / nutrients / fusion                           |
+| module_effects                   | object      | ❌   | 模块的具体效果（仅模块有）：speed / productivity / consumption / pollution / quality             |
+| category                         | string      | ❌   | 模块类别（仅 12 个模块有）：speed / productivity / efficiency / quality                          |
+| tier                             | int         | ❌   | 模块等级（仅 12 个模块有）：1~3                                                                  |
+| place_result                     | string      | ❌   | 放置后变成的实体名（137 个有）                                                                   |
+| rocket_launch_products           | `Product[]` | ❌   | 火箭发射产物（仅少数物品有）                                                                     |
+| place_as_equipment_result        | string      | ❌   | 放置后变成的装备名（17 个有）                                                                    |
+| spoil_result                     | string      | ❌   | 腐烂产物（10 个有）：spoilage / iron-ore / copper-ore                                            |
+| burnt_result                     | string      | ❌   | 燃烧产物（仅 1 个：depleted-uranium-fuel-cell）                                                  |
 
 **常见查询**：
 
 - 找所有可作为燃料的物品 → `fuel_value > 0`
-- 找所有模块 → `type == "module"`, 看 `category` 和 `tier`
+- 找所有模块 → `type == "module"`, 看 `category`、`tier` 和 `module_effects`
 - 找物品对应的可放置实体 → `place_result`
 - 找某个分组下的物品 → `group == "xxx"` 或 `subgroup == "xxx"`
 
@@ -299,6 +512,7 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 | **ingredients**               | `Ingredient[]`       | ✅   | 原料列表                                     |
 | **products**                  | `Product[]`          | ✅   | 产物列表                                     |
 | **allowed_effects**           | string[]             | ✅   | 允许的模块效果，通常 5 种全部允许            |
+| allowed_module_categories     | string[]             | ❌   | 允许的模块类别；部分配方会显式限制模块类型   |
 | **maximum_productivity**      | int                  | ✅   | 最大产能加成，固定 3 (300%)                  |
 | **emissions_multiplier**      | int                  | ✅   | 排放倍率                                     |
 | **allow_as_intermediate**     | bool                 | ✅   | 可否作为中间产物自动制作                     |
@@ -310,6 +524,8 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 | **hide_from_player_crafting** | bool                 | ✅   | 是否从手工制作中隐藏                         |
 | main_product                  | `{type, name}`       | ❌   | 主产物（423 个有），用于显示配方图标         |
 | surface_conditions            | `SurfaceCondition[]` | ❌   | 星球条件限制（36 个有）                      |
+| additional_categories         | string[]             | ❌   | 配方额外所属的制作类别（Space Age 字段）     |
+| unlock_results                | `{type,name}[]`      | ❌   | 配方附带解锁/产生的结果引用                  |
 
 **Ingredient**: `{ type: "item"|"fluid", name: string, amount: number }`
 
@@ -332,73 +548,119 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 
 ---
 
-### `entities` — 生产实体（36 条）⭐ 核心数据
+### `entities` — 生产实体 ⭐ 核心数据
 
-| 字段                         | 类型                 | 必填 | 说明                                 |
-| ---------------------------- | -------------------- | ---- | ------------------------------------ |
-| **name**                     | string               | ✅   | 实体内部 ID                          |
-| **type**                     | string               | ✅   | 实体类型，15 种                      |
-| **group**                    | string               | ✅   | 分组                                 |
-| **subgroup**                 | string               | ✅   | 子分组                               |
-| **order**                    | string               | ✅   | 排序键                               |
-| **hidden**                   | bool                 | ✅   | 是否隐藏（全部 false）               |
-| **module_inventory_size**    | int                  | ✅   | 模块槽数量，0~8                      |
-| **items_to_place_this**      | `{name,count}[]`     | ✅   | 放置该实体需要的物品                 |
-| energy_usage                 | number               | ❌   | 能耗（瓦），26 个有                  |
-| crafting_categories          | string[]             | ❌   | 可制作的配方类别（17 个有），1~14 种 |
-| allowed_effects              | string[]             | ❌   | 允许的模块效果（24 个有）            |
-| mining_speed                 | number               | ❌   | 采矿速度（4 个矿机有）               |
-| mining_drill_radius          | number               | ❌   | 采矿半径（4 个矿机有）               |
-| resource_categories          | string[]             | ❌   | 可采哪些资源类别（4 个矿机有）       |
-| lab_inputs                   | string[]             | ❌   | 接受的科技包（2 个实验室有）         |
-| next_upgrade                 | string               | ❌   | 下一级升级实体（3 个有）             |
-| distribution_effectivity     | number               | ❌   | 信标分配效率（仅 beacon 有）         |
-| quality_affects_module_slots | bool                 | ❌   | 品质是否影响模块槽（24 个有）        |
-| surface_conditions           | `SurfaceCondition[]` | ❌   | 星球条件限制（12 个有）              |
+| 字段                                             | 类型                 | 必填 | 说明                                                              |
+| ------------------------------------------------ | -------------------- | ---- | ----------------------------------------------------------------- |
+| **name**                                         | string               | ✅   | 实体内部 ID                                                       |
+| **type**                                         | string               | ✅   | 实体类型                                                          |
+| **group**                                        | string               | ✅   | 分组                                                              |
+| **subgroup**                                     | string               | ✅   | 子分组                                                            |
+| **order**                                        | string               | ✅   | 排序键                                                            |
+| **hidden**                                       | bool                 | ✅   | 是否隐藏                                                          |
+| **module_inventory_size**                        | int                  | ✅   | 模块槽数量，0~8                                                   |
+| **items_to_place_this**                          | `{name,count}[]`     | ✅   | 放置该实体需要的物品                                              |
+| crafting_categories                              | string[]             | ❌   | 可制作的配方类别                                                  |
+| crafting_speed                                   | number               | ❌   | 制作速度倍率，如组装机 1 = 0.5                                    |
+| allowed_effects                                  | string[]             | ❌   | 允许的模块效果：speed / productivity / consumption / pollution... |
+| allowed_module_categories                        | string[]             | ❌   | 允许插入的模块类别                                                |
+| effect_receiver                                  | object               | ❌   | 这台机器是否吃模块/信标/地表效果，以及其基础效果                  |
+| energy_usage                                     | number               | ❌   | 基础能耗（瓦）                                                    |
+| max_energy_usage                                 | number               | ❌   | 理论最大能耗                                                      |
+| max_energy_production                            | number               | ❌   | 理论最大发电功率                                                  |
+| max_power_output                                 | number               | ❌   | 发电机/热能发电机的最大输出功率                                   |
+| effectivity                                      | number               | ❌   | 发电/燃料能量利用率                                               |
+| energy_sources                                   | object               | ❌   | 统一汇总的能源系统信息，见下方说明                                |
+| fluid_usage_per_tick                             | number               | ❌   | 发电机/聚变机每 tick 流体消耗量                                   |
+| maximum_temperature                              | number               | ❌   | 发电机输入流体可接受的最高温度                                    |
+| burns_fluid                                      | bool                 | ❌   | 流体发电是否按 fuel_value 燃烧                                    |
+| scale_fluid_usage                                | bool                 | ❌   | 发电机是否随负载缩放流体消耗                                      |
+| destroy_non_fuel_fluid                           | bool                 | ❌   | 是否销毁非燃料流体                                                |
+| target_temperature                               | number               | ❌   | 锅炉/聚变反应堆目标温度                                           |
+| boiler_mode                                      | string               | ❌   | 锅炉工作模式                                                      |
+| fluidbox_prototypes                              | object[]             | ❌   | 实体的流体输入输出接口                                            |
+| mining_speed                                     | number               | ❌   | 采矿速度                                                          |
+| mining_drill_radius                              | number               | ❌   | 采矿半径                                                          |
+| resource_categories                              | string[]             | ❌   | 可采哪些资源类别                                                  |
+| lab_inputs                                       | string[]             | ❌   | 实验室接受哪些科技瓶                                              |
+| researching_speed                                | number               | ❌   | 实验室研究速度倍率                                                |
+| science_pack_drain_rate_percent                  | int                  | ❌   | 每个研究点消耗多少 % 的科技瓶耐久                                 |
+| distribution_effectivity                         | number               | ❌   | beacon 模块效果传递倍率                                           |
+| distribution_effectivity_bonus_per_quality_level | number               | ❌   | beacon 品质每级增加多少传递倍率                                   |
+| beacon_profile                                   | number[]             | ❌   | beacon 多塔叠加时的采样曲线                                       |
+| beacon_counter                                   | string               | ❌   | beacon 叠加计数方式：`total` / `same_type`                        |
+| supply_area_distance                             | number               | ❌   | beacon 生效半径                                                   |
+| neighbour_bonus                                  | number               | ❌   | 反应堆/聚变反应堆相邻加成                                         |
+| next_upgrade                                     | string               | ❌   | 下一级升级实体                                                    |
+| quality_affects_module_slots                     | bool                 | ❌   | 品质是否影响模块槽                                                |
+| surface_conditions                               | `SurfaceCondition[]` | ❌   | 星球条件限制                                                      |
+
+**`energy_sources` 子结构**：
+
+- 这一整块在 DDD 中宜视为 `Entity` 的**能源能力组件**，而不是新的实体表。
+- `types: string[]`：该实体具备哪些能量源，如 `burner` / `electric` / `fluid` / `heat` / `void`
+- `burner`：`effectivity`、`fuel_categories[]`、`fuel_inventory_size`、`burnt_inventory_size`、`initial_fuel`、`emissions_per_joule`
+- `electric`：`buffer_capacity`、`usage_priority`、`drain`、`input_flow_limit`、`output_flow_limit`、`emissions_per_joule`
+- `fluid`：`effectivity`、`fluid_usage_per_tick`、`burns_fluid`、`scale_fluid_usage`、`maximum_temperature`、`fluid_box`
+- `heat`：`max_temperature`、`specific_heat`、`max_transfer`、`min_working_temperature`、`heat_buffer`
+- `void`：仅用于吞噬/忽略能量的场景，一般只含 `emissions_per_joule`
+
+**`effect_receiver` 子结构**：
+
+- `base_effect`：机器自带的基础效果字典
+- `uses_module_effects`：是否吃模块效果
+- `uses_beacon_effects`：是否吃 beacon 效果
+- `uses_surface_effects`：是否吃地表/星球环境效果
 
 **实体类型分布**：
 
-| type               | 数量 | 实例                                                                                                                    |
-| ------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------- |
-| assembling-machine | 12   | assembling-machine-1/2/3, chemical-plant, oil-refinery, cryogenic-plant, foundry, crusher, biochamber...                |
-| mining-drill       | 4    | burner-mining-drill, electric-mining-drill, big-mining-drill, pumpjack                                                  |
-| furnace            | 4    | stone-furnace, steel-furnace, electric-furnace, recycler                                                                |
-| lab                | 2    | lab, biolab                                                                                                             |
-| boiler             | 2    | boiler, heat-exchanger                                                                                                  |
-| reactor            | 2    | nuclear-reactor, heating-tower                                                                                          |
-| generator          | 2    | steam-engine, steam-turbine                                                                                             |
-| 其他               | 8    | accumulator, solar-panel, beacon, rocket-silo, agricultural-tower, cargo-landing-pad, offshore-pump, space-platform-hub |
+| type               | 数量 | 实例                                                                                                     |
+| ------------------ | ---- | -------------------------------------------------------------------------------------------------------- |
+| assembling-machine | 12   | assembling-machine-1/2/3, chemical-plant, oil-refinery, cryogenic-plant, foundry, crusher, biochamber... |
+| mining-drill       | 4    | burner-mining-drill, electric-mining-drill, big-mining-drill, pumpjack                                   |
+| furnace            | 4    | stone-furnace, steel-furnace, electric-furnace, recycler                                                 |
+| lab                | 2    | lab, biolab                                                                                              |
+| boiler             | 2    | boiler, heat-exchanger                                                                                   |
+| reactor            | 2    | nuclear-reactor, heating-tower                                                                           |
+| generator          | 2    | steam-engine, steam-turbine                                                                              |
+| 其他               | —    | accumulator, solar-panel, beacon, burner-generator, fusion-generator, fusion-reactor, rocket-silo...     |
 
 **常见查询**：
 
 - 找能制作某category配方的机器 → `crafting_categories` 包含该 category
-- 找机器的制作速度 → `energy_usage`（注意这是能耗，制作速度在 data-raw 的 `crafting_speed` 中，mod 未导出，需补充⚠️）
+- 找机器的制作速度 → `crafting_speed`
 - 找可以放模块的机器 → `module_inventory_size > 0`
+- 找某台机器能接受哪些燃料 → `energy_sources.burner.fuel_categories[]`，再去 `items/fluids` 找对应 `fuel_category`
+- 算燃烧机器的燃料消耗速率 → `功率 / (燃料热值 × burner.effectivity)`
+- 找发电机最大电功率 → `max_power_output` 或 `max_energy_production`
+- 算流体发电机每秒流体消耗 → `fluid_usage_per_tick × 60`
+- 算实验室每秒消耗科技瓶速率 → `researching_speed × science_pack_drain_rate_percent / 100`
+- 找 beacon 对周围机器的加成倍率 → `distribution_effectivity` + `beacon_profile`
 
 ---
 
 ### `technologies` — 科技（275 条）
 
-| 字段                          | 类型              | 必填 | 说明                                                                                                               |
-| ----------------------------- | ----------------- | ---- | ------------------------------------------------------------------------------------------------------------------ |
-| **name**                      | string            | ✅   | 科技内部 ID                                                                                                        |
-| **group** / **subgroup**      | string            | ✅   | 分组（当前全部为 "other"）                                                                                         |
-| **order**                     | string            | ✅   | 排序键                                                                                                             |
-| **enabled** / **hidden**      | bool              | ✅   | 状态（当前全部 enabled, 全部不 hidden）                                                                            |
-| **level**                     | int               | ✅   | 当前等级，1~7                                                                                                      |
-| **max_level**                 | int               | ✅   | 最大等级，1~4294967295（无限研究用 uint32 max）                                                                    |
-| **upgrade**                   | bool              | ✅   | 是否为升级型科技（106 个是）                                                                                       |
-| **essential**                 | bool              | ✅   | 是否为关键科技（17 个是）                                                                                          |
-| **allows_productivity**       | bool              | ✅   | 是否允许产能加成（全部 true）                                                                                      |
-| **visible_when_disabled**     | bool              | ✅   | 禁用时是否可见（全部 false）                                                                                       |
-| **prerequisites**             | string[]          | ✅   | 前置科技名列表                                                                                                     |
-| **successors**                | string[]          | ✅   | 后继科技名列表                                                                                                     |
-| **effects**                   | `Effect[]`        | ✅   | 科技效果列表                                                                                                       |
-| **research_unit_count**       | int               | ✅   | 研究所需科技包数量，1~5000                                                                                         |
-| **research_unit_energy**      | int               | ✅   | 每个研究单元耗时（tick，60tick=1秒），0~7200                                                                       |
-| **research_unit_ingredients** | `{name,amount}[]` | ✅   | 需要的科技包种类和数量                                                                                             |
-| research_unit_count_formula   | string            | ❌   | 无限研究的数量公式（23 个有），如 `"1.5^L*1000"`                                                                   |
-| research_trigger              | object            | ❌   | 触发型研究条件（32 个有），type: craft-item / build-entity / mine-entity / capture-spawner / create-space-platform |
+| 字段                          | 类型              | 必填 | 说明                                                                                                                          |
+| ----------------------------- | ----------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **name**                      | string            | ✅   | 科技内部 ID                                                                                                                   |
+| **group** / **subgroup**      | string            | ✅   | 分组（当前全部为 "other"）                                                                                                    |
+| **order**                     | string            | ✅   | 排序键                                                                                                                        |
+| **enabled** / **hidden**      | bool              | ✅   | 状态（当前全部 enabled, 全部不 hidden）                                                                                       |
+| **level**                     | int               | ✅   | 当前等级，1~7                                                                                                                 |
+| **max_level**                 | int               | ✅   | 最大等级，1~4294967295（无限研究用 uint32 max）                                                                               |
+| **upgrade**                   | bool              | ✅   | 是否为升级型科技（106 个是）                                                                                                  |
+| **essential**                 | bool              | ✅   | 是否为关键科技（17 个是）                                                                                                     |
+| **allows_productivity**       | bool              | ✅   | 是否允许产能加成（全部 true）                                                                                                 |
+| **visible_when_disabled**     | bool              | ✅   | 禁用时是否可见（全部 false）                                                                                                  |
+| **prerequisites**             | string[]          | ✅   | 前置科技名列表                                                                                                                |
+| **successors**                | string[]          | ✅   | 后继科技名列表                                                                                                                |
+| **effects**                   | `Effect[]`        | ✅   | 科技效果列表                                                                                                                  |
+| **research_unit_count**       | int               | ✅   | 研究所需科技包数量，1~5000                                                                                                    |
+| **research_unit_energy**      | int               | ✅   | 每个研究单元耗时（tick，60tick=1秒），0~7200                                                                                  |
+| **research_unit_ingredients** | `{name,amount}[]` | ✅   | 需要的科技包种类和数量                                                                                                        |
+| research_unit_count_formula   | string            | ❌   | 无限研究的数量公式（23 个有），如 `"1.5^L*1000"`                                                                              |
+| research_trigger              | object            | ❌   | 触发型研究条件；当前导出至少保留 `type`，如 craft-item / build-entity / mine-entity / capture-spawner / create-space-platform |
 
 **Effect 类型**（31 种）：
 
@@ -424,6 +686,7 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 - 找解锁某配方的科技 → 遍历 technologies，检查 effects 中 `type == "unlock-recipe" && recipe == "xxx"`
 - 构建科技树 → 用 `prerequisites` + `successors`
 - 计算研究成本 → `research_unit_count * research_unit_ingredients`，时间 = `research_unit_count * research_unit_energy / 60` 秒
+- 算单个实验室每秒消耗多少科技瓶 → 结合 `entities(type == "lab")` 的 `researching_speed` 与 `science_pack_drain_rate_percent`
 
 ---
 
@@ -431,6 +694,7 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 
 | 字段                                   | 类型        | 说明                                                     |
 | -------------------------------------- | ----------- | -------------------------------------------------------- |
+| group / subgroup / order / hidden      | string/bool | 与其他原型一致的基础元信息；适合直接映射建模             |
 | name                                   | string      | normal, uncommon, rare, epic, legendary, quality-unknown |
 | level                                  | int         | 0~5                                                      |
 | next                                   | string?     | 下一品质名                                               |
@@ -444,12 +708,13 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 
 ### `space_locations` — 星球（8 条）
 
-| 字段                 | 类型     | 说明                                                                                                  |
-| -------------------- | -------- | ----------------------------------------------------------------------------------------------------- |
-| name                 | string   | nauvis, vulcanus, gleba, fulgora, aquilo, solar-system-edge, shattered-planet, space-location-unknown |
-| position             | `{x, y}` | 星图坐标                                                                                              |
-| solar_power_in_space | int      | 太空太阳能功率，1~600                                                                                 |
-| surface_properties   | object?  | 表面属性（仅 5 个有）：day-night-cycle, gravity, magnetic-field, pressure, solar-power                |
+| 字段                              | 类型        | 说明                                                                                                  |
+| --------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| group / subgroup / order / hidden | string/bool | 与其他原型一致的基础元信息                                                                            |
+| name                              | string      | nauvis, vulcanus, gleba, fulgora, aquilo, solar-system-edge, shattered-planet, space-location-unknown |
+| position                          | `{x, y}`    | 星图坐标                                                                                              |
+| solar_power_in_space              | int         | 太空太阳能功率，1~600                                                                                 |
+| surface_properties                | object?     | 表面属性（仅 5 个有）：day-night-cycle, gravity, magnetic-field, pressure, solar-power                |
 
 ### `space_connections` — 星际航线（9 条）
 
@@ -464,63 +729,75 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 
 ### `equipment` — 装甲装备（18 条）
 
-| 字段                 | 类型              | 说明                                                                                                 |
-| -------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
-| name                 | string            | 装备内部 ID                                                                                          |
-| type                 | string            | 11 种类型：battery-equipment, energy-shield-equipment, solar-panel-equipment, generator-equipment... |
-| shape                | `{width, height}` | 占用的网格大小                                                                                       |
-| energy_production    | number            | 能量产出                                                                                             |
-| energy_per_shield    | int               | 每点护盾能量消耗                                                                                     |
-| equipment_categories | string[]          | 适用的装备类别（armor / atp-equipment-category）                                                     |
-| take_result          | string?           | 拆下后得到的物品                                                                                     |
+| 字段                              | 类型                    | 说明                                                                                                 |
+| --------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| name                              | string                  | 装备内部 ID                                                                                          |
+| type                              | string                  | 11 种类型：battery-equipment, energy-shield-equipment, solar-panel-equipment, generator-equipment... |
+| group / subgroup / order / hidden | string/bool             | 与其他原型一致的基础元信息                                                                           |
+| shape                             | `{width, height, type}` | 占用的网格大小与形状类型                                                                             |
+| energy_production                 | number                  | 能量产出                                                                                             |
+| energy_per_shield                 | int                     | 每点护盾能量消耗                                                                                     |
+| energy_source                     | `{type}`                | 装备自身能量源类型；当前导出最少只保留 type                                                          |
+| equipment_categories              | string[]                | 适用的装备类别（armor / atp-equipment-category）                                                     |
+| take_result                       | string?                 | 拆下后得到的物品                                                                                     |
 
 ### `equipment_grids` — 装甲网格（6 条）
 
-| 字段                 | 类型     | 说明                   |
-| -------------------- | -------- | ---------------------- |
-| name                 | string   | 网格 ID                |
-| width / height       | int      | 网格尺寸，2×4 到 10×12 |
-| equipment_categories | string[] | 兼容的装备类别         |
+| 字段                              | 类型        | 说明                       |
+| --------------------------------- | ----------- | -------------------------- |
+| group / subgroup / order / hidden | string/bool | 与其他原型一致的基础元信息 |
+| name                              | string      | 网格 ID                    |
+| width / height                    | int         | 网格尺寸，2×4 到 10×12     |
+| locked                            | bool        | 网格是否锁定               |
+| equipment_categories              | string[]    | 兼容的装备类别             |
 
 ---
 
 ## 快速查询指南
 
-| 我想知道...                        | 去哪找                                                                  |
-| ---------------------------------- | ----------------------------------------------------------------------- |
-| 物品的基本信息（堆叠、重量、分组） | `items`                                                                 |
-| 物品是否可作为燃料                 | `items` → `fuel_value > 0` + `fuel_category`                            |
-| 物品是否是模块                     | `items` → `type == "module"`, 看 `category` 和 `tier`                   |
-| 物品对应的建筑实体                 | `items` → `place_result` → `entities`                                   |
-| 流体的温度范围                     | `fluids` → `default_temperature` / `max_temperature`                    |
-| 配方的原料和产物                   | `recipes` → `ingredients` / `products`                                  |
-| 配方的制作时间                     | `recipes` → `energy`（秒）                                              |
-| 配方需要什么机器做                 | `recipes` → `category` → 找 `entities.crafting_categories` 包含它的     |
-| 哪些机器能做这个配方               | `entities` → 筛选 `crafting_categories` 包含 `recipe.category`          |
-| 机器有几个模块槽                   | `entities` → `module_inventory_size`                                    |
-| 配方允许哪些模块效果               | `recipes` → `allowed_effects`                                           |
-| 配方是否初始可用                   | `recipes` → `enabled`                                                   |
-| 科技解锁了哪些配方                 | `technologies` → `effects` 中 `type == "unlock-recipe"`                 |
-| 哪个科技解锁了某配方               | 遍历 `technologies`，匹配 `effects`                                     |
-| 科技的前置和后继                   | `technologies` → `prerequisites` / `successors`                         |
-| 科技研究成本                       | `technologies` → `research_unit_count` × `research_unit_ingredients`    |
-| 研究所需时间                       | `technologies` → `research_unit_count` × `research_unit_energy` / 60 秒 |
-| 配方有星球限制吗                   | `recipes` → `surface_conditions`                                        |
-| 某星球有哪些专属配方               | 遍历 `recipes`，匹配 `surface_conditions.property`                      |
-| 品质升级概率                       | `qualities` → `next_probability`                                        |
-| 星球之间的距离                     | `space_connections` → `length`                                          |
-| 物品分类的层级结构                 | `item_groups` → `subgroups`                                             |
+| 查询目标                           | 查询路径                                                                                |
+| ---------------------------------- | --------------------------------------------------------------------------------------- |
+| 物品的基本信息（堆叠、重量、分组） | `items`                                                                                 |
+| 物品是否可作为燃料                 | `items` → `fuel_value > 0` + `fuel_category`                                            |
+| 物品是否是模块                     | `items` → `type == "module"`, 查看 `category`、`tier`、`module_effects`                 |
+| 物品对应的建筑实体                 | `items` → `place_result` → `entities`                                                   |
+| 流体的温度范围                     | `fluids` → `default_temperature` / `max_temperature`                                    |
+| 配方的原料和产物                   | `recipes` → `ingredients` / `products`                                                  |
+| 配方的制作时间                     | `recipes` → `energy`（秒）                                                              |
+| 配方需要什么机器做                 | `recipes` → `category` → 查找 `entities.crafting_categories` 包含该值的实体             |
+| 哪些机器能做这个配方               | `entities` → 筛选 `crafting_categories` 包含 `recipe.category`                          |
+| 某机器接受哪些燃料                 | `entities` → `energy_sources.burner.fuel_categories[]`                                  |
+| 某机器的能量源类型                 | `entities` → `energy_sources.types[]`                                                   |
+| 某机器的制作速度                   | `entities` → `crafting_speed`                                                           |
+| 某机器的基础/最大功率              | `entities` → `energy_usage` / `max_energy_usage` / `max_power_output`                   |
+| 流体发电机的耗液速率               | `entities` → `fluid_usage_per_tick`                                                     |
+| 机器有几个模块槽                   | `entities` → `module_inventory_size`                                                    |
+| 配方允许哪些模块效果               | `recipes` → `allowed_effects`                                                           |
+| 模块本身提供什么效果               | `items` → `module_effects`                                                              |
+| beacon 的传递倍率和生效半径        | `entities` → `distribution_effectivity` / `supply_area_distance`                        |
+| 哪些机器能吃 beacon                | `entities` → `effect_receiver.uses_beacon_effects == true`                              |
+| 配方是否初始可用                   | `recipes` → `enabled`                                                                   |
+| 科技解锁了哪些配方                 | `technologies` → `effects` 中 `type == "unlock-recipe"`                                 |
+| 哪个科技解锁了某配方               | 遍历 `technologies`，匹配 `effects`                                                     |
+| 科技的前置和后继                   | `technologies` → `prerequisites` / `successors`                                         |
+| 科技研究成本                       | `technologies` → `research_unit_count` × `research_unit_ingredients`                    |
+| 研究所需时间                       | `technologies` → `research_unit_count` × `research_unit_energy` / 60 秒                 |
+| 单个实验室每秒消耗科技瓶多少       | `entities(type == "lab")` → `researching_speed × science_pack_drain_rate_percent / 100` |
+| 配方有星球限制吗                   | `recipes` → `surface_conditions`                                                        |
+| 某星球有哪些专属配方               | 遍历 `recipes`，匹配 `surface_conditions.property`                                      |
+| 品质升级概率                       | `qualities` → `next_probability`                                                        |
+| 星球之间的距离                     | `space_connections` → `length`                                                          |
+| 物品分类的层级结构                 | `item_groups` → `subgroups`                                                             |
 
 ---
 
 ## 已知缺失 ⚠️
 
-以下数据在 `game-data.json` 中**未导出**，如需要需从 `data-raw-dump.json` 补充：
+以下数据在当前设计下仍然**未完全覆盖**，如需要需继续扩展 mod 或从其他来源补充：
 
-| 缺失字段                             | 所属集合 | 说明                                                                               |
-| ------------------------------------ | -------- | ---------------------------------------------------------------------------------- |
-| `crafting_speed`                     | entities | 机器制作速度倍率（如 assembling-machine-1 = 0.5）。当前只有 `energy_usage`（能耗） |
-| `energy_source`                      | entities | 能源类型（电力/燃烧/热能）和排放数据                                               |
-| `module_slots` 被品质影响的具体计算  | entities | `quality_affects_module_slots` 为 bool，但具体公式未知                             |
-| `pollution` / `emissions_per_minute` | entities | 每分钟排放量                                                                       |
-| `icon` 路径                          | 所有集合 | 图标文件路径（已通过 icon atlas 独立处理）                                         |
+| 缺失字段 / 缺口                     | 所属集合 | 说明                                                                                 |
+| ----------------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| 品质化后的实例值曲线                | entities | 当前导出的是原型基准值；`get_crafting_speed(quality)` 这类不同品质下的全量曲线未展开 |
+| `module_slots` 被品质影响的具体公式 | entities | `quality_affects_module_slots` 已知，但具体每级如何增加槽位仍需实例级验证            |
+| 热网/电网连接拓扑                   | entities | 当前有能量源参数，但没有把热管/电网的连接图单独建模                                  |
+| 图标路径                            | 所有集合 | 图标文件路径仍通过 icon atlas 独立处理                                               |

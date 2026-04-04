@@ -80,18 +80,74 @@ unlink:
 # Factorio script-output 目录
 output_dir := env("FACTORIO_OUTPUT_DIR", env("HOME") / "Library/Application Support/factorio/script-output/faculator")
 
+# 导入后的资产目录
+assets_exported_dir := "assets/exported"
+
+# 导出清单文件名
+manifest_file := "export-manifest.json"
+
 # 查看导出的数据文件
 show-data:
     @echo "📂 导出数据目录: {{output_dir}}"
     @ls -lh "{{output_dir}}/" 2>/dev/null || echo "⚠️  尚无导出数据"
+    @echo ""
+    @echo "📂 当前已导入资产目录: {{assets_exported_dir}}"
+    @ls -lh "{{assets_exported_dir}}/" 2>/dev/null || echo "⚠️  尚未导入到 assets/exported"
 
-# 将导出数据复制到项目的 assets 目录
-import-data:
-    @echo "📥 从 script-output 导入数据到 assets/"
-    @mkdir -p assets/exported
-    @cp "{{output_dir}}/game-data.json" assets/exported/ 2>/dev/null && echo "  ✅ game-data.json" || echo "  ⚠️  game-data.json 不存在"
-    @cp "{{output_dir}}/translations*.json" assets/exported/ 2>/dev/null && echo "  ✅ translations.json" || echo "  ⚠️  translations.json 不存在"
-    @echo "📥 导入完成"
+# 将导出数据同步到项目的 assets 目录（按 manifest 精确同步）
+sync-data:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s nullglob
+    echo "📥 从 script-output 导入数据到 assets/"
+    mkdir -p "{{assets_exported_dir}}"
+
+    if [[ ! -d "{{output_dir}}" ]]; then
+        echo "  ❌ script-output 目录不存在: {{output_dir}}"
+        exit 1
+    fi
+
+    manifest_path="{{output_dir}}/{{manifest_file}}"
+    rm -f "{{assets_exported_dir}}"/game-data.json
+    rm -f "{{assets_exported_dir}}"/translations*.json
+    rm -f "{{assets_exported_dir}}"/"{{manifest_file}}"
+
+    synced_count=0
+    if [[ -f "$manifest_path" ]]; then
+        cp "$manifest_path" "{{assets_exported_dir}}/"
+        echo "  ✅ {{manifest_file}}"
+
+        exported_files=$(python3 -c 'import json, pathlib, sys; manifest = json.loads(pathlib.Path(sys.argv[1]).read_text()); print("\\n".join(manifest.get("files", [])))' "$manifest_path")
+
+        while IFS= read -r name; do
+            [[ -z "$name" ]] && continue
+            src="{{output_dir}}/$name"
+            if [[ -f "$src" ]]; then
+                cp "$src" "{{assets_exported_dir}}/"
+                echo "  ✅ $name"
+                synced_count=$((synced_count + 1))
+            else
+                echo "  ⚠️  清单中声明但文件不存在: $name"
+            fi
+        done <<< "$exported_files"
+    else
+        echo "  ⚠️  未找到 {{manifest_file}}，回退到旧版同步逻辑"
+        legacy_files=("{{output_dir}}/game-data.json" "{{output_dir}}"/translations.json "{{output_dir}}"/translations-*.json)
+        for src in "${legacy_files[@]}"; do
+            if [[ -f "$src" ]]; then
+                cp "$src" "{{assets_exported_dir}}/"
+                echo "  ✅ $(basename "$src")"
+                synced_count=$((synced_count + 1))
+            fi
+        done
+    fi
+
+    echo "  ℹ️  已同步 $synced_count 个导出文件"
+
+    echo "📥 导入完成"
+
+# 兼容旧命令名
+import-data: sync-data
 
 # ─── 图标导出 ──────────────────────────────────────────────────
 
