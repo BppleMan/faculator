@@ -936,7 +936,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "faculator-export-icon"
+name = "faculator-devkit"
 version = "0.1.0"
 dependencies = [
  "clap",

@@ -6,7 +6,7 @@ members = [
     "faculator-data",
     "faculator-solver",
     "faculator-migration",
-    "faculator-export-icon",
+    "faculator-devkit",
 ]
 
 [workspace.package]

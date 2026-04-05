@@ -7,7 +7,7 @@
 
 ```
 game-data.json (~1.8MB)
-├── _meta                    # 导出元信息
+├── game                     # 导出上下文信息
 ├── recipe_categories [29]   # 配方类别（crafting, smelting, chemistry...）
 ├── fuel_categories [5]      # 燃料类别（chemical, nuclear, food...）
 ├── resource_categories [3]  # 资源类别（basic-solid, basic-fluid, hard-solid）
@@ -129,6 +129,7 @@ enum CraftingCategory {
 
 - `group` 和 `subgroup` 主要用于 UI、百科目录、筛选面板、默认列表排序。
 - `order` 是同一层级中的字符串排序键，Factorio UI 会按它做字典序排序，而不是按数值排序。
+- `order` 被设计成字符串而不是整数，核心目的不是计数，而是提供**可人工编排、可插队、可分层表达**的排序键。
 - 这三个字段通常一起使用：
 
 ```text
@@ -136,7 +137,24 @@ group -> subgroup -> order -> name
 ```
 
 - 在数据库或 Rust 模型中，宜将它们视为“展示排序元数据”，不应误当成生产兼容性规则。
-- 例子：- `item.group = production` - `item.subgroup = production-machine` - `item.order = z-a[assembling-machine-1]` - 含义是“显示在生产组 / 生产机器子组 / 该子组中的某个排序位置”，而不是“它能做 z-a 类配方”。
+- `order` 的常见写法可以分成三类：- 单段排序：`a`、`b`、`c` - 多段排序：`a[speed]-b[speed-module-2]` - 预留插入位：`d` 与 `e` 之间可以插入 `da`
+- 这类写法的主要收益：- 不需要全局重编号；新增对象时只需插入新的字符串段 - 可以把“先按大类，再按子类，再按具体对象”压进一个可比较的键 - 对 mod 也更友好；扩展内容可以在原有排序体系中插入而不必改动整列编号
+- 当前导出中的真实例子：- `item_group.production.order = b` - `subgroup.production-machine.order = e` - `item.assembling-machine-1.order = a[assembling-machine-1]` - `item.assembling-machine-2.order = b[assembling-machine-2]` - `item.speed-module-1.order = a[speed]-a[speed-module-1]` - `item.speed-module-2.order = a[speed]-b[speed-module-2]` - `recipe.electronic-circuit.order = b[circuits]-a[electronic-circuit]` - `recipe.advanced-circuit.order = b[circuits]-b[advanced-circuit]`
+- 这些值可以直接按字符串比较理解：
+
+```text
+a[assembling-machine-1]
+< b[assembling-machine-2]
+< c[assembling-machine-3]
+
+a[speed]-a[speed-module-1]
+< a[speed]-b[speed-module-2]
+< a[speed]-c[speed-module-3]
+```
+
+- 因而 `order` 看起来“奇怪”，本质上是把“排序意图”写进了字符串，而不是采用单纯的数字序号。
+- 建模时不应把 `order` 当成可计算业务字段；它更接近一段 UI 排序 DSL。
+- 实现上最稳妥的做法是：原样存储 `order`，按 `group` / `subgroup` / `order` / `name` 排序展示，不对 `order` 的内部格式做强语义解析。
 
 #### 7.2 `items.place_result` 和 `entities.items_to_place_this[]` 构成物品 <-> 实体双向映射
 
@@ -278,7 +296,7 @@ equipment ──equipment_categories──→ equipment_grids.equipment_categori
 
 ## 各集合详细 Schema
 
-### `_meta`
+### `game`
 
 | 字段               | 类型   | 说明                                      |
 | ------------------ | ------ | ----------------------------------------- |

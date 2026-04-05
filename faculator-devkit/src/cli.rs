@@ -1,0 +1,114 @@
+use std::path::PathBuf;
+
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(name = "devkit", about = "Faculator 开发辅助工具")]
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: Commands,
+}
+
+#[derive(Subcommand)]
+pub enum Commands {
+    /// 使用 Factorio CLI 导出 sprite，并按 game-data.json 同步整理到项目中
+    Dump {
+        /// Factorio 可执行文件路径（默认自动检测 macOS Steam 安装）
+        #[arg(long)]
+        factorio_bin: Option<PathBuf>,
+
+        /// game-data.json 路径
+        #[arg(long, default_value = "assets/exported/game-data.json")]
+        game_data: PathBuf,
+
+        /// Factorio script-output 目录（默认自动检测 macOS）
+        #[arg(long)]
+        script_output: Option<PathBuf>,
+
+        /// 输出目录
+        #[arg(long, short, default_value = "assets/icons")]
+        output: PathBuf,
+    },
+    /// 将 assets/icons 中的已整理图标按尺寸分组打包为 atlas PNG 和 manifest
+    Atlas {
+        /// 图标输入目录（默认使用已整理过的 assets/icons）
+        #[arg(long, default_value = "assets/icons")]
+        input: PathBuf,
+
+        /// atlas 输出目录
+        #[arg(long, short, default_value = "assets/icon-atlas")]
+        output: PathBuf,
+
+        /// atlas 单页最大边长，不够时会自动分页
+        #[arg(long, default_value_t = 4096)]
+        max_size: u32,
+
+        /// 图标之间的像素间距
+        #[arg(long, default_value_t = 2)]
+        padding: u32,
+    },
+    /// 根据导出的 game-data.json 生成项目代码
+    Gen {
+        #[command(subcommand)]
+        command: GenCommands,
+    },
+    /// 同步 faculator mod 或导出数据
+    Sync {
+        #[command(subcommand)]
+        command: SyncCommands,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum GenCommands {
+    /// 生成 faculator-core 的各类 xxx_category 枚举与 category 模块导出
+    Category {
+        /// game-data.json 路径
+        #[arg(long, default_value = "assets/exported/game-data.json")]
+        game_data: PathBuf,
+
+        /// 输出目录（会写入 *_category.rs）
+        #[arg(long, default_value = "faculator-core/src/category")]
+        output_dir: PathBuf,
+
+        /// category.rs 模块导出文件路径
+        #[arg(long, default_value = "faculator-core/src/category.rs")]
+        category_mod: PathBuf,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum SyncCommands {
+    /// 同步 faculator-export mod 到 Factorio mods 目录
+    Mod {
+        /// faculator-export mod 源目录
+        #[arg(long, default_value = "mods/faculator-export-mod")]
+        mod_src: PathBuf,
+
+        /// Factorio mods 目录（默认自动检测 macOS 路径）
+        #[arg(long)]
+        mods_dir: Option<PathBuf>,
+
+        /// mods 目录中的目标名称
+        #[arg(long, default_value = "faculator-export")]
+        mod_name: String,
+
+        /// 持续监听文件变化并自动同步
+        #[arg(long, default_value_t = false)]
+        watch: bool,
+
+        /// watch 模式轮询间隔（秒）
+        #[arg(long, default_value_t = 1)]
+        interval_secs: u64,
+    },
+    /// 将 script-output/faculator 全量同步到 assets/exported，并清空 script-output/faculator
+    Data {
+        /// script-output/faculator 目录（默认自动检测 macOS 路径）
+        #[arg(long)]
+        script_output: Option<PathBuf>,
+
+        /// 项目中的导出目标目录
+        #[arg(long, default_value = "assets/exported")]
+        output: PathBuf,
+    },
+}

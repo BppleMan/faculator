@@ -66,7 +66,7 @@ for g in sorted(fluid_by_group.keys()):
 print("\n" + "=" * 60)
 print("已安装 Mods")
 print("=" * 60)
-mods = data.get("_meta", {}).get("active_mods", {})
+mods = data.get("game", {}).get("active_mods", {})
 for name, ver in sorted(mods.items()):
     print(f"  {name:<30} v{ver}")
 
@@ -92,7 +92,7 @@ print("\n" + "=" * 60)
 print("各类原型总数")
 print("=" * 60)
 for key in sorted(data.keys()):
-    if key == "_meta":
+    if key == "game":
         continue
     val = data[key]
     if isinstance(val, list):
