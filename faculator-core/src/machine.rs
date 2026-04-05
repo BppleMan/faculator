@@ -1,20 +1,9 @@
-use crate::game::item::{Item, Named};
 use serde::{Deserialize, Serialize};
 
+/// 计算层机器抽象，暂作存根。后续由 faculator-solver 基于游戏实体（Entity）组装。
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Machine {
-    // 机器名称
-    pub item: Item,
-    // 制造速度
+    pub name: String,
     pub speed: f64,
-    // 能耗
-    // pub power: f64,
-    // 模块槽位
     pub module_slots: u32,
-}
-
-impl Named for Machine {
-    fn name(&self) -> &str {
-        &self.item.name
-    }
 }

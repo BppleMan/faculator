@@ -38,21 +38,6 @@ pub fn detect_script_output() -> Result<PathBuf> {
     )
 }
 
-pub fn detect_faculator_output_dir() -> Result<PathBuf> {
-    let path = detect_script_output()?.join("faculator");
-    ensure_existing_dir(
-        &path,
-        format!(
-            "未找到 Faculator 导出目录: {}\n请先在游戏中执行导出，或用 --script-output 指定路径",
-            path.display()
-        ),
-    )
-}
-
-pub fn detect_factorio_mods_dir() -> Result<PathBuf> {
-    Ok(home_dir()?.join("Library/Application Support/factorio/mods"))
-}
-
 pub fn ensure_existing_file(path: &Path, error_message: String) -> Result<PathBuf> {
     if path.exists() {
         Ok(path.to_path_buf())
@@ -61,7 +46,7 @@ pub fn ensure_existing_file(path: &Path, error_message: String) -> Result<PathBu
     }
 }
 
-pub fn ensure_existing_dir(path: &Path, error_message: String) -> Result<PathBuf> {
+fn ensure_existing_dir(path: &Path, error_message: String) -> Result<PathBuf> {
     if path.exists() {
         Ok(path.to_path_buf())
     } else {

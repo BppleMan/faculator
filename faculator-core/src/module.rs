@@ -1,22 +1,11 @@
-use crate::game::item::{Item, Named};
 use serde::{Deserialize, Serialize};
 
+/// 计算层模块抽象，暂作存根。后续由 faculator-solver 基于游戏物品（Item）组装。
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Module {
-    // 模块名称
-    pub item: Item,
-    // 对产能的加成效果, 可能为负
+    pub name: String,
     pub production_bonus: f64,
-    // 对速度的加成效果, 可能为负
     pub speed_bonus: f64,
-    // 对能耗的加成效果, 可能为负
     pub power_bonus: f64,
-    // 对品质的加成效果, 可能为负
     pub quality_bonus: f64,
-}
-
-impl Named for Module {
-    fn name(&self) -> &str {
-        &self.item.name
-    }
 }

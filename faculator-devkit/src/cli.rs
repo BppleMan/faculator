@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "devkit", about = "Faculator 开发辅助工具")]
+#[command(name = "export-icon", about = "从 Factorio 游戏数据中提取原型图标")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -52,11 +52,6 @@ pub enum Commands {
         #[command(subcommand)]
         command: GenCommands,
     },
-    /// 同步 faculator mod 或导出数据
-    Sync {
-        #[command(subcommand)]
-        command: SyncCommands,
-    },
 }
 
 #[derive(Subcommand)]
@@ -77,38 +72,3 @@ pub enum GenCommands {
     },
 }
 
-#[derive(Subcommand)]
-pub enum SyncCommands {
-    /// 同步 faculator-export mod 到 Factorio mods 目录
-    Mod {
-        /// faculator-export mod 源目录
-        #[arg(long, default_value = "mods/faculator-export-mod")]
-        mod_src: PathBuf,
-
-        /// Factorio mods 目录（默认自动检测 macOS 路径）
-        #[arg(long)]
-        mods_dir: Option<PathBuf>,
-
-        /// mods 目录中的目标名称
-        #[arg(long, default_value = "faculator-export")]
-        mod_name: String,
-
-        /// 持续监听文件变化并自动同步
-        #[arg(long, default_value_t = false)]
-        watch: bool,
-
-        /// watch 模式轮询间隔（秒）
-        #[arg(long, default_value_t = 1)]
-        interval_secs: u64,
-    },
-    /// 将 script-output/faculator 全量同步到 assets/exported，并清空 script-output/faculator
-    Data {
-        /// script-output/faculator 目录（默认自动检测 macOS 路径）
-        #[arg(long)]
-        script_output: Option<PathBuf>,
-
-        /// 项目中的导出目标目录
-        #[arg(long, default_value = "assets/exported")]
-        output: PathBuf,
-    },
-}
