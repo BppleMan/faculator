@@ -1,4 +1,4 @@
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -6,26 +6,305 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
-        todo!();
+        manager
+            .create_table(
+                Table::create()
+                    .table(GameMetadata::Table)
+                    .if_not_exists()
+                    .col(ColumnDef::new(GameMetadata::ModsHash).string().not_null().primary_key())
+                    .col(ColumnDef::new(GameMetadata::ExportModVersion).string().not_null())
+                    .col(ColumnDef::new(GameMetadata::FactorioVersion).string().not_null())
+                    .col(ColumnDef::new(GameMetadata::ActiveMods).json().not_null())
+                    .col(ColumnDef::new(GameMetadata::BuiltAt).string().not_null())
+                    .col(ColumnDef::new(GameMetadata::GameDataHash).string())
+                    .to_owned(),
+            )
+            .await?;
 
         manager
             .create_table(
                 Table::create()
-                    .table("post")
+                    .table(Item::Table)
                     .if_not_exists()
-                    .col(pk_auto("id"))
-                    .col(string("title"))
-                    .col(string("text"))
+                    .col(ColumnDef::new(Item::Name).string().not_null().primary_key())
+                    .col(ColumnDef::new(Item::ItemType).string().not_null())
+                    .col(ColumnDef::new(Item::GroupName).string().not_null())
+                    .col(ColumnDef::new(Item::Subgroup).string().not_null())
+                    .col(ColumnDef::new(Item::Order).string().not_null())
+                    .col(ColumnDef::new(Item::Hidden).boolean().not_null())
+                    .col(ColumnDef::new(Item::StackSize).big_unsigned().not_null())
+                    .col(ColumnDef::new(Item::Weight).decimal().not_null())
+                    .col(ColumnDef::new(Item::DefaultImportLocation).string().not_null())
+                    .col(ColumnDef::new(Item::FuelValue).big_unsigned().not_null())
+                    .col(ColumnDef::new(Item::FuelAccelerationMultiplier).decimal().not_null())
+                    .col(ColumnDef::new(Item::FuelTopSpeedMultiplier).decimal().not_null())
+                    .col(ColumnDef::new(Item::FuelEmissionsMultiplier).big_unsigned().not_null())
+                    .col(ColumnDef::new(Item::Flags).json().not_null())
+                    .col(ColumnDef::new(Item::FuelCategory).string())
+                    .col(ColumnDef::new(Item::ModuleEffects).json())
+                    .col(ColumnDef::new(Item::ModuleCategory).string())
+                    .col(ColumnDef::new(Item::Tier).big_unsigned())
+                    .col(ColumnDef::new(Item::PlaceResult).string())
+                    .col(ColumnDef::new(Item::RocketLaunchProducts).json())
+                    .col(ColumnDef::new(Item::PlaceAsEquipmentResult).string())
+                    .col(ColumnDef::new(Item::SpoilResult).string())
+                    .col(ColumnDef::new(Item::BurntResult).string())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Fluid::Table)
+                    .if_not_exists()
+                    .col(ColumnDef::new(Fluid::Name).string().not_null().primary_key())
+                    .col(ColumnDef::new(Fluid::GroupName).string().not_null())
+                    .col(ColumnDef::new(Fluid::Subgroup).string().not_null())
+                    .col(ColumnDef::new(Fluid::Order).string().not_null())
+                    .col(ColumnDef::new(Fluid::Hidden).boolean().not_null())
+                    .col(ColumnDef::new(Fluid::DefaultTemperature).decimal().not_null())
+                    .col(ColumnDef::new(Fluid::MaxTemperature).decimal().not_null())
+                    .col(ColumnDef::new(Fluid::HeatCapacity).decimal().not_null())
+                    .col(ColumnDef::new(Fluid::FuelValue).big_unsigned())
+                    .col(ColumnDef::new(Fluid::EmissionsMultiplier).decimal())
+                    .col(ColumnDef::new(Fluid::GasTemperature).decimal())
+                    .col(ColumnDef::new(Fluid::BaseColor).json())
+                    .col(ColumnDef::new(Fluid::FlowColor).json())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Recipe::Table)
+                    .if_not_exists()
+                    .col(ColumnDef::new(Recipe::Name).string().not_null().primary_key())
+                    .col(ColumnDef::new(Recipe::GroupName).string().not_null())
+                    .col(ColumnDef::new(Recipe::Subgroup).string().not_null())
+                    .col(ColumnDef::new(Recipe::Order).string().not_null())
+                    .col(ColumnDef::new(Recipe::Hidden).boolean().not_null())
+                    .col(ColumnDef::new(Recipe::Category).string().not_null())
+                    .col(ColumnDef::new(Recipe::Energy).decimal().not_null())
+                    .col(ColumnDef::new(Recipe::Ingredients).json().not_null())
+                    .col(ColumnDef::new(Recipe::Products).json().not_null())
+                    .col(ColumnDef::new(Recipe::MainProduct).json())
+                    .col(ColumnDef::new(Recipe::Enabled).boolean().not_null())
+                    .col(ColumnDef::new(Recipe::AllowDecomposition).boolean().not_null())
+                    .col(ColumnDef::new(Recipe::AllowAsIntermediate).boolean().not_null())
+                    .col(ColumnDef::new(Recipe::AllowIntermediates).boolean().not_null())
+                    .col(ColumnDef::new(Recipe::AlwaysShowMadeIn).boolean().not_null())
+                    .col(ColumnDef::new(Recipe::AlwaysShowProducts).boolean().not_null())
+                    .col(ColumnDef::new(Recipe::ShowAmountInTitle).boolean().not_null())
+                    .col(ColumnDef::new(Recipe::EmissionsMultiplier).decimal().not_null())
+                    .col(ColumnDef::new(Recipe::AllowedEffects).json())
+                    .col(ColumnDef::new(Recipe::AllowedModuleCategories).json())
+                    .col(ColumnDef::new(Recipe::MaximumProductivity).decimal())
+                    .col(ColumnDef::new(Recipe::HideFromPlayerCrafting).boolean())
+                    .col(ColumnDef::new(Recipe::SurfaceConditions).json())
+                    .col(ColumnDef::new(Recipe::AdditionalCategories).json())
+                    .col(ColumnDef::new(Recipe::UnlockResults).json())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Entity::Table)
+                    .if_not_exists()
+                    .col(ColumnDef::new(Entity::Name).string().not_null().primary_key())
+                    .col(ColumnDef::new(Entity::EntityType).string().not_null())
+                    .col(ColumnDef::new(Entity::GroupName).string().not_null())
+                    .col(ColumnDef::new(Entity::Subgroup).string().not_null())
+                    .col(ColumnDef::new(Entity::Order).string().not_null())
+                    .col(ColumnDef::new(Entity::Hidden).boolean().not_null())
+                    .col(ColumnDef::new(Entity::CraftingCategories).json())
+                    .col(ColumnDef::new(Entity::CraftingSpeed).decimal())
+                    .col(ColumnDef::new(Entity::ModuleInventorySize).big_unsigned())
+                    .col(ColumnDef::new(Entity::AllowedEffects).json())
+                    .col(ColumnDef::new(Entity::AllowedModuleCategories).json())
+                    .col(ColumnDef::new(Entity::EffectReceiver).json())
+                    .col(ColumnDef::new(Entity::EnergyUsage).decimal())
+                    .col(ColumnDef::new(Entity::MaxEnergyUsage).decimal())
+                    .col(ColumnDef::new(Entity::MaxEnergyProduction).decimal())
+                    .col(ColumnDef::new(Entity::MaxPowerOutput).decimal())
+                    .col(ColumnDef::new(Entity::Effectivity).decimal())
+                    .col(ColumnDef::new(Entity::EnergySources).json())
+                    .col(ColumnDef::new(Entity::FluidUsagePerTick).decimal())
+                    .col(ColumnDef::new(Entity::MaximumTemperature).decimal())
+                    .col(ColumnDef::new(Entity::BurnsFluid).boolean())
+                    .col(ColumnDef::new(Entity::ScaleFluidUsage).boolean())
+                    .col(ColumnDef::new(Entity::DestroyNonFuelFluid).boolean())
+                    .col(ColumnDef::new(Entity::TargetTemperature).decimal())
+                    .col(ColumnDef::new(Entity::BoilerMode).string())
+                    .col(ColumnDef::new(Entity::NeighbourBonus).decimal())
+                    .col(ColumnDef::new(Entity::SolarPanelPerformanceAtDay).decimal())
+                    .col(ColumnDef::new(Entity::SolarPanelPerformanceAtNight).decimal())
+                    .col(ColumnDef::new(Entity::MiningSpeed).decimal())
+                    .col(ColumnDef::new(Entity::MiningDrillRadius).decimal())
+                    .col(ColumnDef::new(Entity::ResourceCategories).json())
+                    .col(ColumnDef::new(Entity::LabInputs).json())
+                    .col(ColumnDef::new(Entity::ResearchingSpeed).decimal())
+                    .col(ColumnDef::new(Entity::SciencePackDrainRatePercent).decimal())
+                    .col(ColumnDef::new(Entity::DistributionEffectivity).decimal())
+                    .col(ColumnDef::new(Entity::DistributionEffectivityBonusPerQualityLevel).decimal())
+                    .col(ColumnDef::new(Entity::BeaconProfile).json())
+                    .col(ColumnDef::new(Entity::BeaconCounter).string())
+                    .col(ColumnDef::new(Entity::SupplyAreaDistance).decimal())
+                    .col(ColumnDef::new(Entity::FluidboxPrototypes).json())
+                    .col(ColumnDef::new(Entity::NextUpgrade).string())
+                    .col(ColumnDef::new(Entity::QualityAffectsModuleSlots).boolean())
+                    .col(ColumnDef::new(Entity::SurfaceConditions).json())
+                    .col(ColumnDef::new(Entity::ItemsToPlaceThis).json())
                     .to_owned(),
             )
             .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
-        todo!();
-
-        manager.drop_table(Table::drop().table("post").to_owned()).await
+        manager.drop_table(Table::drop().table(Entity::Table).to_owned()).await?;
+        manager.drop_table(Table::drop().table(Recipe::Table).to_owned()).await?;
+        manager.drop_table(Table::drop().table(Fluid::Table).to_owned()).await?;
+        manager.drop_table(Table::drop().table(Item::Table).to_owned()).await?;
+        manager.drop_table(Table::drop().table(GameMetadata::Table).to_owned()).await
     }
+}
+
+#[derive(DeriveIden)]
+enum GameMetadata {
+    #[sea_orm(iden = "game")]
+    Table,
+    ModsHash,
+    ExportModVersion,
+    FactorioVersion,
+    ActiveMods,
+    BuiltAt,
+    GameDataHash,
+}
+
+#[derive(DeriveIden)]
+enum Item {
+    Table,
+    Name,
+    ItemType,
+    GroupName,
+    Subgroup,
+    Order,
+    Hidden,
+    StackSize,
+    Weight,
+    DefaultImportLocation,
+    FuelValue,
+    FuelAccelerationMultiplier,
+    FuelTopSpeedMultiplier,
+    FuelEmissionsMultiplier,
+    Flags,
+    FuelCategory,
+    ModuleEffects,
+    ModuleCategory,
+    Tier,
+    PlaceResult,
+    RocketLaunchProducts,
+    PlaceAsEquipmentResult,
+    SpoilResult,
+    BurntResult,
+}
+
+#[derive(DeriveIden)]
+enum Fluid {
+    Table,
+    Name,
+    GroupName,
+    Subgroup,
+    Order,
+    Hidden,
+    DefaultTemperature,
+    MaxTemperature,
+    HeatCapacity,
+    FuelValue,
+    EmissionsMultiplier,
+    GasTemperature,
+    BaseColor,
+    FlowColor,
+}
+
+#[derive(DeriveIden)]
+enum Recipe {
+    Table,
+    Name,
+    GroupName,
+    Subgroup,
+    Order,
+    Hidden,
+    Category,
+    Energy,
+    Ingredients,
+    Products,
+    MainProduct,
+    Enabled,
+    AllowDecomposition,
+    AllowAsIntermediate,
+    AllowIntermediates,
+    AlwaysShowMadeIn,
+    AlwaysShowProducts,
+    ShowAmountInTitle,
+    EmissionsMultiplier,
+    AllowedEffects,
+    AllowedModuleCategories,
+    MaximumProductivity,
+    HideFromPlayerCrafting,
+    SurfaceConditions,
+    AdditionalCategories,
+    UnlockResults,
+}
+
+#[derive(DeriveIden)]
+enum Entity {
+    Table,
+    Name,
+    EntityType,
+    GroupName,
+    Subgroup,
+    Order,
+    Hidden,
+    CraftingCategories,
+    CraftingSpeed,
+    ModuleInventorySize,
+    AllowedEffects,
+    AllowedModuleCategories,
+    EffectReceiver,
+    EnergyUsage,
+    MaxEnergyUsage,
+    MaxEnergyProduction,
+    MaxPowerOutput,
+    Effectivity,
+    EnergySources,
+    FluidUsagePerTick,
+    MaximumTemperature,
+    BurnsFluid,
+    ScaleFluidUsage,
+    DestroyNonFuelFluid,
+    TargetTemperature,
+    BoilerMode,
+    NeighbourBonus,
+    SolarPanelPerformanceAtDay,
+    SolarPanelPerformanceAtNight,
+    MiningSpeed,
+    MiningDrillRadius,
+    ResourceCategories,
+    LabInputs,
+    ResearchingSpeed,
+    SciencePackDrainRatePercent,
+    DistributionEffectivity,
+    DistributionEffectivityBonusPerQualityLevel,
+    BeaconProfile,
+    BeaconCounter,
+    SupplyAreaDistance,
+    FluidboxPrototypes,
+    NextUpgrade,
+    QualityAffectsModuleSlots,
+    SurfaceConditions,
+    ItemsToPlaceThis,
 }

@@ -930,6 +930,8 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
+ "faculator-core",
+ "faculator-migration",
  "sea-orm 2.0.0-rc.37",
  "serde",
  "serde_json",
