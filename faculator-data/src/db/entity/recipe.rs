@@ -1,35 +1,49 @@
 use sea_orm::entity::prelude::*;
 
-#[derive(Clone, Debug, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "recipe")]
 pub struct Model {
-    #[sea_orm(primary_key)]
-    pub id: i64,
+    #[sea_orm(primary_key, auto_increment = false)]
     pub name: String,
-    pub machine_id: i64,
-    pub time: f64,
+
+    pub group_name: String,
+
+    pub subgroup: String,
+
+    pub order: String,
+
+    pub hidden: bool,
+
+    pub category: String,
+
+    pub energy: Decimal,
+
+    pub main_product_type: Option<String>,
+
+    pub main_product_name: Option<String>,
+
+    pub enabled: bool,
+
+    pub allow_decomposition: bool,
+
+    pub allow_as_intermediate: bool,
+
+    pub allow_intermediates: bool,
+
+    pub always_show_made_in: bool,
+
+    pub always_show_products: bool,
+
+    pub show_amount_in_title: bool,
+
+    pub emissions_multiplier: Decimal,
+
+    pub maximum_productivity: Option<Decimal>,
+
+    pub hide_from_player_crafting: Option<bool>,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    Machine,
-}
-
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        match self {
-            Relation::Machine => Entity::belongs_to(super::machine::Entity)
-                .from(Column::MachineId)
-                .to(super::machine::Column::Id)
-                .into(),
-        }
-    }
-}
-
-impl Related<super::machine::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Machine.def()
-    }
-}
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}

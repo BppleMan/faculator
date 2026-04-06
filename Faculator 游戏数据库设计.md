@@ -1,29 +1,90 @@
 # 游戏数据仓库设计文档：SQLite + SeaORM（只读运行时，迁移/Seed 负责写入）
 
-## 当前仓库职责边界（2026-04）
+## 当前仓库职责边界（2026-04 修订）
 
-这一节描述的是当前代码仓库里各个 crate 的边界，不是最终理想形态。
+这一节描述的是当前项目**应当收敛到的边界**，也是后续重构的准绳。
+
+### 总体数据流
+
+应明确区分四层对象，而不是再把它们混在一个 crate 里：
+
+```text
+game-data.json
+  -> faculator-data::input dto
+  -> faculator-data::model / import transform
+  -> sqlite
+  -> faculator-data::output dto
+  -> faculator-core::ddd
+  -> app / solver
+```
+
+核心原则：
+
+- `game-data.json` 的 schema 不等于领域模型。
+- SQLite 表结构也不等于领域模型。
+- `faculator-data` 允许同时理解“输入格式”和“数据库结构”。
+- `faculator-core` 只表达最终给 `app` / `solver` 使用的领域语义。
 
 ### faculator-core
 
 职责：
 
-- 承载领域模型（DDD）与游戏导出数据的 Rust 类型定义
-- 表达 Factorio 的游戏概念，例如 `Item`、`Fluid`、`Recipe`、`Entity`
-- 表达共享概念对象，例如 `Ingredient`、`Product`、`EnergySources`、`SurfaceCondition`
+- 只承载真正的领域模型（DDD）
+- 只表达 `app` / `solver` 直接依赖的稳定语义
+- 可以定义实体、值对象、聚合、领域服务、领域规则
 
 边界：
 
-- 不负责数据库表结构
-- 不负责迁移
-- 不负责导入流程
-- 不依赖持久化层的主键设计
+- 不负责解析 `game-data.json`
+- 不负责适配 SQLite 表结构
+- 不为了兼容导出 JSON 而保留 `serde rename`、导出专用字段名、宽表式嵌套结构
+- 不承载“百科展示字段”或“导出保真字段”，除非这些字段确实进入领域规则
 
-当前状态：
+当前判断：
 
-- 已完成 `item`、`fluid`、`recipe`、`entity` 的核心领域模型落地
-- 已完成 `concept` 公共模块拆分
-- 目前是整个项目中最接近“稳定语义层”的 crate
+- 过去 `core` 中的很多 `Item` / `Fluid` / `Recipe` / `Entity` 结构，本质上更像导出 DTO，而不是 DDD
+- 因而这些结构应迁移出 `core`，避免继续把 `core` 锁定在 `game-data.json` 的长相上
+
+### faculator-data
+
+职责：
+
+- 承载所有与数据输入、数据入库、数据库读取、组装输出相关的代码
+- 作为“导出格式 <-> 数据库模型 <-> 领域模型”之间的桥梁
+- 管理 import / normalize / assemble / repository / facade
+
+边界：
+
+- 可以理解 `game-data.json` 的原始 schema
+- 可以理解 SQLite / SeaORM 的持久化结构
+- 可以包含组装逻辑、逻辑外键、反向引用、嵌套扁平化
+- 但不应把数据库内部实现细节直接暴露给 `app` / `solver`
+
+`faculator-data` 内部应明确存在三类类型：
+
+1. `Input DTO`
+
+- 用来解析 `game-data.json`
+- 允许高度贴近导出 schema
+- 允许保留 `serde rename`、字符串字段、导出嵌套结构
+- 它的首要目标是**正确接住输入**
+
+2. `Model`
+
+- 面向数据库建模
+- 由 SeaORM entity / ActiveModel / migration schema 共同定义
+- 首要目标是**约束、关系、可查询性、可维护性**
+
+3. `Output DTO`
+
+- 从数据库读取 model 后，根据逻辑外键和业务查询需求组装出的读取模型
+- 可以是面向某类查询场景的聚合结果
+- 首要目标是**把数据库读结果拼成接近领域的结构**
+
+说明：
+
+- `Output DTO` 不是最终 DDD，本质上仍是数据装配层对象
+- 但它比数据库 model 更贴近使用场景，因此是进入 `core` 之前最合理的中间层
 
 ### faculator-migration
 
@@ -36,61 +97,34 @@
 边界：
 
 - 不负责解析 `game-data.json`
-- 不负责业务转换
-- 不直接承担 seed / import 逻辑
-
-当前状态：
-
-- 已完成首版初始迁移
-- 已落地 `game` 元数据表
-- 已落地 `item`、`fluid`、`recipe`、`entity` 四张核心表
-- 核心表已经统一使用 `name` 作为主键，避免和领域模型的 identity 冲突
-
-### faculator-data
-
-职责：
-
-- 作为持久化层与构建层容器
-- 放置 SeaORM entity、数据库访问代码、导入流程骨架
-- 提供“从 `game-data.json` 构建 sqlite 数据库产物”的工具入口
-
-边界：
-
-- 不重新定义领域语义，领域语义应来自 `faculator-core`
-- 不承担迁移版本管理，schema 由 `faculator-migration` 负责
-- 不把数据库内部结构向上泄漏到 solver/app 的核心业务逻辑
-
-当前状态：
-
-- 已补上 `bootstrap` 模块骨架
-- 已补上 `build_db` 二进制入口
-- 已能完成：读 JSON 文件、建/重建 sqlite、执行 migration
-- 尚未实现真正的数据转换与批量导入
-- 仍并存一套旧的 `game` / `db::entity` 结构，后续需要逐步清理或重建
+- 不负责领域语义
+- 不直接承担聚合组装
 
 ### faculator-app
 
 职责：
 
 - 最终应用层入口
-- 负责把持久化层或求解层结果组织成用户可消费的程序行为
+- 负责把领域对象或稳定读取接口组织成用户可消费的程序行为
 
-当前状态：
+边界：
 
-- 仍然带有旧 schema / 旧导入链路痕迹
-- 目前不应作为新数据库架构的权威入口
+- 不应自己理解导出 JSON
+- 不应直接依赖 SeaORM entity
+- 应尽量依赖 `faculator-core` 或 `faculator-data` 暴露的稳定门面
 
 ### faculator-solver
 
 职责：
 
 - 承载量化、优化、求解逻辑
-- 只应依赖领域模型或稳定的读取接口，不应直接耦合迁移或导入实现
+- 消费领域对象与领域规则
 
-当前状态：
+边界：
 
-- 仍是实验性质入口
-- 未来应更多依赖 `faculator-core` 的领域语义，以及 `faculator-data` 提供的只读查询结果
+- 不应直接理解数据库表结构
+- 不应直接理解 `game-data.json` 的原始 schema
+- 应尽量只依赖 `faculator-core` 的 DDD，或极薄的只读 facade
 
 ### faculator-devkit
 
@@ -104,71 +138,79 @@
 - 不参与运行时主链路
 - 不参与数据库 schema 与导入主流程
 
-## 当前已完成事项
+## 类型分层规范
 
-### 领域建模
+这一节是后续设计 `faculator-core` 时必须先满足的规范。
 
-- 已在 `faculator-core` 中完成 `item` 全量字段对齐
-- 已新增 `fluid`、`recipe`、`entity` 模型
-- 已新增 `concept` 公共模块，收敛共享概念对象
-- 已统一数值类型约定：无符号整数用 `u64`，有符号整数用 `i64`，小数用 `Decimal`
-- 已统一字符串枚举策略：使用 `string_enum!`
+### 1. 判断一个类型是否应该放进 core
 
-### 数据库存储
+如果一个类型满足下面任一特征，它就**大概率不该在 `faculator-core`**：
 
-- 已在 `faculator-migration` 中建立首版 schema
-- 已明确核心表使用自然主键 `name`
-- 已把复杂嵌套字段先收敛为 JSON 列，避免过早正规化
-- 已补充 `game` 元数据表，用于记录数据库产物级别的信息
+- 它的字段名、层级、可选性主要是为了匹配 `game-data.json`
+- 它的主要工作是“接住输入”而不是“表达领域规则”
+- 它依赖大量 `serde rename`、导出专用字符串、导出嵌套对象
+- 它是“一个大宽结构”，把多类能力硬摊在一个 struct 上
+- 它的字段里大量包含 `group` / `subgroup` / `order` / `hidden` 一类百科展示元数据
 
-### 构建流程骨架
+### 2. core 中的类型应满足什么特征
 
-- 已在 `faculator-data` 中补上数据库构建入口 `build_db`
-- 已把“读取输入文件 -> 打开数据库 -> 执行 migration”这条链路打通
-- 已把真正的导入实现明确留在占位方法中，避免骨架和业务逻辑缠在一起
+一个合格的领域类型，通常更接近下面的样子：
 
-## 当前尚未完成的事项
+- 以业务语义命名，而不是以导出集合命名
+- 面向行为/约束建模，而不是面向 JSON 形状建模
+- 一个类型只承载一类稳定语义
+- 字段来自领域需要，而不是“导出里正好有”
+- 允许一个领域对象由多个数据库表、多个输出 DTO 组合而成
 
-- 尚未实现从 `game-data.json` 到 `faculator-core` 模型的正式反序列化入口
-- 尚未实现 game metadata 的真实写入逻辑
-- 尚未实现 item / fluid / recipe / entity 的批量导入逻辑
-- 尚未决定哪些 JSON 列后续需要进一步拆表正规化
-- 尚未清理 `faculator-data` 与 `faculator-app` 中遗留的旧 schema / 旧 entity / 旧 game 模型
-- 尚未建立稳定的只读 repository / facade 查询层
+### 3. 当前不应继续放在 core 的对象类型
 
-## 下一步建议
+下列对象，默认先视为 `faculator-data` 层内容，而不是 `core`：
 
-建议按下面顺序推进，而不是同时大面积铺开：
+- 直接映射 `game-data.json` 顶层集合的结构
+- 为导入而存在的 `Input DTO`
+- 为入库而服务的中间转换对象
+- 直接暴露数据库列结构的 Model
+- 为某一类查询专门拼装的读取 DTO
 
-1. 打通 metadata 写入
+### 4. core 设计的先后顺序
 
-- 让 `build_db` 真正写入 `game` 表
-- 固化 `mods_hash`、`factorio_version`、`export_mod_version`、`active_mods`
+`faculator-core` 的建设顺序必须固定为：
 
-2. 打通 item 全链路导入
+1. 先定规范
+2. 再定对象边界与聚合边界
+3. 再定仓储/装配接口
+4. 最后才写代码
 
-- 先选最简单的一张核心表作为样板
-- 跑通“JSON -> core model -> db active model / insert”
+不能反过来从 `game-data.json` 直接长出一套“看起来像领域对象”的 struct。
 
-3. 按同样模式补 fluid / recipe / entity
+## 当前落地建议
 
-- 先保持 JSON 列存储，不急于拆表
-- 重点先验证导入流程、约束和数据一致性
+建议按下面顺序推进：
 
-4. 清理旧持久化模型
+1. 在 `faculator-data` 中收容当前贴近导出 schema 的类型
 
-- 删除或隔离 `faculator-data` 中和当前 schema 明显不一致的旧 entity
-- 避免新旧模型长期并存造成误导
+- 命名上明确标出这是 `input dto` 或 `exported dto`
+- 它们的首要目标是保真解析，而不是表达领域语义
 
-5. 建立只读查询门面
+2. 在 `faculator-data` 中完善导入链路
 
-- 让 app / solver 不直接依赖底层表细节
-- 用 facade/repository 暴露稳定读取能力
+- `input dto -> normalize / ref resolve -> db model -> insert`
+- 让“ref 解析、嵌套拆解、逻辑外键补全”都发生在 `data` 层
 
-6. 再决定是否做正规化拆表
+3. 在 `faculator-data` 中建立读取装配层
 
-- 当查询模式足够清晰后，再决定哪些 JSON 字段要拆成关系表
-- 不要在导入链路还没打通前过早优化 schema
+- `model -> query -> output dto`
+- 让数据库读取的聚合结果先停在 `output dto`
+
+4. 再设计 `faculator-core`
+
+- 从 `app` / `solver` 的真实使用场景反推领域对象
+- 不再从 `game-data.json` 或数据库表结构正推领域对象
+
+5. 最后才决定 `core` 中究竟需要哪些对象
+
+- 例如 `Goods`、`RecipeSpec`、`MachineProfile`、`ModuleSpec`、`EnergyProfile`
+- 是否需要 `Entity` 这个名字，也应由领域语义决定，而不是由导出集合名决定
 
 ## 执行摘要
 

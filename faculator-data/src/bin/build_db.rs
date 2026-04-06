@@ -16,21 +16,14 @@ fn parse_args() -> Result<BuildDatabaseConfig> {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
 
     if args.len() < 2 || args.len() > 3 {
-        bail!(
-            "usage: cargo run -p faculator-data --bin build_db -- <game-data.json> <output.sqlite> [--fresh]"
-        );
+        bail!("usage: cargo run -p faculator-data --bin build_db -- <game-data.json> <output.sqlite> [--fresh]");
     }
 
     let fresh = args.iter().any(|arg| arg == "--fresh");
-    let positional = args
-        .into_iter()
-        .filter(|arg| arg != "--fresh")
-        .collect::<Vec<_>>();
+    let positional = args.into_iter().filter(|arg| arg != "--fresh").collect::<Vec<_>>();
 
     if positional.len() != 2 {
-        bail!(
-            "usage: cargo run -p faculator-data --bin build_db -- <game-data.json> <output.sqlite> [--fresh]"
-        );
+        bail!("usage: cargo run -p faculator-data --bin build_db -- <game-data.json> <output.sqlite> [--fresh]");
     }
 
     let game_data_path = PathBuf::from(&positional[0]);
@@ -44,9 +37,8 @@ fn parse_args() -> Result<BuildDatabaseConfig> {
         && !parent.as_os_str().is_empty()
         && !parent.exists()
     {
-        std::fs::create_dir_all(parent).wrap_err_with(|| {
-            format!("failed to create database directory: {}", parent.display())
-        })?;
+        std::fs::create_dir_all(parent)
+            .wrap_err_with(|| format!("failed to create database directory: {}", parent.display()))?;
     }
 
     Ok(BuildDatabaseConfig {
