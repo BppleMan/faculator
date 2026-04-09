@@ -28,6 +28,7 @@ use self::{
     space::{SpaceConnection, SpaceLocation},
     technology::Technology,
 };
+use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 pub mod category;
@@ -186,6 +187,28 @@ pub struct GameData {
     /// 这部分定义装甲网格形状与可接受装备类别，通常适合单独入库成装备网格表。
     #[serde(default)]
     pub equipment_grids: Vec<EquipmentGrid>,
+}
+
+impl GameData {
+    pub fn info(&self) -> Result<String> {
+        use std::fmt::Write;
+        let mut buffer = String::new();
+
+        writeln!(buffer, "当前游戏版本: {}", self.game.factorio_version)?;
+
+        writeln!(
+            buffer,
+            "当前 faculator-export-mod 版本: {}",
+            self.game.export_mod_version
+        )?;
+
+        writeln!(buffer, "启用的 mod 列表:")?;
+        for active_mod in &self.game.active_mods {
+            writeln!(buffer, "  - {}", active_mod)?;
+        }
+
+        Ok(buffer)
+    }
 }
 
 #[cfg(test)]

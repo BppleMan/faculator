@@ -4,4 +4,4 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-good_lp = "1.14.0"
+good_lp = { version = "1.14.0", default-features = false, features = ["clarabel"] }

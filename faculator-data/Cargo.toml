@@ -16,4 +16,4 @@ sea-orm = { version = "2.0.0-rc", features = [
 ] }
 color-eyre = "0.6.5"
 async-trait = "0.1.89"
-faculator-migration = { path = "../faculator-migration" }
+# faculator-migration = { path = "../faculator-migration" }
