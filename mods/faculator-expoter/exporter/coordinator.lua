@@ -59,7 +59,7 @@ end
 --- @return table game 表
 local function build_game_info()
   return {
-    export_mod_version = Constants.MOD_VERSION,
+    exporter_version = Constants.MOD_VERSION,
     factorio_version   = Util.safe_get(function()
       return script.active_mods["base"]
     end),

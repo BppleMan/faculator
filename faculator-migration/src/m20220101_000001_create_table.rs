@@ -6,7 +6,7 @@ pub struct Migration;
 const UP_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS game (
     mods_hash TEXT PRIMARY KEY NOT NULL,
-    export_mod_version TEXT NOT NULL,
+    exporter_version TEXT NOT NULL,
     factorio_version TEXT NOT NULL,
     built_at TEXT NOT NULL,
     game_data_hash TEXT

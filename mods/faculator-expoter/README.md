@@ -1,4 +1,4 @@
-# Faculator Export Mod
+# Faculator Exporter
 
 将 Factorio 游戏原型数据导出为 JSON 文件，供 Faculator 计算器导入使用。
 
@@ -17,7 +17,7 @@ just watch
 just link
 ```
 
-手动安装也可以将 `faculator-export-mod` 文件夹复制（或软链接）到 Factorio 的 mods 目录。
+手动安装也可以将 `faculator-expoter` 文件夹复制（或软链接）到 Factorio 的 mods 目录。
 
 > **注意**: Factorio mod 文件夹名必须是 `<mod-name>_<version>` 格式。
 > 参见 https://lua-api.factorio.com/latest/auxiliary/mod-structure.html
@@ -54,7 +54,7 @@ Mod 在以下情况自动触发导出：
 ## 项目结构
 
 ```
-faculator-export-mod/
+faculator-expoter/
 ├── info.json                  # [官方] mod 元数据（必需）
 ├── control.lua                # [官方] 运行时入口，注册事件和命令
 ├── README.md

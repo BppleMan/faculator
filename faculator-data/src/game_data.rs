@@ -194,18 +194,67 @@ impl GameData {
         use std::fmt::Write;
         let mut buffer = String::new();
 
-        writeln!(buffer, "当前游戏版本: {}", self.game.factorio_version)?;
+        const KEY_WIDTH: usize = 22;
 
-        writeln!(
-            buffer,
-            "当前 faculator-export-mod 版本: {}",
-            self.game.export_mod_version
-        )?;
-
-        writeln!(buffer, "启用的 mod 列表:")?;
-        for active_mod in &self.game.active_mods {
-            writeln!(buffer, "  - {}", active_mod)?;
+        fn write_kv(buffer: &mut String, key: &str, value: impl std::fmt::Display) -> std::fmt::Result {
+            use std::fmt::Write;
+            writeln!(buffer, "| {:<KEY_WIDTH$} | {}", key, value)
         }
+
+        let active_mod_count = self.game.active_mods.len();
+        let base_mod_version = self
+            .game
+            .active_mods
+            .iter()
+            .find(|game_mod| game_mod.name == "base")
+            .map(|game_mod| game_mod.version.as_str())
+            .unwrap_or("unknown");
+
+        let total_main_entries = self.items.len()
+            + self.fluids.len()
+            + self.recipes.len()
+            + self.entities.len()
+            + self.technologies.len()
+            + self.qualities.len()
+            + self.space_locations.len()
+            + self.space_connections.len()
+            + self.equipment.len()
+            + self.equipment_grids.len();
+
+        writeln!(buffer, "=== game-data summary ===")?;
+        writeln!(buffer, "+-{:-<KEY_WIDTH$}-+----------------", "")?;
+        write_kv(&mut buffer, "Factorio", &self.game.factorio_version)?;
+        write_kv(&mut buffer, "Base mod", base_mod_version)?;
+        write_kv(&mut buffer, "Exporter", &self.game.exporter_version)?;
+        write_kv(&mut buffer, "Active mods", active_mod_count)?;
+        writeln!(buffer, "+-{:-<KEY_WIDTH$}-+----------------", "")?;
+        writeln!(buffer)?;
+
+        writeln!(buffer, "[Categories]")?;
+        writeln!(buffer, "+-{:-<KEY_WIDTH$}-+----------------", "")?;
+        write_kv(&mut buffer, "recipe_categories", self.recipe_categories.len())?;
+        write_kv(&mut buffer, "fuel_categories", self.fuel_categories.len())?;
+        write_kv(&mut buffer, "resource_categories", self.resource_categories.len())?;
+        write_kv(&mut buffer, "module_categories", self.module_categories.len())?;
+        writeln!(buffer, "+-{:-<KEY_WIDTH$}-+----------------", "")?;
+        writeln!(buffer)?;
+
+        writeln!(buffer, "[Main Data]")?;
+        writeln!(buffer, "+-{:-<KEY_WIDTH$}-+----------------", "")?;
+        write_kv(&mut buffer, "item_groups", self.item_groups.len())?;
+        write_kv(&mut buffer, "items", self.items.len())?;
+        write_kv(&mut buffer, "fluids", self.fluids.len())?;
+        write_kv(&mut buffer, "recipes", self.recipes.len())?;
+        write_kv(&mut buffer, "entities", self.entities.len())?;
+        write_kv(&mut buffer, "technologies", self.technologies.len())?;
+        write_kv(&mut buffer, "qualities", self.qualities.len())?;
+        write_kv(&mut buffer, "space_locations", self.space_locations.len())?;
+        write_kv(&mut buffer, "space_connections", self.space_connections.len())?;
+        write_kv(&mut buffer, "equipment", self.equipment.len())?;
+        write_kv(&mut buffer, "equipment_grids", self.equipment_grids.len())?;
+        writeln!(buffer, "+-{:-<KEY_WIDTH$}-+----------------", "")?;
+        write_kv(&mut buffer, "TOTAL(main)", total_main_entries)?;
+        writeln!(buffer, "+-{:-<KEY_WIDTH$}-+----------------", "")?;
 
         Ok(buffer)
     }

@@ -7,7 +7,7 @@ mods_dir := env("FACTORIO_MODS_DIR", env("HOME") / "Library/Application Support/
 # mod 在 mods 目录中的文件夹名（Factorio 要求 {mod-name}_{version} 或 {mod-name} 格式）
 # @see https://lua-api.factorio.com/latest/auxiliary/mod-structure.html
 mod_name := "faculator-export"
-mod_src  := "faculator-export-mod"
+mod_src  := "faculator-expoter"
 
 # ─── Mod 同步 ───────────────────────────────────────────────
 

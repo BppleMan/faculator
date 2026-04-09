@@ -22,8 +22,9 @@ use std::collections::BTreeMap;
 pub struct Game {
     /// 导出 mod 自身版本。
     ///
-    /// 该值来自 `game.export_mod_version`，用于识别导出 schema 版本。
-    pub export_mod_version: String,
+    /// 该值来自 `game.exporter_version`，用于识别导出 schema 版本。
+    #[serde(alias = "export_mod_version")]
+    pub exporter_version: String,
 
     /// Factorio 主程序版本。
     ///
@@ -67,7 +68,7 @@ mod tests {
     #[test]
     fn active_mods_serializes_as_object() {
         let game = Game {
-            export_mod_version: "0.1.0".to_owned(),
+            exporter_version: "0.1.0".to_owned(),
             factorio_version: "2.0.76".to_owned(),
             active_mods: vec![
                 Mod {
