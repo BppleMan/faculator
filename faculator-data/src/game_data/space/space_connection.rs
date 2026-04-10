@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 /// 一条空间航线。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct SpaceConnection {
     /// 航线名称。
     ///

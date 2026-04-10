@@ -2,7 +2,8 @@ use crate::game_data::space::{SpacePosition, SurfaceProperties};
 use serde::{Deserialize, Serialize};
 
 /// 一个太空地点或星球原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct SpaceLocation {
     /// 地点名称。
     ///

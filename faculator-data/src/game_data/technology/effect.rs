@@ -1,4 +1,4 @@
-use crate::game_data::technology::{TechnologyEffectModifier, TechnologyEffectType};
+use crate::game_data::technology::TechnologyEffectModifier;
 use serde::{Deserialize, Serialize};
 
 /// 科技效果对象。
@@ -11,11 +11,12 @@ use serde::{Deserialize, Serialize};
 /// - 大多数数值增益会带 `modifier`
 ///
 /// 因此 source DTO 先保持这种扁平形式，后续进入 read/core 层时再决定是否拆成枚举。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct TechnologyEffect {
     /// 效果类型。
     #[serde(rename = "type")]
-    pub effect_type: TechnologyEffectType,
+    pub effect_type: String,
 
     /// 效果附带的修改值。
     ///

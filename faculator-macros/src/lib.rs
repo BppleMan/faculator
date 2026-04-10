@@ -10,42 +10,47 @@ macro_rules! string_enum {
         }
     ) => {
         $(#[$meta])*
-        #[derive(Debug, Clone, PartialEq, Eq)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub enum $name {
             $(
                 $(#[$vmeta])*
                 $variant,
             )+
-            /// 导出中出现了当前代码未显式列出的字符串值。
-            ///
-            /// source DTO 会保留原始字符串，避免因为新增 mod / 版本数据而反序列化失败。
-            Unknown(String),
         }
 
         impl $name {
-            pub fn as_str(&self) -> &str {
+            pub const fn as_str(&self) -> &'static str {
                 match self {
                     $(Self::$variant => $value,)+
-                    Self::Unknown(value) => value.as_str(),
                 }
+            }
+
+            pub fn variants() -> &'static [&'static str] {
+                &[$($value),+]
             }
         }
 
-        impl From<&str> for $name {
-            fn from(value: &str) -> Self {
+        impl ::core::convert::TryFrom<&str> for $name {
+            type Error = ::std::string::String;
+
+            fn try_from(value: &str) -> ::core::result::Result<Self, Self::Error> {
                 match value {
-                    $($value => Self::$variant,)+
-                    other => Self::Unknown(other.to_owned()),
+                    $($value => Ok(Self::$variant),)+
+                    _ => Err(::std::format!(
+                        "unsupported {} value {:?}; supported values: {}",
+                        ::core::stringify!($name),
+                        value,
+                        Self::variants().join(", ")
+                    )),
                 }
             }
         }
 
-        impl From<String> for $name {
-            fn from(value: String) -> Self {
-                match value.as_str() {
-                    $($value => Self::$variant,)+
-                    _ => Self::Unknown(value),
-                }
+        impl ::core::convert::TryFrom<::std::string::String> for $name {
+            type Error = ::std::string::String;
+
+            fn try_from(value: ::std::string::String) -> ::core::result::Result<Self, Self::Error> {
+                Self::try_from(value.as_str())
             }
         }
 
@@ -63,7 +68,9 @@ macro_rules! string_enum {
             where
                 D: ::serde::Deserializer<'de>,
             {
-                Ok(Self::from(<String as ::serde::Deserialize>::deserialize(deserializer)?))
+                let value = <::std::string::String as ::serde::Deserialize>::deserialize(deserializer)?;
+                Self::try_from(value.as_str())
+                    .map_err(|_| <D::Error as ::serde::de::Error>::unknown_variant(value.as_str(), Self::variants()))
             }
         }
 

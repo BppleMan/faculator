@@ -1,10 +1,11 @@
-use crate::game_data::equipment::{EquipmentCategory, EquipmentShape, EquipmentType};
-use crate::game_data::serde_helper::deserialize_vec_or_empty_object;
+use crate::game_data::equipment::EquipmentShape;
+use crate::game_data::serde_helper::ArrayOrEmptyObject;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 /// 一个装甲装备原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Equipment {
     /// 装备名称。
     ///
@@ -13,9 +14,9 @@ pub struct Equipment {
 
     /// 装备原型类型。
     ///
-    /// 原始 JSON 使用 `type` 字段，这里映射到更明确的 `equipment_type`。
+    /// 原始 JSON 使用 `type` 字段，DTO 直接保留其字符串值。
     #[serde(rename = "type")]
-    pub equipment_type: EquipmentType,
+    pub equipment_type: String,
 
     /// 所属展示大分组。
     pub group: String,
@@ -42,9 +43,9 @@ pub struct Equipment {
 
     /// 可安装到哪些装备类别网格中。
     ///
-    /// 导出里空列表可能写成 `{}`，这里统一收敛成正常数组。
-    #[serde(default, deserialize_with = "deserialize_vec_or_empty_object")]
-    pub equipment_categories: Vec<EquipmentCategory>,
+    /// 导出里空列表可能写成 `{}`；DTO 直接保留这种双形态。
+    #[serde(default)]
+    pub equipment_categories: ArrayOrEmptyObject<String>,
 
     /// 拆下或拾取时返回的物品名称。
     ///

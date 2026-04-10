@@ -11,19 +11,15 @@
 //!
 //! - 当某个数组为空时，导出有时会给出 `{}` 而不是 `[]`
 //!
-//! 本模块会把这种格式统一规整为正常的空数组，方便后续入库与使用。
+//! 本模块会通过显式 DTO 类型保留这种双形态，避免在反序列化层做黑盒规整。
 mod effect;
 mod effect_modifier;
-mod effect_type;
 mod prototype;
 mod research_trigger;
-mod research_trigger_type;
 mod research_unit_ingredient;
 
 pub use effect::*;
 pub use effect_modifier::*;
-pub use effect_type::*;
 pub use prototype::*;
 pub use research_trigger::*;
-pub use research_trigger_type::*;
 pub use research_unit_ingredient::*;

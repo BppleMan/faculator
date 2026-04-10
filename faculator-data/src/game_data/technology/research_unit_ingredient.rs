@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 /// `research_unit_ingredients[]` 条目。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct ResearchUnitIngredient {
     /// 科技包物品名称。
     ///

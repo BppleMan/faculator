@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 /// `item_groups[].subgroups[]` 中的子分组对象。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct ItemSubgroup {
     /// 子分组名称。
     ///

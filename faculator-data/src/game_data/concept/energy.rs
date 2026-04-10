@@ -12,13 +12,7 @@
 //!
 //! 此外，`ElectricEnergySource.input_flow_limit` / `output_flow_limit` 不能简单用 `Decimal`，
 //! 因为导出可能使用 `DBL_MAX` 作为“无限流量”的哨兵。
-mod electric_usage_priority;
-
-pub use electric_usage_priority::*;
-
-use crate::game_data::category::FuelCategory;
 use crate::game_data::concept::{FluidBoxPrototype, HeatBufferPrototype};
-use crate::string_enum;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
@@ -29,42 +23,13 @@ use std::collections::BTreeMap;
 /// key 通常是污染类别名称，value 是对应的排放量。
 pub type EmissionsPerJoule = BTreeMap<String, Decimal>;
 
-string_enum! {
-    /// energy_sources.types 中记录的能源类型标签。
-    pub enum EnergySourceType {
-        /// 燃烧能源源。
-        ///
-        /// 对应 `energy_sources.burner` 子对象。
-        Burner => "burner",
-
-        /// 电力能源源。
-        ///
-        /// 对应 `energy_sources.electric` 子对象。
-        Electric => "electric",
-
-        /// 流体能源源。
-        ///
-        /// 对应 `energy_sources.fluid` 子对象。
-        Fluid => "fluid",
-
-        /// 热能能源源。
-        ///
-        /// 对应 `energy_sources.heat` 子对象。
-        Heat => "heat",
-
-        /// 虚空能源源。
-        ///
-        /// 对应 `energy_sources.void` 子对象。
-        Void => "void"
-    }
-}
-
 /// 燃烧能源源定义。
 ///
 /// 这是“实体附带的燃烧器能力”的直接承载对象。
 /// 它本质上是 `Entity` 的一个组件，而不是独立实体，因此更适合持久化成
 /// `entity -> burner_energy_source` 的一对一子表。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct BurnerEnergySource {
     /// 燃烧效率。
     pub effectivity: Decimal,
@@ -78,7 +43,7 @@ pub struct BurnerEnergySource {
     /// 接受的燃料类别列表。
     ///
     /// 这些值会引用顶层 `fuel_categories`。
-    pub fuel_categories: Vec<FuelCategory>,
+    pub fuel_categories: Vec<String>,
 
     /// 初始燃料名称。
     ///
@@ -99,7 +64,8 @@ pub struct BurnerEnergySource {
 }
 
 /// 电力能源源定义。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct ElectricEnergySource {
     /// 缓冲容量。
     pub buffer_capacity: Decimal,
@@ -107,7 +73,7 @@ pub struct ElectricEnergySource {
     /// 用电优先级。
     ///
     /// 该字段决定实体在电网中的供能 / 放电调度策略。
-    pub usage_priority: ElectricUsagePriority,
+    pub usage_priority: String,
 
     /// 待机漏电量。
     pub drain: Decimal,
@@ -133,7 +99,8 @@ pub struct ElectricEnergySource {
 }
 
 /// 流体能源源定义。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct FluidEnergySource {
     /// 能源转换效率。
     pub effectivity: Decimal,
@@ -167,7 +134,8 @@ pub struct FluidEnergySource {
 }
 
 /// 热能能源源定义。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct HeatEnergySource {
     /// 最高温度。
     pub max_temperature: Decimal,
@@ -204,7 +172,8 @@ pub struct HeatEnergySource {
 }
 
 /// 虚空能源源定义。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct VoidEnergySource {
     /// 每焦耳排放映射。
     pub emissions_per_joule: Option<EmissionsPerJoule>,
@@ -217,12 +186,13 @@ pub struct VoidEnergySource {
 }
 
 /// 一个实体挂载的能源源集合。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct EnergySources {
     /// 当前实体拥有的能源源类型列表。
     ///
     /// 该字段决定下面哪些具体子对象应当存在。
-    pub types: Vec<EnergySourceType>,
+    pub types: Vec<String>,
 
     /// 燃烧能源源子对象。
     pub burner: Option<BurnerEnergySource>,

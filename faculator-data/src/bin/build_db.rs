@@ -1,4 +1,4 @@
-use color_eyre::eyre::{Result, WrapErr, bail};
+use color_eyre::eyre::Result;
 // use faculator_data::bootstrap::{BuildDatabaseConfig, GameDatabaseBuilder};
 // use std::path::PathBuf;
 

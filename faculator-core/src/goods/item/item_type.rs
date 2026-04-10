@@ -1,7 +1,7 @@
-use crate::string_enum;
+use faculator_macros::string_enum;
 
 string_enum! {
-    /// 物品原型类型。
+    /// faculator 当前支持的物品原型类型边界。
     pub enum ItemType {
         /// 弹药。
         ///
@@ -92,36 +92,5 @@ string_enum! {
         ///
         /// 用于批量标记实体升级。
         UpgradeItem => "upgrade-item"
-    }
-}
-
-string_enum! {
-    /// Item 原型标志位。
-    pub enum ItemFlag {
-        /// 总是显示该物品。
-        ///
-        /// 即使常规展示逻辑会隐藏它，UI 也应显式呈现。
-        AlwaysShow => "always-show",
-
-        /// 在物品上绘制物流网络覆盖层图标。
-        DrawLogisticOverlay => "draw-logistic-overlay",
-
-        /// 物品不会被自动归入未请求垃圾桶。
-        ExcludedFromTrashUnrequested => "excluded-from-trash-unrequested",
-
-        /// 在加成统计 GUI 中隐藏该物品。
-        HideFromBonusGui => "hide-from-bonus-gui",
-
-        /// 物品不可在同一格子中堆叠。
-        NotStackable => "not-stackable",
-
-        /// 物品只能存在于光标中，不能放入容器。
-        OnlyInCursor => "only-in-cursor",
-
-        /// 物品可通过控制台命令直接生成。
-        Spawnable => "spawnable",
-
-        /// 标记该物品为腐烂后的产物。
-        SpoilResult => "spoil-result"
     }
 }

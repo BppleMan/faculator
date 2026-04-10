@@ -9,16 +9,15 @@
 //! - `entities.group` / `entities.subgroup`
 //!
 //! 都会指向这里定义的目录名称，因此这是构建展示侧 SQL 外键的重要来源。
-mod item_group_type;
 mod subgroup;
 
-pub use item_group_type::*;
 pub use subgroup::*;
 
 use serde::{Deserialize, Serialize};
 
 /// 一个顶层物品分组。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct ItemGroup {
     /// 分组名称。
     ///
@@ -29,7 +28,7 @@ pub struct ItemGroup {
     ///
     /// 当前导出样本中固定为 `"item-group"`，保留该字段是为了完整反映原始 JSON。
     #[serde(rename = "type")]
-    pub item_group_type: ItemGroupType,
+    pub item_group_type: String,
 
     /// UI / 百科排序键。
     ///

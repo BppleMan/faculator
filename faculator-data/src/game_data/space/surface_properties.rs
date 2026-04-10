@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 /// `space_locations[].surface_properties` 对象。
 ///
 /// 这些字段在 JSON 里有带连字符的命名，这里通过 `serde(rename)` 显式映射出来。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct SurfaceProperties {
     /// 昼夜周期。
     #[serde(rename = "day-night-cycle")]

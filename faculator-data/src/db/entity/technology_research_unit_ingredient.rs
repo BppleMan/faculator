@@ -1,6 +1,7 @@
 use sea_orm::entity::prelude::*;
 
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(DeriveEntityModel)]
 #[sea_orm(table_name = "technology_research_unit_ingredient")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
@@ -14,7 +15,8 @@ pub struct Model {
     pub amount: Decimal,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+#[derive(Debug, Clone, Copy)]
+#[derive(EnumIter, DeriveRelation)]
 pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}

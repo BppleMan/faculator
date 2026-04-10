@@ -8,23 +8,18 @@
 //!
 //! 其中 `SurfaceCondition.min/max` 特别值得注意：导出器会使用极大值作为“近似无界”的哨兵，
 //! 因此这里必须用 `serde_json::Number` 承接，而不能简单使用 `Decimal`。
-mod fluid_box_production_type;
-mod surface_property;
-
-pub use fluid_box_production_type::*;
-pub use surface_property::*;
-
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
 /// 一个地表条件约束。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct SurfaceCondition {
     /// 条件属性名称。
     ///
     /// 该值与 `space_locations.surface_properties` 使用的是同一套地表属性语义。
-    pub property: SurfaceProperty,
+    pub property: String,
 
     /// 条件下界。
     ///
@@ -38,7 +33,8 @@ pub struct SurfaceCondition {
 }
 
 /// RGBA 颜色对象。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Color {
     /// 红色通道。
     pub r: Decimal,
@@ -54,12 +50,13 @@ pub struct Color {
 }
 
 /// 一个流体箱原型定义。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct FluidBoxPrototype {
     /// 流体箱生产类型。
     ///
-    /// 这不是任意文本，而是流体接口方向模式。
-    pub production_type: FluidBoxProductionType,
+    /// DTO 直接保留导出中的字符串值。
+    pub production_type: String,
 
     /// 流体过滤器名称。
     ///
@@ -83,7 +80,8 @@ pub struct FluidBoxPrototype {
 }
 
 /// 一个热缓冲区原型定义。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct HeatBufferPrototype {
     /// 最高温度。
     pub max_temperature: Decimal,

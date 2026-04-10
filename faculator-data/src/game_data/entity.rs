@@ -14,19 +14,17 @@
 //! - `lab_inputs[] -> items.name`
 //!
 //! 这些字段基本都会直接变成后续 SQL 模型里的关联表来源。
-mod entity_type;
 
-use crate::game_data::category::{ModuleCategory, RecipeCategory, ResourceCategory};
 use crate::game_data::concept::{
-    EffectReceiver, EnergySources, FluidBoxPrototype, ItemStackDefinition, ModuleEffectType, SurfaceCondition,
+    EffectReceiver, EnergySources, FluidBoxPrototype, ItemStackDefinition, SurfaceCondition,
 };
-pub use entity_type::*;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
 /// 一个可导出的地图实体原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Entity {
     /// 实体名称。
     ///
@@ -35,9 +33,9 @@ pub struct Entity {
 
     /// 实体原型类型。
     ///
-    /// 原始 JSON 使用 `type` 键；这里映射为 `entity_type`。
+    /// 原始 JSON 使用 `type` 键；DTO 直接保留其字符串值。
     #[serde(rename = "type")]
-    pub entity_type: EntityType,
+    pub entity_type: String,
 
     /// 所属展示大分组名称。
     pub group: String,
@@ -54,7 +52,7 @@ pub struct Entity {
     /// 该实体支持的配方类别列表。
     ///
     /// 这些值会引用顶层 `recipe_categories`，是实体与配方兼容性关系的关键外键。
-    pub crafting_categories: Option<Vec<RecipeCategory>>,
+    pub crafting_categories: Option<Vec<String>>,
 
     /// 制作速度。
     pub crafting_speed: Option<Decimal>,
@@ -65,12 +63,12 @@ pub struct Entity {
     /// 允许接收的效果类型列表。
     ///
     /// 这些值定义机器允许哪些模块效果真正进入运算规则。
-    pub allowed_effects: Option<Vec<ModuleEffectType>>,
+    pub allowed_effects: Option<Vec<String>>,
 
     /// 允许插入的模块类别列表。
     ///
     /// 这些值会引用顶层 `module_categories`。
-    pub allowed_module_categories: Option<Vec<ModuleCategory>>,
+    pub allowed_module_categories: Option<Vec<String>>,
 
     /// 效果接收器定义。
     pub effect_receiver: Option<EffectReceiver>,
@@ -114,7 +112,7 @@ pub struct Entity {
     pub target_temperature: Option<Decimal>,
 
     /// 锅炉工作模式。
-    pub boiler_mode: Option<BoilerMode>,
+    pub boiler_mode: Option<String>,
 
     /// 邻接加成倍率。
     pub neighbour_bonus: Option<Decimal>,
@@ -134,7 +132,7 @@ pub struct Entity {
     /// 可开采的资源类别列表。
     ///
     /// 这些值会引用顶层 `resource_categories`。
-    pub resource_categories: Option<Vec<ResourceCategory>>,
+    pub resource_categories: Option<Vec<String>>,
 
     /// 实验室接受的科技包物品名称列表。
     ///
@@ -159,7 +157,7 @@ pub struct Entity {
     pub beacon_profile: Option<Vec<Decimal>>,
 
     /// Beacon 计数模式。
-    pub beacon_counter: Option<BeaconCounter>,
+    pub beacon_counter: Option<String>,
 
     /// Beacon 作用半径。
     pub supply_area_distance: Option<Decimal>,

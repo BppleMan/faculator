@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// 一个启用 mod 的名称与版本。
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Mod {
     /// mod 名称。
     ///

@@ -1,9 +1,11 @@
+use crate::category::FuelCategory;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 /// 燃料能力模型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FuelItem {
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
+pub struct FuelCapability {
     /// 燃料热值。
     ///
     /// `0` 表示该物品不是燃料；大于 `0` 时可与 `fuel_category` 联动参与燃料兼容性判断。
@@ -19,7 +21,5 @@ pub struct FuelItem {
     pub fuel_emissions_multiplier: u64,
 
     /// 燃料类别。
-    ///
-    /// 该字段会引用顶层 `fuel_categories`，是燃料兼容性建模的关键外键之一。
     pub fuel_category: Option<FuelCategory>,
 }

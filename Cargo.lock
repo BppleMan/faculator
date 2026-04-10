@@ -1007,6 +1007,7 @@ dependencies = [
 name = "faculator-core"
 version = "0.1.0"
 dependencies = [
+ "faculator-macros",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -1018,6 +1019,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "color-eyre",
+ "faculator-core",
  "rust_decimal",
  "sea-orm 2.0.0-rc.37",
  "serde",
@@ -1039,6 +1041,10 @@ dependencies = [
  "texture_packer",
  "walkdir",
 ]
+
+[[package]]
+name = "faculator-macros"
+version = "0.1.0"
 
 [[package]]
 name = "faculator-migration"

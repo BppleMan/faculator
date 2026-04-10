@@ -1,6 +1,7 @@
 use sea_orm::entity::prelude::*;
 
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(DeriveEntityModel)]
 #[sea_orm(table_name = "entity_effect_receiver")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
@@ -15,7 +16,8 @@ pub struct Model {
     pub uses_surface_effects: bool,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+#[derive(Debug, Clone, Copy)]
+#[derive(EnumIter, DeriveRelation)]
 pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}

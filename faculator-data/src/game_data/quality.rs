@@ -12,7 +12,8 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 /// 一个品质等级原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 #[rustfmt::skip]
 pub struct Quality {
     /// 品质名称。

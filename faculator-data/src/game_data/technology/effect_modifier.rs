@@ -2,7 +2,8 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 /// 科技效果中的 `modifier` 联合值。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum TechnologyEffectModifier {
     /// 布尔开关型修改值。

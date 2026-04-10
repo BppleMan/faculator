@@ -1,9 +1,10 @@
-use crate::game_data::serde_helper::deserialize_vec_or_empty_object;
+use crate::game_data::serde_helper::ArrayOrEmptyObject;
 use crate::game_data::technology::{ResearchTrigger, ResearchUnitIngredient, TechnologyEffect};
 use serde::{Deserialize, Serialize};
 
 /// 一个科技原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Technology {
     /// 科技名称。
     ///
@@ -51,8 +52,8 @@ pub struct Technology {
     /// 研究所需科技包列表。
     ///
     /// `ResearchUnitIngredient.name` 会引用 `items.name`，是科技与物品之间的重要外键。
-    #[serde(default, deserialize_with = "deserialize_vec_or_empty_object")]
-    pub research_unit_ingredients: Vec<ResearchUnitIngredient>,
+    #[serde(default)]
+    pub research_unit_ingredients: ArrayOrEmptyObject<ResearchUnitIngredient>,
 
     /// 特殊研究触发器。
     ///
@@ -62,14 +63,14 @@ pub struct Technology {
     /// 前置科技列表。
     ///
     /// 这是面向同表 `technologies.name` 的自引用多对多关系来源。
-    #[serde(default, deserialize_with = "deserialize_vec_or_empty_object")]
-    pub prerequisites: Vec<String>,
+    #[serde(default)]
+    pub prerequisites: ArrayOrEmptyObject<String>,
 
     /// 科技效果列表。
     ///
     /// `unlock-recipe`、`unlock-space-location` 等效果会把科技与其他主表连接起来。
-    #[serde(default, deserialize_with = "deserialize_vec_or_empty_object")]
-    pub effects: Vec<TechnologyEffect>,
+    #[serde(default)]
+    pub effects: ArrayOrEmptyObject<TechnologyEffect>,
 
     /// 该科技对应的配方是否允许生产力。
     pub allows_productivity: bool,
@@ -77,8 +78,8 @@ pub struct Technology {
     /// 后继科技列表。
     ///
     /// 这是面向同表 `technologies.name` 的反向自引用关系来源。
-    #[serde(default, deserialize_with = "deserialize_vec_or_empty_object")]
-    pub successors: Vec<String>,
+    #[serde(default)]
+    pub successors: ArrayOrEmptyObject<String>,
 
     /// 无限科技或等级链科技的研究单位公式。
     pub research_unit_count_formula: Option<String>,

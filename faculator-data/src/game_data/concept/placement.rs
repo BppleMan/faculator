@@ -5,7 +5,8 @@
 use serde::{Deserialize, Serialize};
 
 /// 一个物品栈需求定义。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct ItemStackDefinition {
     /// 物品名称。
     ///

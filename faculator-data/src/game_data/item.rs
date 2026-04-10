@@ -14,20 +14,17 @@
 //! - 正常情况为字符串数组
 //! - 空值时导出器有时会给 `{}` 而不是 `[]`
 //!
-//! source DTO 在这里会把 `{}` 规整成空数组。
-mod item_type;
+//! source DTO 在这里会显式保留这种双形态。
 
-pub use crate::game_data::category::{FuelCategory, ModuleCategory};
 use crate::game_data::concept::{ModuleEffects, Product};
-use crate::game_data::serde_helper::deserialize_vec_or_empty_object;
-pub use item_type::*;
+use crate::game_data::serde_helper::ArrayOrEmptyObject;
 use rust_decimal::Decimal;
-use serde::Deserializer;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
 /// 一个物品原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Item {
     /// 物品名称。
     ///
@@ -36,9 +33,9 @@ pub struct Item {
 
     /// 物品类型。
     ///
-    /// 原始 JSON 使用 `type` 键；这里映射为更语义化的 `item_type`。
+    /// 原始 JSON 使用 `type` 键；DTO 直接保留其字符串值。
     #[serde(rename = "type")]
-    pub item_type: ItemType,
+    pub item_type: String,
 
     /// 所属展示大分组名称。
     ///
@@ -85,14 +82,14 @@ pub struct Item {
 
     /// 物品标志位列表。
     ///
-    /// 原始 JSON 里该字段可能是字符串数组，也可能是空对象 `{}`；这里统一规整成数组。
-    #[serde(default, deserialize_with = "deserialize_flags")]
-    pub flags: Vec<ItemFlag>,
+    /// 原始 JSON 里该字段可能是字符串数组，也可能是空对象 `{}`；DTO 直接保留这种双形态。
+    #[serde(default)]
+    pub flags: ArrayOrEmptyObject<String>,
 
     /// 燃料类别。
     ///
     /// 该字段会引用顶层 `fuel_categories`，是燃料兼容性建模的关键外键之一。
-    pub fuel_category: Option<FuelCategory>,
+    pub fuel_category: Option<String>,
 
     /// 模块效果定义。
     ///
@@ -103,7 +100,7 @@ pub struct Item {
     ///
     /// 原始 JSON 使用 `category` 键；当该字段存在时，会引用顶层 `module_categories`。
     #[serde(rename = "category")]
-    pub module_category: Option<ModuleCategory>,
+    pub module_category: Option<String>,
 
     /// 模块等级。
     pub tier: Option<u64>,
@@ -132,14 +129,6 @@ pub struct Item {
     ///
     /// 通常会回指 `items.name`。
     pub burnt_result: Option<String>,
-}
-
-fn deserialize_flags<'de, D>(deserializer: D) -> Result<Vec<ItemFlag>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let flags = deserialize_vec_or_empty_object::<D, String>(deserializer)?;
-    Ok(flags.into_iter().map(ItemFlag::from).collect())
 }
 
 impl PartialOrd<Self> for Item {

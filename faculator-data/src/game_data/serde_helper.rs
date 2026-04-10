@@ -1,46 +1,44 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-struct NamedEntry<T> {
-    name: T,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct EmptyObject {}
+pub struct EmptyObject {}
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 #[serde(untagged)]
-enum VecOrEmptyObject<T> {
-    Vec(Vec<T>),
-    Empty(EmptyObject),
+pub enum ArrayOrEmptyObject<T> {
+    Array(Vec<T>),
+    EmptyObject(EmptyObject),
 }
 
-pub(crate) fn deserialize_named_enum_vec<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
-where
-    D: Deserializer<'de>,
-    T: Deserialize<'de>,
-{
-    let entries = Vec::<NamedEntry<T>>::deserialize(deserializer)?;
-    Ok(entries.into_iter().map(|entry| entry.name).collect())
+impl<T> Default for ArrayOrEmptyObject<T> {
+    fn default() -> Self {
+        Self::Array(Vec::new())
+    }
 }
 
-pub(crate) fn serialize_named_enum_vec<S, T>(values: &[T], serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-    T: Serialize,
-{
-    let entries = values.iter().map(|value| NamedEntry { name: value }).collect::<Vec<_>>();
-    entries.serialize(serializer)
-}
+impl<T> ArrayOrEmptyObject<T> {
+    pub fn as_slice(&self) -> &[T] {
+        match self {
+            Self::Array(values) => values.as_slice(),
+            Self::EmptyObject(_) => &[],
+        }
+    }
 
-pub(crate) fn deserialize_vec_or_empty_object<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
-where
-    D: Deserializer<'de>,
-    T: Deserialize<'de>,
-{
-    Ok(match VecOrEmptyObject::<T>::deserialize(deserializer)? {
-        VecOrEmptyObject::Vec(values) => values,
-        VecOrEmptyObject::Empty(_) => Vec::new(),
-    })
+    pub fn len(&self) -> usize {
+        self.as_slice().len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn into_vec(self) -> Vec<T> {
+        match self {
+            Self::Array(values) => values,
+            Self::EmptyObject(_) => Vec::new(),
+        }
+    }
 }

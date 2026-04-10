@@ -11,16 +11,16 @@
 //! - `unlock_results[].name -> items.name / fluids.name`
 //!
 //! 导出器在这里也用了一个小技巧：空的 `ingredients` / `products` 有时会写成 `{}` 而不是 `[]`。
-//! source DTO 会统一把它们规整成空数组。
-use crate::game_data::category::{ModuleCategory, RecipeCategory};
-use crate::game_data::concept::{Ingredient, MaterialRef, ModuleEffectType, Product, SurfaceCondition};
-use crate::game_data::serde_helper::deserialize_vec_or_empty_object;
+//! source DTO 会显式保留这种双形态。
+use crate::game_data::concept::{Ingredient, MaterialRef, Product, SurfaceCondition};
+use crate::game_data::serde_helper::ArrayOrEmptyObject;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
 /// 一个配方原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 #[rustfmt::skip]
 pub struct Recipe {
     /// 配方名称。
@@ -43,22 +43,22 @@ pub struct Recipe {
     /// 主配方类别名称。
     ///
     /// 这是面向顶层 `recipe_categories` 的关键外键字段。
-    pub category: RecipeCategory,
+    pub category: String,
 
     /// 基础制造耗时。
     pub energy: Decimal,
 
     /// 原料列表。
     ///
-    /// 导出里空列表可能写成 `{}`；这里统一规整为正常数组。
-    #[serde(default, deserialize_with = "deserialize_vec_or_empty_object")]
-    pub ingredients: Vec<Ingredient>,
+    /// 导出里空列表可能写成 `{}`；DTO 直接保留这种双形态。
+    #[serde(default)]
+    pub ingredients: ArrayOrEmptyObject<Ingredient>,
 
     /// 产物列表。
     ///
-    /// 导出里空列表可能写成 `{}`；这里统一规整为正常数组。
-    #[serde(default, deserialize_with = "deserialize_vec_or_empty_object")]
-    pub products: Vec<Product>,
+    /// 导出里空列表可能写成 `{}`；DTO 直接保留这种双形态。
+    #[serde(default)]
+    pub products: ArrayOrEmptyObject<Product>,
 
     /// 主产物引用。
     ///
@@ -92,12 +92,12 @@ pub struct Recipe {
     /// 允许的模块效果类型列表。
     ///
     /// 这些值与 `items.module_effects` 使用的是同一套效果类型语义。
-    pub allowed_effects: Option<Vec<ModuleEffectType>>,
+    pub allowed_effects: Option<Vec<String>>,
 
     /// 允许的模块类别列表。
     ///
     /// 这些值会引用顶层 `module_categories`。
-    pub allowed_module_categories: Option<Vec<ModuleCategory>>,
+    pub allowed_module_categories: Option<Vec<String>>,
 
     /// 最大生产力加成上限。
     pub maximum_productivity: Option<Decimal>,
@@ -111,7 +111,7 @@ pub struct Recipe {
     /// 附加配方类别列表。
     ///
     /// 这些值同样会引用顶层 `recipe_categories`。
-    pub additional_categories: Option<Vec<RecipeCategory>>,
+    pub additional_categories: Option<Vec<String>>,
 
     /// 解锁时展示的结果物引用列表。
     ///

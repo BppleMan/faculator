@@ -1,8 +1,8 @@
-use crate::game_data::equipment::EquipmentCategory;
 use serde::{Deserialize, Serialize};
 
 /// 一个装备网格原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct EquipmentGrid {
     /// 网格名称。
     ///
@@ -31,5 +31,5 @@ pub struct EquipmentGrid {
     pub locked: bool,
 
     /// 该网格允许安装的装备类别列表。
-    pub equipment_categories: Vec<EquipmentCategory>,
+    pub equipment_categories: Vec<String>,
 }

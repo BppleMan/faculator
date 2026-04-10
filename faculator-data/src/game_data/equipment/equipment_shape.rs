@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 /// 装备占用的网格宽高。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct EquipmentShape {
     /// 宽度。
     pub width: u64,

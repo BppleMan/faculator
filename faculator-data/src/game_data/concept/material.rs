@@ -2,33 +2,18 @@
 //!
 //! 这些结构会出现在 `recipes.ingredients`、`recipes.products`、
 //! `items.rocket_launch_products` 等位置，是后续构建“配方输入表 / 配方输出表”的直接来源。
-use crate::string_enum;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-string_enum! {
-    /// 物料类型。Factorio 在 Ingredient / Product 中统一使用 item / fluid 区分。
-    pub enum MaterialType {
-        /// 物品型物料。
-        ///
-        /// `name` 应当到 `items.name` 中解析。
-        Item => "item",
-
-        /// 流体型物料。
-        ///
-        /// `name` 应当到 `fluids.name` 中解析。
-        Fluid => "fluid"
-    }
-}
-
 /// 一个配方原料条目。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Ingredient {
     /// 物料类型。
     ///
-    /// 原始 JSON 使用 `type` 键，决定 `name` 应该去 `items` 还是 `fluids` 中解析。
+    /// 原始 JSON 使用 `type` 键，DTO 直接保留其字符串值。
     #[serde(rename = "type")]
-    pub material_type: MaterialType,
+    pub material_type: String,
 
     /// 物料名称。
     ///
@@ -51,11 +36,12 @@ pub struct Ingredient {
 }
 
 /// 一个配方或掉落产物条目。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Product {
     /// 物料类型。
     #[serde(rename = "type")]
-    pub material_type: MaterialType,
+    pub material_type: String,
 
     /// 物料名称。
     ///
@@ -93,11 +79,12 @@ pub struct Product {
 /// 物料引用。
 ///
 /// 仅含类型与名称，不含数量。用于主产物和解锁结果等“只需要指向物料”的场景。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct MaterialRef {
     /// 物料类型。
     #[serde(rename = "type")]
-    pub material_type: MaterialType,
+    pub material_type: String,
 
     /// 物料名称。
     ///

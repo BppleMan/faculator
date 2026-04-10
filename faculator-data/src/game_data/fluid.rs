@@ -16,7 +16,8 @@ use serde_json::Number;
 use std::cmp::Ordering;
 
 /// 一个流体原型。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Fluid {
     /// 流体名称。
     ///

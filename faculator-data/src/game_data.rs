@@ -4,9 +4,9 @@
 //!
 //! 1. 字段命名尽量贴近 `game-data.json` 原始键名，方便从代码直接反推 JSON 结构。
 //! 2. 仅在导出格式存在明显技巧或陷阱时做轻量适配，例如：
-//!    - `game.active_mods` 在 JSON 中是 `{"mod-name":"version"}` 对象，但这里收敛成 `Vec<game::Mod>`；
-//!    - 四类 `*_categories` 在 JSON 中是 `[{ "name": "..." }]`，这里直接收敛成 enum 列表；
-//!    - 某些“空列表”在 JSON 中会导出成 `{}`，这一层会兼容为 `Vec::new()`；
+//!    - `game.active_mods` 保留为 JSON 原始对象形状；
+//!    - 四类 `*_categories` 保留为 `[{ "name": "..." }]` 结构，而不是提前压成 enum；
+//!    - 某些“空列表”在 JSON 中会导出成 `{}`，这一层会用显式 DTO 类型保留这种双形态；
 //!    - 少数字段会用 `FLT_MAX` / `DBL_MAX` 等极大值充当哨兵，相关字段因此不能简单使用 `Decimal`。
 //! 3. 本模块中的注释会特别指出哪些字段天然适合作为 SQL 主键、外键或关联表来源。
 //!
@@ -46,6 +46,8 @@ pub mod technology;
 
 mod serde_helper;
 
+pub use serde_helper::{ArrayOrEmptyObject, EmptyObject};
+
 /// `game-data.json` 的根对象。
 ///
 /// 该结构与导出 JSON 的顶层键一一对应：
@@ -68,7 +70,8 @@ mod serde_helper;
 /// - `equipment_grids`
 ///
 /// 因为这是 source DTO 入口，所以看到这里就应该能知道整个导出文件的骨架长什么样。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct GameData {
     /// 顶层 `game` 元数据对象。
     ///
@@ -78,47 +81,31 @@ pub struct GameData {
 
     /// 顶层 `recipe_categories` 集合。
     ///
-    /// 原始 JSON 形状是 `[{ "name": "crafting" }, ...]`，这里直接压平成 `Vec<RecipeCategory>`。
-    /// 这组值通常可以建成 recipe 维表或受控枚举表，并作为 `recipes.category` /
+    /// 原始 JSON 形状是 `[{ "name": "crafting" }, ...]`，这里按原始对象数组保留。
+    /// 这组值通常可以建成 recipe 维表，并作为 `recipes.category` /
     /// `recipes.additional_categories` 的外键候选来源。
-    #[serde(
-        default,
-        deserialize_with = "crate::game_data::serde_helper::deserialize_named_enum_vec",
-        serialize_with = "crate::game_data::serde_helper::serialize_named_enum_vec"
-    )]
+    #[serde(default)]
     pub recipe_categories: Vec<RecipeCategory>,
 
     /// 顶层 `fuel_categories` 集合。
     ///
-    /// 原始 JSON 同样是 `{ name }` 对象数组，这里直接压平成 enum 列表。
+    /// 原始 JSON 同样是 `{ name }` 对象数组，这里按原始对象数组保留。
     /// 这组值是 `items.fuel_category`、`fluids.fuel_category` 以及
     /// `entities.energy_sources.burner.fuel_categories[]` 的天然外键来源。
-    #[serde(
-        default,
-        deserialize_with = "crate::game_data::serde_helper::deserialize_named_enum_vec",
-        serialize_with = "crate::game_data::serde_helper::serialize_named_enum_vec"
-    )]
+    #[serde(default)]
     pub fuel_categories: Vec<FuelCategory>,
 
     /// 顶层 `resource_categories` 集合。
     ///
     /// 这组值主要会被 `entities.resource_categories[]` 引用，适合拆成资源类别表或字典表。
-    #[serde(
-        default,
-        deserialize_with = "crate::game_data::serde_helper::deserialize_named_enum_vec",
-        serialize_with = "crate::game_data::serde_helper::serialize_named_enum_vec"
-    )]
+    #[serde(default)]
     pub resource_categories: Vec<ResourceCategory>,
 
     /// 顶层 `module_categories` 集合。
     ///
     /// 这组值会被模块物品的 `items.category` 以及机器的
     /// `entities.allowed_module_categories[]` 引用，是模块体系的重要维度表来源。
-    #[serde(
-        default,
-        deserialize_with = "crate::game_data::serde_helper::deserialize_named_enum_vec",
-        serialize_with = "crate::game_data::serde_helper::serialize_named_enum_vec"
-    )]
+    #[serde(default)]
     pub module_categories: Vec<ModuleCategory>,
 
     /// 顶层 `items` 集合。
@@ -205,9 +192,8 @@ impl GameData {
         let base_mod_version = self
             .game
             .active_mods
-            .iter()
-            .find(|game_mod| game_mod.name == "base")
-            .map(|game_mod| game_mod.version.as_str())
+            .get("base")
+            .map(String::as_str)
             .unwrap_or("unknown");
 
         let total_main_entries = self.items.len()
@@ -274,13 +260,10 @@ mod tests {
             game_data
                 .game
                 .active_mods
-                .iter()
-                .any(|game_mod| game_mod.name == "base" && game_mod.version == "2.0.76")
+                .get("base")
+                .is_some_and(|version| version == "2.0.76")
         );
-        assert_eq!(
-            game_data.recipe_categories.first(),
-            Some(&RecipeCategory::AdvancedCrafting)
-        );
+        assert_eq!(game_data.recipe_categories.first().map(|category| category.name.as_str()), Some("advanced-crafting"));
         assert_eq!(
             game_data.item_groups.first().map(|group| group.name.as_str()),
             Some("logistics")

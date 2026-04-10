@@ -1,15 +1,12 @@
 //! 模块效果与效果接收器相关 DTO。
 //!
 //! 这些对象既会出现在模块物品中，也会出现在实体原型中，因此是模块系统 / beacon 系统的核心嵌套值对象。
-mod module_effect_type;
-
-pub use module_effect_type::*;
-
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 /// 单个效果项的倍率。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct ModuleEffectModifier {
     /// 加成值。
     ///
@@ -18,7 +15,8 @@ pub struct ModuleEffectModifier {
 }
 
 /// 一个模块效果集合。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct ModuleEffects {
     /// 能耗效果。
     pub consumption: Option<ModuleEffectModifier>,
@@ -37,7 +35,8 @@ pub struct ModuleEffects {
 }
 
 /// 一个实体对外部效果的接收策略。
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct EffectReceiver {
     /// 基础效果。
     ///
