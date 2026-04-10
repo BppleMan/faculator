@@ -58,13 +58,13 @@ function Serializers.product(prod)
   }
 end
 
---- 序列化单条效果修改器（ModuleEffect 的子字段）
+--- 序列化单条效果值（ModuleEffects 的子字段）
 --- @see https://lua-api.factorio.com/latest/concepts/ModuleEffectValue.html
 --- @param effect ModuleEffectValue|nil
---- @return table|nil
+--- @return number|nil
 function Serializers.modifier(effect)
   if not effect then return nil end
-  return { bonus = effect.bonus }
+  return effect
 end
 
 --- 序列化模块效果（ModuleEffects）
@@ -128,12 +128,16 @@ end
 --- @param boxes LuaFluidBoxPrototype[]|nil
 --- @return table[]|nil
 function Serializers.fluidbox_prototypes(boxes)
-  if not boxes or #boxes == 0 then return nil end
-  local safe = Util.safe_get
+  if not boxes then return nil end
   local result = {}
-  for _, fb in ipairs(boxes) do
-    result[#result + 1] = Serializers.fluidbox_prototype(fb)
+  for _, fb in pairs(boxes) do
+    local serialized = Serializers.fluidbox_prototype(fb)
+    if serialized then
+      result[#result + 1] = serialized
+    end
   end
+  if #result == 0 then return nil end
+  table.sort(result, function(a, b) return a.index < b.index end)
   return result
 end
 
@@ -145,6 +149,7 @@ function Serializers.fluidbox_prototype(fb)
   if not fb then return nil end
   local safe = Util.safe_get
   return {
+    index               = safe(function() return fb.index end),
     production_type     = fb.production_type,
     filter              = safe(function()
       local f = fb.filter
@@ -152,8 +157,6 @@ function Serializers.fluidbox_prototype(fb)
     end),
     minimum_temperature = fb.minimum_temperature,
     maximum_temperature = fb.maximum_temperature,
-    base_area           = fb.base_area,
-    base_level          = fb.base_level,
     volume              = safe(function() return fb.volume end),
   }
 end

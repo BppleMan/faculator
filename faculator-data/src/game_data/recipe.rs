@@ -92,7 +92,8 @@ pub struct Recipe {
     /// 允许的模块效果类型列表。
     ///
     /// 这些值与 `items.module_effects` 使用的是同一套效果类型语义。
-    pub allowed_effects: Option<Vec<String>>,
+    #[serde(default)]
+    pub allowed_effects: Vec<String>,
 
     /// 允许的模块类别列表。
     ///
@@ -100,10 +101,10 @@ pub struct Recipe {
     pub allowed_module_categories: Option<Vec<String>>,
 
     /// 最大生产力加成上限。
-    pub maximum_productivity: Option<Decimal>,
+    pub maximum_productivity: Decimal,
 
     /// 是否对玩家手搓隐藏。
-    pub hide_from_player_crafting: Option<bool>,
+    pub hide_from_player_crafting: bool,
 
     /// 地表条件限制。
     pub surface_conditions: Option<Vec<SurfaceCondition>>,
@@ -113,9 +114,9 @@ pub struct Recipe {
     /// 这些值同样会引用顶层 `recipe_categories`。
     pub additional_categories: Option<Vec<String>>,
 
-    /// 解锁时展示的结果物引用列表。
+    /// 解锁结果列表。
     ///
-    /// 每个 `MaterialRef.name` 都会回指物料主键。
+    /// exporter 当前会把每个结果导出成 `{ type, name }` 对象。
     pub unlock_results: Option<Vec<MaterialRef>>,
 }
 

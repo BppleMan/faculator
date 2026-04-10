@@ -1,4 +1,5 @@
 use crate::game_data::technology::TechnologyEffectModifier;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 /// 科技效果对象。
@@ -15,8 +16,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct TechnologyEffect {
     /// 效果类型。
-    #[serde(rename = "type")]
-    pub effect_type: String,
+    pub r#type: String,
 
     /// 效果附带的修改值。
     ///
@@ -25,11 +25,17 @@ pub struct TechnologyEffect {
 
     /// 被解锁的配方名称。
     ///
-    /// 当 `effect_type = unlock-recipe` 时，该字段会引用 `recipes.name`。
+    /// 当 `type = unlock-recipe` 时，该字段会引用 `recipes.name`。
     pub recipe: Option<String>,
 
     /// 被解锁的空间地点名称。
     ///
-    /// 当 `effect_type = unlock-space-location` 时，该字段会引用 `space_locations.name`。
+    /// 当 `type = unlock-space-location` 时，该字段会引用 `space_locations.name`。
     pub space_location: Option<String>,
+
+    /// 与 `UnlockQualityModifier.quality` 对齐的前向兼容位。
+    pub quality: Option<String>,
+
+    /// 与 `ChangeRecipeProductivityModifier.change` 对齐的前向兼容位。
+    pub change: Option<Decimal>,
 }

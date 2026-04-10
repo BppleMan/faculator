@@ -26,6 +26,8 @@ function Technology.export()
         else
           effect.modifier = safe(function() return eff.modifier end)
         end
+        effect.quality = safe(function() return eff.quality end)
+        effect.change = safe(function() return eff.change end)
         effects[#effects + 1] = effect
       end
     end
@@ -57,7 +59,23 @@ function Technology.export()
     local research_trigger = safe(function()
       local rt = proto.research_trigger
       if not rt then return nil end
-      return { type = rt.type }
+      return {
+        type   = rt.type,
+        entity = safe(function()
+          local entity = rt.entity
+          return entity and entity.name or entity
+        end),
+        item = safe(function()
+          local item = rt.item
+          return item and item.name or item
+        end),
+        fluid = safe(function()
+          local fluid = rt.fluid
+          return fluid and fluid.name or fluid
+        end),
+        count  = safe(function() return rt.count end),
+        amount = safe(function() return rt.amount end),
+      }
     end)
 
     result[#result + 1] = {

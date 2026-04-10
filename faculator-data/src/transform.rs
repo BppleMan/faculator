@@ -1,14 +1,11 @@
 use crate::game_data::{
-    concept::{
-        ModuleEffectModifier as SourceModuleEffectModifier, ModuleEffects as SourceModuleEffects,
-        Product as SourceProduct,
-    },
+    concept::{ModuleEffectSet as SourceModuleEffectSet, Product as SourceProduct},
     item::Item as SourceItem,
 };
 use color_eyre::eyre::{Result, eyre};
 use faculator_core::{
     category::{FuelCategory, ModuleCategory},
-    concept::{MaterialType, ModuleEffectModifier, ModuleEffects, Product},
+    concept::{MaterialType, ModuleEffectModifier, ModuleEffectSet, Product},
     goods::{
         FuelCapability, Item as CoreItem, ItemCapability, ItemFlag, ItemFlagSet, ItemType, ModuleCapability,
         PlacementCapability, TransformationCapability,
@@ -16,7 +13,7 @@ use faculator_core::{
 };
 
 pub fn item_to_core(item: SourceItem) -> Result<CoreItem> {
-    let item_type = item_type_to_core(item.name.as_str(), item.item_type.as_str())?;
+    let item_type = item_type_to_core(item.name.as_str(), item.r#type.as_str())?;
     let flags = item_flags_to_core(item.name.as_str(), item.flags.into_vec())?;
 
     let fuel = if item.fuel_value > 0 || item.fuel_category.is_some() {
@@ -35,11 +32,11 @@ pub fn item_to_core(item: SourceItem) -> Result<CoreItem> {
         None
     };
 
-    let module = if item.module_effects.is_some() || item.module_category.is_some() || item.tier.is_some() {
+    let module = if item.module_effects.is_some() || item.category.is_some() || item.tier.is_some() {
         Some(ModuleCapability {
-            effects: item.module_effects.map(module_effects_to_core),
+            effects: item.module_effects.map(module_effect_set_to_core),
             category: item
-                .module_category
+                .category
                 .as_deref()
                 .map(|raw_module_category| module_category_to_core(item.name.as_str(), raw_module_category))
                 .transpose()?,
@@ -145,18 +142,18 @@ pub fn material_type_to_core(path: &str, raw_material_type: &str) -> Result<Mate
     })
 }
 
-fn module_effects_to_core(effects: SourceModuleEffects) -> ModuleEffects {
-    ModuleEffects {
-        consumption: effects.consumption.map(module_effect_modifier_to_core),
-        speed: effects.speed.map(module_effect_modifier_to_core),
-        productivity: effects.productivity.map(module_effect_modifier_to_core),
-        pollution: effects.pollution.map(module_effect_modifier_to_core),
-        quality: effects.quality.map(module_effect_modifier_to_core),
+fn module_effect_set_to_core(effect: SourceModuleEffectSet) -> ModuleEffectSet {
+    ModuleEffectSet {
+        consumption: effect.consumption.map(effect_value_to_core),
+        speed: effect.speed.map(effect_value_to_core),
+        productivity: effect.productivity.map(effect_value_to_core),
+        pollution: effect.pollution.map(effect_value_to_core),
+        quality: effect.quality.map(effect_value_to_core),
     }
 }
 
-fn module_effect_modifier_to_core(modifier: SourceModuleEffectModifier) -> ModuleEffectModifier {
-    ModuleEffectModifier { bonus: modifier.bonus }
+fn effect_value_to_core(value: rust_decimal::Decimal) -> ModuleEffectModifier {
+    ModuleEffectModifier { bonus: value }
 }
 
 fn product_to_core(item_name: &str, product: SourceProduct) -> Result<Product> {
@@ -165,7 +162,7 @@ fn product_to_core(item_name: &str, product: SourceProduct) -> Result<Product> {
     Ok(Product {
         material_type: material_type_to_core(
             &format!("game_data.items[{item_name:?}].rocket_launch_products[{product_name:?}]"),
-            product.material_type.as_str(),
+            product.r#type.as_str(),
         )?,
         name: product.name,
         amount: product.amount,
@@ -189,7 +186,7 @@ mod tests {
     fn sample_item(raw_item_type: &str) -> Item {
         Item {
             name: "sample-item".to_owned(),
-            item_type: raw_item_type.to_owned(),
+            r#type: raw_item_type.to_owned(),
             group: "logistics".to_owned(),
             subgroup: "belt".to_owned(),
             order: "a".to_owned(),
@@ -204,12 +201,14 @@ mod tests {
             flags: ArrayOrEmptyObject::EmptyObject(EmptyObject::default()),
             fuel_category: None,
             module_effects: None,
-            module_category: None,
+            category: None,
             tier: None,
             place_result: None,
+            plant_result: None,
             rocket_launch_products: None,
             place_as_equipment_result: None,
             spoil_result: None,
+            send_to_orbit_mode: None,
             burnt_result: None,
         }
     }
@@ -239,9 +238,9 @@ mod tests {
         let mut item = sample_item("item");
         item.fuel_value = 1;
         item.fuel_category = Some("chemical".to_owned());
-        item.module_category = Some("speed".to_owned());
+        item.category = Some("speed".to_owned());
         item.rocket_launch_products = Some(vec![SourceProduct {
-            material_type: "item".to_owned(),
+            r#type: "item".to_owned(),
             name: "iron-plate".to_owned(),
             amount: Some(Decimal::ONE),
             amount_min: None,

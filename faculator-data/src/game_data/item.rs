@@ -7,7 +7,7 @@
 //! - `place_as_equipment_result -> equipment.name`
 //! - `rocket_launch_products[].name -> items.name / fluids.name`
 //! - `fuel_category -> fuel_categories.name`
-//! - `module_category -> module_categories.name`
+//! - `category -> module_categories.name`
 //!
 //! 导出中的一个小技巧是 `flags`：
 //!
@@ -16,7 +16,7 @@
 //!
 //! source DTO 在这里会显式保留这种双形态。
 
-use crate::game_data::concept::{ModuleEffects, Product};
+use crate::game_data::concept::{ModuleEffectSet, Product};
 use crate::game_data::serde_helper::ArrayOrEmptyObject;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -34,8 +34,7 @@ pub struct Item {
     /// 物品类型。
     ///
     /// 原始 JSON 使用 `type` 键；DTO 直接保留其字符串值。
-    #[serde(rename = "type")]
-    pub item_type: String,
+    pub r#type: String,
 
     /// 所属展示大分组名称。
     ///
@@ -91,16 +90,15 @@ pub struct Item {
     /// 该字段会引用顶层 `fuel_categories`，是燃料兼容性建模的关键外键之一。
     pub fuel_category: Option<String>,
 
-    /// 模块效果定义。
+    /// 模块效果集合。
     ///
-    /// 仅模块物品存在，用于表达 speed / productivity / quality 等加成。
-    pub module_effects: Option<ModuleEffects>,
+    /// 当该字段存在时，表示该物品本身是模块，并定义了可施加的效果倍率。
+    pub module_effects: Option<ModuleEffectSet>,
 
     /// 模块类别。
     ///
     /// 原始 JSON 使用 `category` 键；当该字段存在时，会引用顶层 `module_categories`。
-    #[serde(rename = "category")]
-    pub module_category: Option<String>,
+    pub category: Option<String>,
 
     /// 模块等级。
     pub tier: Option<u64>,
@@ -109,6 +107,11 @@ pub struct Item {
     ///
     /// 这是面向 `entities.name` 的关键外键字段，是 `item` 和 `entity` 之间最重要的桥之一。
     pub place_result: Option<String>,
+
+    /// 种植后生成的实体名称。
+    ///
+    /// 该字段主要用于种子/孢子类物品，会回指 `entities.name`。
+    pub plant_result: Option<String>,
 
     /// 火箭发射后额外获得的产物列表。
     ///
@@ -124,6 +127,11 @@ pub struct Item {
     ///
     /// 通常会回指 `items.name`。
     pub spoil_result: Option<String>,
+
+    /// 轨道运输模式。
+    ///
+    /// exporter 直接保留原始字符串值，例如 `manual` / `automated`。
+    pub send_to_orbit_mode: Option<String>,
 
     /// 燃烧后的结果物名称。
     ///

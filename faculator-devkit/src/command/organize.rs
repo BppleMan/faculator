@@ -42,4 +42,3 @@ fn copy_matched_icon(icon: &MatchedIcon, output_root: &Path) -> Result<()> {
 
     Ok(())
 }
-

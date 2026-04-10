@@ -41,6 +41,10 @@ function Item.export()
         local r = proto.place_result
         return r and r.name or nil
       end),
+      plant_result = safe(function()
+        local r = proto.plant_result
+        return r and r.name or nil
+      end),
 
       --- 火箭发射产物
       --- @see https://lua-api.factorio.com/latest/classes/LuaItemPrototype.html#rocket_launch_products
@@ -93,6 +97,7 @@ function Item.export()
         local loc = proto.default_import_location
         return loc and loc.name or nil
       end),
+      send_to_orbit_mode = safe(function() return proto.send_to_orbit_mode end),
     }
     result[#result + 1] = item
   end

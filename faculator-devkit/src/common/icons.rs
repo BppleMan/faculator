@@ -127,4 +127,3 @@ mod tests {
         assert!(parse_flat_icon_path(Path::new("item.iron-plate.jpg")).is_none());
     }
 }
-

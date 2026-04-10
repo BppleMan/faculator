@@ -471,4 +471,3 @@ mod tests {
         image.save(path).unwrap();
     }
 }
-

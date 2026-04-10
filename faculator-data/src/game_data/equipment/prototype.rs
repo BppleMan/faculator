@@ -1,3 +1,4 @@
+use crate::game_data::concept::ElectricEnergySource;
 use crate::game_data::equipment::EquipmentShape;
 use crate::game_data::serde_helper::ArrayOrEmptyObject;
 use rust_decimal::Decimal;
@@ -15,8 +16,7 @@ pub struct Equipment {
     /// 装备原型类型。
     ///
     /// 原始 JSON 使用 `type` 字段，DTO 直接保留其字符串值。
-    #[serde(rename = "type")]
-    pub equipment_type: String,
+    pub r#type: String,
 
     /// 所属展示大分组。
     pub group: String,
@@ -36,7 +36,13 @@ pub struct Equipment {
     pub energy_production: Decimal,
 
     /// 每点护盾所需能量。
-    pub energy_per_shield: u64,
+    pub energy_per_shield: Decimal,
+
+    /// 装备电力能源源定义。
+    ///
+    /// 当前 exporter 与 prototype API 都表明装备使用的是电力能源源，
+    /// 因此这里直接复用通用的 `ElectricEnergySource` DTO。
+    pub energy_source: Option<ElectricEnergySource>,
 
     /// 装备占用的网格尺寸。
     pub shape: EquipmentShape,

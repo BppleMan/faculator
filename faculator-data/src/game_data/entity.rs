@@ -16,7 +16,7 @@
 //! 这些字段基本都会直接变成后续 SQL 模型里的关联表来源。
 
 use crate::game_data::concept::{
-    EffectReceiver, EnergySources, FluidBoxPrototype, ItemStackDefinition, SurfaceCondition,
+    EffectReceiver, EnergySourceSet, FluidBoxPrototype, ItemStackDefinition, SurfaceCondition,
 };
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -34,8 +34,7 @@ pub struct Entity {
     /// 实体原型类型。
     ///
     /// 原始 JSON 使用 `type` 键；DTO 直接保留其字符串值。
-    #[serde(rename = "type")]
-    pub entity_type: String,
+    pub r#type: String,
 
     /// 所属展示大分组名称。
     pub group: String,
@@ -58,7 +57,7 @@ pub struct Entity {
     pub crafting_speed: Option<Decimal>,
 
     /// 模块槽数量。
-    pub module_inventory_size: Option<u64>,
+    pub module_inventory_size: u64,
 
     /// 允许接收的效果类型列表。
     ///
@@ -77,10 +76,10 @@ pub struct Entity {
     pub energy_usage: Option<Decimal>,
 
     /// 最大输入能耗。
-    pub max_energy_usage: Option<Decimal>,
+    pub max_energy_usage: Decimal,
 
     /// 最大发电量。
-    pub max_energy_production: Option<Decimal>,
+    pub max_energy_production: Decimal,
 
     /// 最大输出功率。
     pub max_power_output: Option<Decimal>,
@@ -91,7 +90,7 @@ pub struct Entity {
     /// 能源源定义。
     ///
     /// 这是能源系统的核心嵌套组件，后续入库时通常会拆成主表 + 子表。
-    pub energy_sources: Option<EnergySources>,
+    pub energy_sources: Option<EnergySourceSet>,
 
     /// 每 tick 消耗的流体量。
     pub fluid_usage_per_tick: Option<Decimal>,
@@ -181,7 +180,8 @@ pub struct Entity {
     /// 放置该实体所需的物品栈定义。
     ///
     /// `ItemStackDefinition.name` 会引用 `items.name`，是 `entity -> item` 方向的关键外键来源。
-    pub items_to_place_this: Option<Vec<ItemStackDefinition>>,
+    #[serde(default)]
+    pub items_to_place_this: Vec<ItemStackDefinition>,
 }
 
 impl PartialOrd for Entity {

@@ -12,7 +12,7 @@ local Recipe = {}
 --- @return table[] 按名称排序的配方数组
 function Recipe.export()
   local safe = Util.safe_get
-  local keys = Util.keys_to_list
+  local list = Util.string_set_to_list
   local result = {}
 
   for name, proto in pairs(prototypes.recipe) do
@@ -62,8 +62,8 @@ function Recipe.export()
 
       --- 允许的效果与模块类别
       --- @see https://lua-api.factorio.com/latest/classes/LuaRecipePrototype.html#allowed_effects
-      allowed_effects           = safe(function() return keys(proto.allowed_effects) end),
-      allowed_module_categories = safe(function() return keys(proto.allowed_module_categories) end),
+      allowed_effects           = safe(function() return list(proto.allowed_effects) end),
+      allowed_module_categories = safe(function() return list(proto.allowed_module_categories) end),
       maximum_productivity      = safe(function() return proto.maximum_productivity end),
       hide_from_player_crafting = safe(function() return proto.hide_from_player_crafting end),
 

@@ -53,6 +53,11 @@ pub struct Color {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
 pub struct FluidBoxPrototype {
+    /// 在宿主实体中的流体箱序号。
+    ///
+    /// 该值可用于稳定区分多口机器上的不同流体接口。
+    pub index: u64,
+
     /// 流体箱生产类型。
     ///
     /// DTO 直接保留导出中的字符串值。
@@ -69,14 +74,8 @@ pub struct FluidBoxPrototype {
     /// 最高允许温度。
     pub maximum_temperature: Option<Decimal>,
 
-    /// 基础面积。
-    pub base_area: Decimal,
-
-    /// 基础液位。
-    pub base_level: Decimal,
-
     /// 容量。
-    pub volume: Option<Decimal>,
+    pub volume: Decimal,
 }
 
 /// 一个热缓冲区原型定义。

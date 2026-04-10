@@ -3,8 +3,8 @@ use std::process::Command;
 
 use color_eyre::eyre::{Result, WrapErr, bail};
 
-use crate::common::paths::{detect_factorio_bin, detect_script_output, ensure_existing_file};
 use crate::command::organize::run_organize;
+use crate::common::paths::{detect_factorio_bin, detect_script_output, ensure_existing_file};
 
 pub fn run_dump(
     factorio_bin: Option<PathBuf>,
@@ -41,4 +41,3 @@ pub fn run_dump(
 
     Ok(())
 }
-

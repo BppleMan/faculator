@@ -48,21 +48,21 @@ pub struct Fluid {
     /// 燃料热值。
     ///
     /// 当该字段存在时，说明该流体可作为燃料参与能源系统。
-    pub fuel_value: Option<u64>,
+    pub fuel_value: u64,
 
     /// 排放倍率。
-    pub emissions_multiplier: Option<Decimal>,
+    pub emissions_multiplier: Decimal,
 
     /// 气化温度。
     ///
     /// 该字段之所以不是 `Decimal`，是因为导出可能使用极大哨兵值表示“无实际限制”。
-    pub gas_temperature: Option<Number>,
+    pub gas_temperature: Number,
 
     /// 基础颜色。
-    pub base_color: Option<Color>,
+    pub base_color: Color,
 
     /// 流动颜色。
-    pub flow_color: Option<Color>,
+    pub flow_color: Color,
 }
 
 impl PartialOrd for Fluid {

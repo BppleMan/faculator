@@ -27,8 +27,7 @@ pub struct ItemGroup {
     /// 分组原型类型。
     ///
     /// 当前导出样本中固定为 `"item-group"`，保留该字段是为了完整反映原始 JSON。
-    #[serde(rename = "type")]
-    pub item_group_type: String,
+    pub r#type: String,
 
     /// UI / 百科排序键。
     ///

@@ -5,25 +5,27 @@ use std::thread;
 use std::time::{Duration, UNIX_EPOCH};
 
 use color_eyre::eyre::{Result, WrapErr};
+use serde::Deserialize;
 use walkdir::{DirEntry, WalkDir};
 
-use crate::common::paths::{
-    detect_faculator_output_dir, detect_factorio_mods_dir, ensure_existing_dir,
-};
+use crate::common::paths::{detect_factorio_mods_dir, detect_faculator_output_dir, ensure_existing_dir};
 
 pub fn run_sync_mod(
     mod_src: &Path,
     mods_dir: Option<PathBuf>,
-    mod_name: &str,
+    mod_name: Option<&str>,
     watch: bool,
     interval_secs: u64,
 ) -> Result<()> {
     let source = ensure_existing_dir(mod_src, format!("mod 源目录不存在: {}", mod_src.display()))?;
     let mods_root = mods_dir.unwrap_or(detect_factorio_mods_dir()?);
-    fs::create_dir_all(&mods_root)
-        .wrap_err_with(|| format!("创建 mods 目录失败: {}", mods_root.display()))?;
+    fs::create_dir_all(&mods_root).wrap_err_with(|| format!("创建 mods 目录失败: {}", mods_root.display()))?;
 
-    let destination = mods_root.join(mod_name);
+    let resolved_mod_name = match mod_name {
+        Some(name) => name.to_owned(),
+        None => detect_mod_name_from_info(&source)?,
+    };
+    let destination = mods_root.join(&resolved_mod_name);
     sync_mod_once(&source, &destination)?;
 
     if !watch {
@@ -51,18 +53,15 @@ pub fn run_sync_data(script_output: Option<PathBuf>, output: &Path) -> Result<()
         None => detect_faculator_output_dir()?,
     };
 
-    fs::create_dir_all(output)
-        .wrap_err_with(|| format!("创建导出目标目录失败: {}", output.display()))?;
+    fs::create_dir_all(output).wrap_err_with(|| format!("创建导出目标目录失败: {}", output.display()))?;
 
     eprintln!("📥 同步导出数据");
     eprintln!("   源目录: {}", source.display());
     eprintln!("   目标目录: {}", output.display());
 
     let copied_files = sync_data_once(&source, output)?;
-    clear_directory_contents(&source)?;
 
     eprintln!("✅ 数据同步完成，共复制 {} 个文件", copied_files);
-    eprintln!("🧹 已清空导出目录: {}", source.display());
 
     Ok(())
 }
@@ -80,27 +79,16 @@ fn sync_mod_once(source: &Path, destination: &Path) -> Result<()> {
 
 fn sync_data_once(source: &Path, destination: &Path) -> Result<usize> {
     let seen = copy_tree(source, destination, should_skip_data_entry)?;
-    remove_destination_extras(destination, &seen, should_preserve_asset_entry)?;
 
-    let copied_files = seen
-        .iter()
-        .filter(|relative| destination.join(relative).is_file())
-        .count();
+    let copied_files = seen.iter().filter(|relative| destination.join(relative).is_file()).count();
 
     Ok(copied_files)
 }
 
-fn copy_tree(
-    source: &Path,
-    destination: &Path,
-    should_skip: fn(&DirEntry) -> bool,
-) -> Result<BTreeSet<PathBuf>> {
+fn copy_tree(source: &Path, destination: &Path, should_skip: fn(&DirEntry) -> bool) -> Result<BTreeSet<PathBuf>> {
     let mut seen = BTreeSet::new();
 
-    for entry in WalkDir::new(source)
-        .into_iter()
-        .filter_entry(|entry| !should_skip(entry))
-    {
+    for entry in WalkDir::new(source).into_iter().filter_entry(|entry| !should_skip(entry)) {
         let entry = entry?;
         if entry.path() == source || should_skip(&entry) {
             continue;
@@ -116,23 +104,16 @@ fn copy_tree(
         seen.insert(relative);
 
         if entry.file_type().is_dir() {
-            fs::create_dir_all(&target)
-                .wrap_err_with(|| format!("创建目录失败: {}", target.display()))?;
+            fs::create_dir_all(&target).wrap_err_with(|| format!("创建目录失败: {}", target.display()))?;
             continue;
         }
 
         if entry.file_type().is_file() {
             if let Some(parent) = target.parent() {
-                fs::create_dir_all(parent)
-                    .wrap_err_with(|| format!("创建目录失败: {}", parent.display()))?;
+                fs::create_dir_all(parent).wrap_err_with(|| format!("创建目录失败: {}", parent.display()))?;
             }
-            fs::copy(entry.path(), &target).wrap_err_with(|| {
-                format!(
-                    "复制文件失败: {} -> {}",
-                    entry.path().display(),
-                    target.display()
-                )
-            })?;
+            fs::copy(entry.path(), &target)
+                .wrap_err_with(|| format!("复制文件失败: {} -> {}", entry.path().display(), target.display()))?;
             eprintln!("   ✅ {}", target.display());
         }
     }
@@ -140,19 +121,12 @@ fn copy_tree(
     Ok(seen)
 }
 
-fn remove_destination_extras(
-    destination: &Path,
-    seen: &BTreeSet<PathBuf>,
-    preserve: fn(&Path) -> bool,
-) -> Result<()> {
+fn remove_destination_extras(destination: &Path, seen: &BTreeSet<PathBuf>, preserve: fn(&Path) -> bool) -> Result<()> {
     if !destination.exists() {
         return Ok(());
     }
 
-    for entry in WalkDir::new(destination)
-        .min_depth(1)
-        .contents_first(true)
-    {
+    for entry in WalkDir::new(destination).min_depth(1).contents_first(true) {
         let entry = entry?;
         let relative = entry
             .path()
@@ -170,24 +144,8 @@ fn remove_destination_extras(
     Ok(())
 }
 
-fn clear_directory_contents(directory: &Path) -> Result<()> {
-    if !directory.exists() {
-        return Ok(());
-    }
-
-    for entry in fs::read_dir(directory)
-        .wrap_err_with(|| format!("读取目录失败: {}", directory.display()))?
-    {
-        let entry = entry?;
-        remove_path(&entry.path())?;
-    }
-
-    Ok(())
-}
-
 fn remove_path(path: &Path) -> Result<()> {
-    let metadata = fs::symlink_metadata(path)
-        .wrap_err_with(|| format!("读取路径元数据失败: {}", path.display()))?;
+    let metadata = fs::symlink_metadata(path).wrap_err_with(|| format!("读取路径元数据失败: {}", path.display()))?;
 
     if metadata.is_dir() {
         fs::remove_dir_all(path).wrap_err_with(|| format!("删除目录失败: {}", path.display()))?;
@@ -236,12 +194,19 @@ fn should_skip_mod_entry(entry: &DirEntry) -> bool {
 
 fn should_skip_data_entry(entry: &DirEntry) -> bool {
     let name = entry.file_name().to_string_lossy();
-    name == ".DS_Store" || name == "export-manifest.json"
+    name == ".DS_Store"
 }
 
-fn should_preserve_asset_entry(relative: &Path) -> bool {
-    relative
-        .extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("md"))
+#[derive(Deserialize)]
+struct FactorioModInfo {
+    name: String,
+}
+
+fn detect_mod_name_from_info(source: &Path) -> Result<String> {
+    let info_path = source.join("info.json");
+    let content =
+        fs::read_to_string(&info_path).wrap_err_with(|| format!("读取 mod info.json 失败: {}", info_path.display()))?;
+    let info: FactorioModInfo =
+        serde_json::from_str(&content).wrap_err_with(|| format!("解析 mod info.json 失败: {}", info_path.display()))?;
+    Ok(info.name)
 }

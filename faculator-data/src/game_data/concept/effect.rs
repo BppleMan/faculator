@@ -1,38 +1,40 @@
 //! 模块效果与效果接收器相关 DTO。
 //!
-//! 这些对象既会出现在模块物品中，也会出现在实体原型中，因此是模块系统 / beacon 系统的核心嵌套值对象。
+//! runtime API 在模块物品和实体效果接收器上使用 `ModuleEffects`，
+//! prototype API 在模块原型上使用 `Effect`。
+//! 二者字段形状相同，因此 source DTO 只保留一份值对象定义。
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-/// 单个效果项的倍率。
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize)]
-pub struct ModuleEffectModifier {
-    /// 加成值。
-    ///
-    /// 正值通常代表增益，负值通常代表惩罚。
-    pub bonus: Decimal,
-}
+/// 单个模块效果值。
+///
+/// runtime API 中对应 `ModuleEffectValue`，prototype API 中对应 `EffectValue`。
+pub type ModuleEffectValue = Decimal;
 
-/// 一个模块效果集合。
+/// 一组模块效果值。
+///
+/// 该对象既对应 runtime API 中的 `ModuleEffects`，也对应 prototype API 中的 `Effect`。
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-pub struct ModuleEffects {
+pub struct ModuleEffectSet {
     /// 能耗效果。
-    pub consumption: Option<ModuleEffectModifier>,
+    pub consumption: Option<ModuleEffectValue>,
 
     /// 速度效果。
-    pub speed: Option<ModuleEffectModifier>,
+    pub speed: Option<ModuleEffectValue>,
 
     /// 生产力效果。
-    pub productivity: Option<ModuleEffectModifier>,
+    pub productivity: Option<ModuleEffectValue>,
 
     /// 污染效果。
-    pub pollution: Option<ModuleEffectModifier>,
+    pub pollution: Option<ModuleEffectValue>,
 
     /// 品质效果。
-    pub quality: Option<ModuleEffectModifier>,
+    pub quality: Option<ModuleEffectValue>,
 }
+
+/// prototype API 对这组字段使用 `Effect` 类型名。
+pub type Effect = ModuleEffectSet;
 
 /// 一个实体对外部效果的接收策略。
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -41,7 +43,7 @@ pub struct EffectReceiver {
     /// 基础效果。
     ///
     /// 该值表示实体自身就带有的基线效果，而非模块或 beacon 附加效果。
-    pub base_effect: Option<ModuleEffects>,
+    pub base_effect: Option<ModuleEffectSet>,
 
     /// 是否接受模块效果。
     pub uses_module_effects: bool,

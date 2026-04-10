@@ -3,8 +3,45 @@
 
 local log  = require("lib.logger").create("装备导出")
 local Util = require("lib.util")
+local S    = require("lib.serializers")
 
 local Equipment = {}
+
+--- 序列化装备形状。
+--- runtime 侧可直接读到 width / height / points；`type` 可由 points 是否存在稳定推导。
+--- @param shape table|nil
+--- @return table|nil
+local function serialize_shape(shape)
+  if not shape then return nil end
+
+  local result = {
+    width  = shape.width,
+    height = shape.height,
+  }
+
+  local points = Util.safe_get(function() return shape.points end)
+  if points then
+    local serialized_points = {}
+    for _, point in ipairs(points) do
+      local x = point[1] or point.x
+      local y = point[2] or point.y
+      if x ~= nil and y ~= nil then
+        serialized_points[#serialized_points + 1] = { x, y }
+      end
+    end
+
+    if #serialized_points > 0 then
+      result.points = serialized_points
+      result.type = "manual"
+    end
+  end
+
+  if not result.type then
+    result.type = "full"
+  end
+
+  return result
+end
 
 --- 导出所有装备原型
 --- @see https://lua-api.factorio.com/latest/classes/LuaEquipmentPrototype.html
@@ -26,15 +63,15 @@ function Equipment.export()
       energy_production = safe(function() return proto.energy_production end),
       energy_per_shield = safe(function() return proto.energy_per_shield end),
       energy_source     = safe(function()
-        local es = proto.energy_source
-        return es and { type = es.type } or nil
+        return S.electric_energy_source(proto.energy_source)
+      end) or safe(function()
+        return S.electric_energy_source(proto.electric_energy_source_prototype)
       end),
 
       --- 装备形状（占据网格的尺寸）
       --- @see https://lua-api.factorio.com/latest/classes/LuaEquipmentPrototype.html#shape
       shape = safe(function()
-        local s = proto.shape
-        return s and { width = s.width, height = s.height, type = s.type } or nil
+        return serialize_shape(proto.shape)
       end),
 
       --- 装备类别

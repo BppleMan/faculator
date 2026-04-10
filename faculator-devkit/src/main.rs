@@ -5,10 +5,11 @@ mod common;
 use clap::Parser;
 use color_eyre::eyre::Result;
 
-use crate::cli::{Cli, Commands, GenCommands};
+use crate::cli::{Cli, Commands, GenCommands, SyncTarget};
 use crate::command::atlas::run_atlas;
 use crate::command::dump::run_dump;
 use crate::command::generate::run_gen_category;
+use crate::command::sync::{run_sync_data, run_sync_mod};
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -27,6 +28,19 @@ fn main() -> Result<()> {
             max_size,
             padding,
         } => run_atlas(&input, &output, max_size, padding),
+        Commands::Sync {
+            target,
+            mod_src,
+            mods_dir,
+            mod_name,
+            watch,
+            interval_secs,
+            script_output,
+            output,
+        } => match target {
+            SyncTarget::Mod => run_sync_mod(&mod_src, mods_dir, mod_name.as_deref(), watch, interval_secs),
+            SyncTarget::Data => run_sync_data(script_output, &output),
+        },
         Commands::Gen { command } => match command {
             GenCommands::Category {
                 game_data,

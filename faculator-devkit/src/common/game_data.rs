@@ -108,4 +108,3 @@ mod tests {
         assert!(names["space_connection"].contains("nauvis-orbit"));
     }
 }
-

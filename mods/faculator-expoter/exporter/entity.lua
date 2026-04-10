@@ -14,7 +14,7 @@ local Entity = {}
 --- @return table[] 按名称排序的实体数组
 function Entity.export()
   local safe  = Util.safe_get
-  local keys  = Util.keys_to_list
+  local list  = Util.string_set_to_list
   local types = Constants.EXPORTABLE_ENTITY_TYPES
   local result = {}
 
@@ -30,14 +30,14 @@ function Entity.export()
 
         --- 制造属性
         --- @see https://lua-api.factorio.com/latest/classes/LuaEntityPrototype.html#crafting_categories
-        crafting_categories = safe(function() return keys(proto.crafting_categories) end),
+        crafting_categories = safe(function() return list(proto.crafting_categories) end),
         crafting_speed      = safe(function() return proto.get_crafting_speed() end) or safe(function() return proto.crafting_speed end),
 
         --- 模块插槽
         --- @see https://lua-api.factorio.com/latest/classes/LuaEntityPrototype.html#module_inventory_size
         module_inventory_size     = safe(function() return proto.module_inventory_size end),
-        allowed_effects           = safe(function() return keys(proto.allowed_effects) end),
-        allowed_module_categories = safe(function() return keys(proto.allowed_module_categories) end),
+        allowed_effects           = safe(function() return list(proto.allowed_effects) end),
+        allowed_module_categories = safe(function() return list(proto.allowed_module_categories) end),
         effect_receiver           = safe(function() return S.effect_receiver(proto.effect_receiver) end),
 
         --- 能耗
@@ -62,7 +62,7 @@ function Entity.export()
         --- @see https://lua-api.factorio.com/latest/classes/LuaEntityPrototype.html#mining_speed
         mining_speed        = safe(function() return proto.mining_speed end),
         mining_drill_radius = safe(function() return proto.mining_drill_radius end),
-        resource_categories = safe(function() return keys(proto.resource_categories) end),
+        resource_categories = safe(function() return list(proto.resource_categories) end),
 
         --- 实验室属性
         lab_inputs                     = safe(function() return proto.lab_inputs end),

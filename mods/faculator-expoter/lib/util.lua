@@ -29,6 +29,47 @@ function Util.keys_to_list(dict)
   return result
 end
 
+--- 将 Factorio API 返回的“字符串集合”统一转成列表。
+--- 兼容两种常见形态：
+--- 1. `name -> true` 这种字典集合
+--- 2. `{"speed", "productivity"}` 或 `{ { name = "armor" } }` 这种数组集合
+--- 对字典集合会排序；对数组集合保留原顺序。
+--- @param collection table|nil
+--- @return string[]|nil
+function Util.string_set_to_list(collection)
+  if not collection then return nil end
+
+  local result = {}
+  local has_array_item = false
+
+  for index, value in ipairs(collection) do
+    has_array_item = true
+    if type(value) == "table" then
+      result[index] = value.name
+    else
+      result[index] = value
+    end
+  end
+
+  if has_array_item then
+    return #result > 0 and result or nil
+  end
+
+  for key, value in pairs(collection) do
+    if type(key) == "string" then
+      result[#result + 1] = key
+    elseif type(value) == "table" then
+      result[#result + 1] = value.name
+    else
+      result[#result + 1] = value
+    end
+  end
+
+  if #result == 0 then return nil end
+  table.sort(result)
+  return result
+end
+
 --- 检查某个原型字典是否可用
 --- Space Age 的某些原型类别（如 space_location、space_connection）
 --- 在未安装 DLC 时可能不存在，需要用 pcall 安全探测。

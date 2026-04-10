@@ -32,10 +32,28 @@ pub fn detect_script_output() -> Result<PathBuf> {
     ensure_existing_dir(
         &path,
         format!(
-            "未找到 Factorio script-output 目录: {}\n请先执行 `export-icon dump` 或用 --script-output 指定路径",
+            "未找到 Factorio script-output 目录: {}\n请先执行 `devkit dump` 或用 --script-output 指定路径",
             path.display()
         ),
     )
+}
+
+/// 自动检测 faculator exporter 的输出目录。
+pub fn detect_faculator_output_dir() -> Result<PathBuf> {
+    let path = detect_script_output()?.join("faculator");
+    ensure_existing_dir(
+        &path,
+        format!(
+            "未找到 faculator 导出目录: {}\n请先在游戏里运行导出，或用 --script-output 指定路径",
+            path.display()
+        ),
+    )
+}
+
+/// 自动检测 Factorio mods 目录（macOS 默认路径）。
+pub fn detect_factorio_mods_dir() -> Result<PathBuf> {
+    let path = home_dir()?.join("Library/Application Support/factorio/mods");
+    Ok(path)
 }
 
 pub fn ensure_existing_file(path: &Path, error_message: String) -> Result<PathBuf> {
@@ -46,7 +64,7 @@ pub fn ensure_existing_file(path: &Path, error_message: String) -> Result<PathBu
     }
 }
 
-fn ensure_existing_dir(path: &Path, error_message: String) -> Result<PathBuf> {
+pub fn ensure_existing_dir(path: &Path, error_message: String) -> Result<PathBuf> {
     if path.exists() {
         Ok(path.to_path_buf())
     } else {

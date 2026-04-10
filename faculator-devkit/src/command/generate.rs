@@ -253,6 +253,3 @@ mod tests {
         assert_eq!(to_kebab_case("basic_solid"), "basic-solid");
     }
 }
-
-
-

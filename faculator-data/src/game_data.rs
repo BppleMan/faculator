@@ -159,7 +159,7 @@ pub struct GameData {
 
     /// 顶层 `space_connections` 集合。
     ///
-    /// 这是星际航线表，`from_location` / `to_location` 是面向 `space_locations.name` 的外键候选。
+    /// 这是星际航线表，`from` / `to` 是面向 `space_locations.name` 的外键候选。
     #[serde(default)]
     pub space_connections: Vec<SpaceConnection>,
 
@@ -189,12 +189,7 @@ impl GameData {
         }
 
         let active_mod_count = self.game.active_mods.len();
-        let base_mod_version = self
-            .game
-            .active_mods
-            .get("base")
-            .map(String::as_str)
-            .unwrap_or("unknown");
+        let base_mod_version = self.game.active_mods.get("base").map(String::as_str).unwrap_or("unknown");
 
         let total_main_entries = self.items.len()
             + self.fluids.len()
@@ -263,7 +258,10 @@ mod tests {
                 .get("base")
                 .is_some_and(|version| version == "2.0.76")
         );
-        assert_eq!(game_data.recipe_categories.first().map(|category| category.name.as_str()), Some("advanced-crafting"));
+        assert_eq!(
+            game_data.recipe_categories.first().map(|category| category.name.as_str()),
+            Some("advanced-crafting")
+        );
         assert_eq!(
             game_data.item_groups.first().map(|group| group.name.as_str()),
             Some("logistics")

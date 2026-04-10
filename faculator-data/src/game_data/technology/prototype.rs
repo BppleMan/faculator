@@ -2,6 +2,21 @@ use crate::game_data::serde_helper::ArrayOrEmptyObject;
 use crate::game_data::technology::{ResearchTrigger, ResearchUnitIngredient, TechnologyEffect};
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum TechnologyMaxLevel {
+    Finite(u64),
+    Infinite(TechnologyInfiniteLiteral),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
+pub enum TechnologyInfiniteLiteral {
+    #[serde(rename = "infinite")]
+    Infinite,
+}
+
 /// 一个科技原型。
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
@@ -40,8 +55,8 @@ pub struct Technology {
 
     /// 最大科技等级。
     ///
-    /// 当前样本中是整数；若未来导出支持“无限科技”字符串语义，再在 source DTO 层扩展。
-    pub max_level: u64,
+    /// `prototype-api` 允许这里出现 `"infinite"`，因此 DTO 直接承接整数 / 字符串联合形态。
+    pub max_level: TechnologyMaxLevel,
 
     /// 研究所需单位数。
     pub research_unit_count: u64,

@@ -12,14 +12,12 @@ pub struct SpaceConnection {
     /// 起点地点名称。
     ///
     /// 这是面向 `space_locations.name` 的外键候选。
-    #[serde(rename = "from")]
-    pub from_location: String,
+    pub r#from: String,
 
     /// 终点地点名称。
     ///
     /// 这是面向 `space_locations.name` 的外键候选。
-    #[serde(rename = "to")]
-    pub to_location: String,
+    pub r#to: String,
 
     /// 航线长度。
     pub length: u64,

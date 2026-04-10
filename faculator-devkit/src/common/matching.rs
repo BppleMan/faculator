@@ -227,4 +227,3 @@ mod tests {
         assert_eq!(report.total_matched(), 1);
     }
 }
-

@@ -12,8 +12,7 @@ pub struct Ingredient {
     /// 物料类型。
     ///
     /// 原始 JSON 使用 `type` 键，DTO 直接保留其字符串值。
-    #[serde(rename = "type")]
-    pub material_type: String,
+    pub r#type: String,
 
     /// 物料名称。
     ///
@@ -40,8 +39,7 @@ pub struct Ingredient {
 #[derive(Serialize, Deserialize)]
 pub struct Product {
     /// 物料类型。
-    #[serde(rename = "type")]
-    pub material_type: String,
+    pub r#type: String,
 
     /// 物料名称。
     ///
@@ -83,8 +81,7 @@ pub struct Product {
 #[derive(Serialize, Deserialize)]
 pub struct MaterialRef {
     /// 物料类型。
-    #[serde(rename = "type")]
-    pub material_type: String,
+    pub r#type: String,
 
     /// 物料名称。
     ///
