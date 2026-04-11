@@ -16,7 +16,7 @@ pub type ModuleEffectValue = Decimal;
 /// 该对象既对应 runtime API 中的 `ModuleEffects`，也对应 prototype API 中的效果对象。
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-pub struct ModuleEffects {
+pub struct ModuleEffect {
     /// 能耗效果。
     pub consumption: Option<ModuleEffectValue>,
 
@@ -40,7 +40,7 @@ pub struct EffectReceiver {
     /// 基础效果。
     ///
     /// 该值表示实体自身就带有的基线效果，而非模块或 beacon 附加效果。
-    pub base_effect: Option<ModuleEffects>,
+    pub base_effect: Option<ModuleEffect>,
 
     /// 是否接受模块效果。
     pub uses_module_effects: bool,

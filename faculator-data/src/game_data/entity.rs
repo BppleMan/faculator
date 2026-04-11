@@ -16,7 +16,7 @@
 //! 这些字段基本都会直接变成后续 SQL 模型里的关联表来源。
 
 use crate::game_data::concept::{
-    EffectReceiver, EnergySources, FluidBoxPrototype, ItemStackDefinition, SurfaceCondition,
+    EffectReceiver, EnergySource, FluidBoxPrototype, ItemStackDefinition, SurfaceCondition,
 };
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -90,7 +90,7 @@ pub struct Entity {
     /// 能源源定义。
     ///
     /// 这是能源系统的核心嵌套组件，后续入库时通常会拆成主表 + 子表。
-    pub energy_sources: Option<EnergySources>,
+    pub energy_sources: Option<EnergySource>,
 
     /// 每 tick 消耗的流体量。
     pub fluid_usage_per_tick: Option<Decimal>,

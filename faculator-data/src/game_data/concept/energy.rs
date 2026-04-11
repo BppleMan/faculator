@@ -187,10 +187,10 @@ pub struct VoidEnergySource {
     pub render_no_power_icon: bool,
 }
 
-/// 一个实体挂载的能源源集合。
+/// 一个实体挂载的能源源定义。
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-pub struct EnergySources {
+pub struct EnergySource {
     /// 当前实体拥有的能源源类型列表。
     ///
     /// 该字段决定下面哪些具体子对象应当存在。

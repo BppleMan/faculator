@@ -1,4 +1,4 @@
-use crate::game_data::space::{SpacePosition, SurfaceProperties};
+use crate::game_data::space::{SpacePosition, SurfaceProperty};
 use serde::{Deserialize, Serialize};
 
 /// 一个太空地点或星球原型。
@@ -31,5 +31,5 @@ pub struct SpaceLocation {
     /// 地表属性。
     ///
     /// 某些地点没有可落地表面，因此该字段可以为空。
-    pub surface_properties: Option<SurfaceProperties>,
+    pub surface_properties: Option<SurfaceProperty>,
 }

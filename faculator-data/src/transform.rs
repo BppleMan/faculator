@@ -1,11 +1,11 @@
 use crate::game_data::{
-    concept::{ModuleEffects as SourceModuleEffects, Product as SourceProduct},
+    concept::{ModuleEffect as SourceModuleEffect, Product as SourceProduct},
     item::Item as SourceItem,
 };
 use color_eyre::eyre::{Result, eyre};
 use faculator_core::{
     category::{FuelCategory, ModuleCategory},
-    concept::{MaterialType, ModuleEffectModifier, ModuleEffects, Product},
+    concept::{MaterialType, ModuleEffect, ModuleEffectModifier, Product},
     goods::{
         FuelCapability, Item as CoreItem, ItemCapability, ItemFlag, ItemFlagSet, ItemType, ModuleCapability,
         PlacementCapability, TransformationCapability,
@@ -34,7 +34,7 @@ pub fn item_to_core(item: SourceItem) -> Result<CoreItem> {
 
     let module = if item.module_effects.is_some() || item.category.is_some() || item.tier.is_some() {
         Some(ModuleCapability {
-            effects: item.module_effects.map(module_effects_to_core),
+            effects: item.module_effects.map(module_effect_to_core),
             category: item
                 .category
                 .as_deref()
@@ -142,8 +142,8 @@ pub fn material_type_to_core(path: &str, raw_material_type: &str) -> Result<Mate
     })
 }
 
-fn module_effects_to_core(effect: SourceModuleEffects) -> ModuleEffects {
-    ModuleEffects {
+fn module_effect_to_core(effect: SourceModuleEffect) -> ModuleEffect {
+    ModuleEffect {
         consumption: effect.consumption.map(effect_value_to_core),
         speed: effect.speed.map(effect_value_to_core),
         productivity: effect.productivity.map(effect_value_to_core),

@@ -17,7 +17,7 @@
 //! source DTO 在这里会显式保留这种双形态。
 
 use crate::game_data::ArrayOrEmptyObject;
-use crate::game_data::concept::{ModuleEffects, Product};
+use crate::game_data::concept::{ModuleEffect, Product};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
@@ -93,7 +93,7 @@ pub struct Item {
     /// 模块效果集合。
     ///
     /// 当该字段存在时，表示该物品本身是模块，并定义了可施加的效果倍率。
-    pub module_effects: Option<ModuleEffects>,
+    pub module_effects: Option<ModuleEffect>,
 
     /// 模块类别。
     ///

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct SurfaceProperties {
+pub struct SurfaceProperty {
     /// 昼夜周期。
     pub day_night_cycle: Option<u64>,
 
