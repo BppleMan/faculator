@@ -182,10 +182,10 @@ a[speed]-a[speed-module-1]
 - 三者联动关系是：
 
 ```text
-goods.fuel_value > 0
-goods.fuel_category == chemical
+material.fuel_value > 0
+material.fuel_category == chemical
 entity.energy_sources.burner.fuel_categories contains chemical
-=> 该 goods 可以作为该 entity 的燃料
+=> 该 material 可以作为该 entity 的燃料
 ```
 
 - 例子：煤炭 `fuel_category = chemical`，锅炉 `energy_sources.burner.fuel_categories = [chemical]`，所以锅炉能烧煤。

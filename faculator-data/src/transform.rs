@@ -6,7 +6,7 @@ use color_eyre::eyre::{Result, eyre};
 use faculator_core::{
     category::{FuelCategory, ModuleCategory},
     concept::{MaterialType, ModuleEffect, ModuleEffectModifier, Product},
-    goods::{
+    material::{
         FuelCapability, Item as CoreItem, ItemCapability, ItemFlag, ItemFlagSet, ItemType, ModuleCapability,
         PlacementCapability, TransformationCapability,
     },
@@ -95,7 +95,7 @@ pub fn item_to_core(item: SourceItem) -> Result<CoreItem> {
 pub fn item_type_to_core(item_name: &str, raw_item_type: &str) -> Result<ItemType> {
     ItemType::try_from(raw_item_type).map_err(|_| {
         eyre!(
-            "failed to convert game_data.items[{item_name:?}].type = {raw_item_type:?} into faculator_core::goods::ItemType; supported values: {}",
+            "failed to convert game_data.items[{item_name:?}].type = {raw_item_type:?} into faculator_core::material::ItemType; supported values: {}",
             ItemType::variants().join(", ")
         )
     })
@@ -107,7 +107,7 @@ pub fn item_flags_to_core(item_name: &str, raw_flags: Vec<String>) -> Result<Ite
         .map(|raw_flag| {
             ItemFlag::try_from(raw_flag.as_str()).map_err(|_| {
                 eyre!(
-                    "failed to convert game_data.items[{item_name:?}].flags entry {raw_flag:?} into faculator_core::goods::ItemFlag; supported values: {}",
+                    "failed to convert game_data.items[{item_name:?}].flags entry {raw_flag:?} into faculator_core::material::ItemFlag; supported values: {}",
                     ItemFlag::variants().join(", ")
                 )
             })
