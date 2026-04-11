@@ -1,4 +1,4 @@
-use crate::{category::ModuleCategory, concept::ModuleEffectSet};
+use crate::{category::ModuleCategory, concept::ModuleEffects};
 use serde::{Deserialize, Serialize};
 
 /// 模块能力模型。
@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct ModuleCapability {
     /// 模块效果定义。
-    pub effects: Option<ModuleEffectSet>,
+    pub effects: Option<ModuleEffects>,
 
     /// 模块类别。
     #[serde(rename = "category")]

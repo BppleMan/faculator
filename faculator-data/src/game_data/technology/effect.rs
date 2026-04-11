@@ -16,7 +16,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct TechnologyEffect {
     /// 效果类型。
-    pub r#type: String,
+    #[serde(rename = "type")]
+    pub effect_type: String,
 
     /// 效果附带的修改值。
     ///

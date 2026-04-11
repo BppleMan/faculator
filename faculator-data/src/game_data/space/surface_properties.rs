@@ -2,20 +2,18 @@ use serde::{Deserialize, Serialize};
 
 /// `space_locations[].surface_properties` 对象。
 ///
-/// 这些字段在 JSON 里有带连字符的命名，这里通过 `serde(rename)` 显式映射出来。
+/// 这些字段在 JSON 里使用 `kebab-case`，因此在结构体级别统一声明 serde 命名规则。
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-pub struct SurfacePropertySet {
+#[serde(rename_all = "kebab-case")]
+pub struct SurfaceProperties {
     /// 昼夜周期。
-    #[serde(rename = "day-night-cycle")]
     pub day_night_cycle: Option<u64>,
 
     /// 磁场强度。
-    #[serde(rename = "magnetic-field")]
     pub magnetic_field: Option<u64>,
 
     /// 地表太阳能倍率。
-    #[serde(rename = "solar-power")]
     pub solar_power: Option<u64>,
 
     /// 气压。

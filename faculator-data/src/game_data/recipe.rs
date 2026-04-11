@@ -12,11 +12,10 @@
 //!
 //! 导出器在这里也用了一个小技巧：空的 `ingredients` / `products` 有时会写成 `{}` 而不是 `[]`。
 //! source DTO 会显式保留这种双形态。
+use crate::game_data::ArrayOrEmptyObject;
 use crate::game_data::concept::{Ingredient, MaterialRef, Product, SurfaceCondition};
-use crate::game_data::serde_helper::ArrayOrEmptyObject;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
 
 /// 一个配方原型。
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -118,16 +117,4 @@ pub struct Recipe {
     ///
     /// exporter 当前会把每个结果导出成 `{ type, name }` 对象。
     pub unlock_results: Option<Vec<MaterialRef>>,
-}
-
-impl PartialOrd for Recipe {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Recipe {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.order.cmp(&other.order).then(self.name.cmp(&other.name))
-    }
 }

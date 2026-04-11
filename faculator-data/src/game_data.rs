@@ -2,12 +2,14 @@
 //!
 //! 这一层的目标不是表达真正的领域模型，而是以“尽可能忠实、尽可能可读”的方式承接导出文件：
 //!
-//! 1. 字段命名尽量贴近 `game-data.json` 原始键名，方便从代码直接反推 JSON 结构。
+//! 1. Rust 字段命名遵循正常的 `snake_case` 约定；遇到 JSON 原始键名不适合直接做 Rust 标识符时，
+//!    通过 `serde(rename = "...")` 显式映射。
 //! 2. 仅在导出格式存在明显技巧或陷阱时做轻量适配，例如：
 //!    - `game.active_mods` 保留为 JSON 原始对象形状；
 //!    - 四类 `*_categories` 保留为 `[{ "name": "..." }]` 结构，而不是提前压成 enum；
 //!    - 某些“空列表”在 JSON 中会导出成 `{}`，这一层会用显式 DTO 类型保留这种双形态；
-//!    - 少数字段会用 `FLT_MAX` / `DBL_MAX` 等极大值充当哨兵，相关字段因此不能简单使用 `Decimal`。
+//!    - 少数字段会用 `FLT_MAX` / `DBL_MAX` 等极大值充当哨兵，相关字段会保留原始数字文本，
+//!      而不是直接依赖 `serde_json::Number`。
 //! 3. 本模块中的注释会特别指出哪些字段天然适合作为 SQL 主键、外键或关联表来源。
 //!
 //! 顶层模块组织规则：
@@ -44,9 +46,9 @@ pub mod recipe;
 pub mod space;
 pub mod technology;
 
-mod serde_helper;
+mod shared;
 
-pub use serde_helper::{ArrayOrEmptyObject, EmptyObject};
+pub use shared::{ArrayOrEmptyObject, EmptyObject, ExportedNumber, NumericSentinel};
 
 /// `game-data.json` 的根对象。
 ///

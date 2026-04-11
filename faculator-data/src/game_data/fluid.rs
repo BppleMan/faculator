@@ -5,15 +5,13 @@
 //!
 //! 这里最特殊的字段是 `gas_temperature`：
 //!
-//! - 导出器会用非常大的数值充当“几乎无上限”的哨兵
+//! - 导出器会用 `FLT_MAX` 量级的非常大数值充当“几乎无上限”的哨兵
 //! - 该值可能超出 `Decimal` 可表示范围
 //!
-//! 因此本字段保留为 `serde_json::Number`，等进入 read/core 层时再做语义规整。
-use crate::game_data::concept::Color;
+//! 因此 DTO 在这里保留原始数字文本，等进入 read/core 层时再判断普通值还是哨兵值。
+use crate::game_data::{ExportedNumber, concept::Color};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use serde_json::Number;
-use std::cmp::Ordering;
 
 /// 一个流体原型。
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -55,24 +53,12 @@ pub struct Fluid {
 
     /// 气化温度。
     ///
-    /// 该字段之所以不是 `Decimal`，是因为导出可能使用极大哨兵值表示“无实际限制”。
-    pub gas_temperature: Number,
+    /// 当值无法转成 `Decimal` 时，通常意味着 exporter 导出了 `FLT_MAX` 哨兵。
+    pub gas_temperature: ExportedNumber,
 
     /// 基础颜色。
     pub base_color: Color,
 
     /// 流动颜色。
     pub flow_color: Color,
-}
-
-impl PartialOrd for Fluid {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Fluid {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.order.cmp(&other.order).then(self.name.cmp(&other.name))
-    }
 }

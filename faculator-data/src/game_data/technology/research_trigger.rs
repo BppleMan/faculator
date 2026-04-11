@@ -7,8 +7,9 @@ use serde::{Deserialize, Serialize};
 pub struct ResearchTrigger {
     /// 触发类型。
     ///
-    /// 原始 JSON 使用 `type` 键，DTO 直接保留其字符串值。
-    pub r#type: String,
+    /// 原始 JSON 使用 `type` 键。
+    #[serde(rename = "type")]
+    pub trigger_type: String,
 
     /// 与原型 API 中若干 technology trigger 变体对齐的前向兼容位。
     pub entity: Option<String>,

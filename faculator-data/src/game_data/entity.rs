@@ -16,11 +16,10 @@
 //! 这些字段基本都会直接变成后续 SQL 模型里的关联表来源。
 
 use crate::game_data::concept::{
-    EffectReceiver, EnergySourceSet, FluidBoxPrototype, ItemStackDefinition, SurfaceCondition,
+    EffectReceiver, EnergySources, FluidBoxPrototype, ItemStackDefinition, SurfaceCondition,
 };
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
 
 /// 一个可导出的地图实体原型。
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -33,8 +32,9 @@ pub struct Entity {
 
     /// 实体原型类型。
     ///
-    /// 原始 JSON 使用 `type` 键；DTO 直接保留其字符串值。
-    pub r#type: String,
+    /// 原始 JSON 使用 `type` 键。
+    #[serde(rename = "type")]
+    pub entity_type: String,
 
     /// 所属展示大分组名称。
     pub group: String,
@@ -90,7 +90,7 @@ pub struct Entity {
     /// 能源源定义。
     ///
     /// 这是能源系统的核心嵌套组件，后续入库时通常会拆成主表 + 子表。
-    pub energy_sources: Option<EnergySourceSet>,
+    pub energy_sources: Option<EnergySources>,
 
     /// 每 tick 消耗的流体量。
     pub fluid_usage_per_tick: Option<Decimal>,
@@ -164,7 +164,8 @@ pub struct Entity {
     /// 流体箱原型列表。
     ///
     /// 这是实体流体接口定义，通常适合拆成子表。
-    pub fluidbox_prototypes: Option<Vec<FluidBoxPrototype>>,
+    #[serde(rename = "fluidbox_prototypes")]
+    pub fluid_box_prototypes: Option<Vec<FluidBoxPrototype>>,
 
     /// 下一级升级实体名称。
     ///
@@ -182,16 +183,4 @@ pub struct Entity {
     /// `ItemStackDefinition.name` 会引用 `items.name`，是 `entity -> item` 方向的关键外键来源。
     #[serde(default)]
     pub items_to_place_this: Vec<ItemStackDefinition>,
-}
-
-impl PartialOrd for Entity {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Entity {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.order.cmp(&other.order).then(self.name.cmp(&other.name))
-    }
 }

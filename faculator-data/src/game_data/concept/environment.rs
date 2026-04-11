@@ -6,11 +6,11 @@
 //! - `Color` 会出现在流体和品质对象中
 //! - `FluidBoxPrototype` / `HeatBufferPrototype` 会出现在能源和流体接口定义中
 //!
-//! 其中 `SurfaceCondition.min/max` 特别值得注意：导出器会使用极大值作为“近似无界”的哨兵，
-//! 因此这里必须用 `serde_json::Number` 承接，而不能简单使用 `Decimal`。
+//! 其中 `SurfaceCondition.min/max` 特别值得注意：导出器会使用 `DBL_MAX` 量级的极大值作为
+//! “近似无界”的哨兵，因此这里保留原始数字文本，而不能简单使用 `Decimal`。
+use crate::game_data::ExportedNumber;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use serde_json::Number;
 
 /// 一个地表条件约束。
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,13 +23,13 @@ pub struct SurfaceCondition {
 
     /// 条件下界。
     ///
-    /// 使用 `Number` 是为了容纳导出中的超大哨兵值。
-    pub min: Number,
+    /// 当值无法转成 `Decimal` 时，通常意味着 exporter 导出了 `DBL_MAX` 哨兵。
+    pub min: ExportedNumber,
 
     /// 条件上界。
     ///
-    /// 使用 `Number` 是为了容纳导出中的超大哨兵值。
-    pub max: Number,
+    /// 当值无法转成 `Decimal` 时，通常意味着 exporter 导出了 `DBL_MAX` 哨兵。
+    pub max: ExportedNumber,
 }
 
 /// RGBA 颜色对象。

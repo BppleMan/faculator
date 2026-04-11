@@ -16,11 +16,10 @@
 //!
 //! source DTO 在这里会显式保留这种双形态。
 
-use crate::game_data::concept::{ModuleEffectSet, Product};
-use crate::game_data::serde_helper::ArrayOrEmptyObject;
+use crate::game_data::ArrayOrEmptyObject;
+use crate::game_data::concept::{ModuleEffects, Product};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
 
 /// 一个物品原型。
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -33,8 +32,9 @@ pub struct Item {
 
     /// 物品类型。
     ///
-    /// 原始 JSON 使用 `type` 键；DTO 直接保留其字符串值。
-    pub r#type: String,
+    /// 原始 JSON 使用 `type` 键。
+    #[serde(rename = "type")]
+    pub item_type: String,
 
     /// 所属展示大分组名称。
     ///
@@ -93,7 +93,7 @@ pub struct Item {
     /// 模块效果集合。
     ///
     /// 当该字段存在时，表示该物品本身是模块，并定义了可施加的效果倍率。
-    pub module_effects: Option<ModuleEffectSet>,
+    pub module_effects: Option<ModuleEffects>,
 
     /// 模块类别。
     ///
@@ -137,16 +137,4 @@ pub struct Item {
     ///
     /// 通常会回指 `items.name`。
     pub burnt_result: Option<String>,
-}
-
-impl PartialOrd<Self> for Item {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Item {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.order.cmp(&other.order).then(self.name.cmp(&other.name))
-    }
 }

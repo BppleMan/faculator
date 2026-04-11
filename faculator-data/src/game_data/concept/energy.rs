@@ -12,10 +12,12 @@
 //!
 //! 此外，`ElectricEnergySource.input_flow_limit` / `output_flow_limit` 不能简单用 `Decimal`，
 //! 因为导出可能使用 `DBL_MAX` 作为“无限流量”的哨兵。
-use crate::game_data::concept::{FluidBoxPrototype, HeatBufferPrototype};
+use crate::game_data::{
+    ExportedNumber,
+    concept::{FluidBoxPrototype, HeatBufferPrototype},
+};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use serde_json::Number;
 use std::collections::BTreeMap;
 
 /// 单位能量对应的排放映射。
@@ -80,13 +82,13 @@ pub struct ElectricEnergySource {
 
     /// 输入流量上限。
     ///
-    /// 使用 `Number` 是为了容纳导出中的超大哨兵值。
-    pub input_flow_limit: Option<Number>,
+    /// 当值无法转成 `Decimal` 时，通常意味着 exporter 导出了 `DBL_MAX` 哨兵。
+    pub input_flow_limit: Option<ExportedNumber>,
 
     /// 输出流量上限。
     ///
-    /// 使用 `Number` 是为了容纳导出中的超大哨兵值。
-    pub output_flow_limit: Option<Number>,
+    /// 当值无法转成 `Decimal` 时，通常意味着 exporter 导出了 `DBL_MAX` 哨兵。
+    pub output_flow_limit: Option<ExportedNumber>,
 
     /// 每焦耳排放映射。
     pub emissions_per_joule: Option<EmissionsPerJoule>,
@@ -188,7 +190,7 @@ pub struct VoidEnergySource {
 /// 一个实体挂载的能源源集合。
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-pub struct EnergySourceSet {
+pub struct EnergySources {
     /// 当前实体拥有的能源源类型列表。
     ///
     /// 该字段决定下面哪些具体子对象应当存在。

@@ -13,7 +13,7 @@ pub struct ModuleEffectModifier {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
-pub struct ModuleEffectSet {
+pub struct ModuleEffects {
     pub consumption: Option<ModuleEffectModifier>,
     pub speed: Option<ModuleEffectModifier>,
     pub productivity: Option<ModuleEffectModifier>,

@@ -9,9 +9,9 @@
 mod space_connection;
 mod space_location;
 mod space_position;
-mod surface_property_set;
+mod surface_properties;
 
 pub use space_connection::*;
 pub use space_location::*;
 pub use space_position::*;
-pub use surface_property_set::*;
+pub use surface_properties::*;
