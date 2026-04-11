@@ -1,11 +1,11 @@
 [package]
-name = "faculator-devkit"
+name = "faculator-x"
 version.workspace = true
 edition.workspace = true
 description = "从 Factorio 游戏数据中提取原型图标"
 
 [[bin]]
-name = "devkit"
+name = "facx"
 path = "src/main.rs"
 
 [dependencies]

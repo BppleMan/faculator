@@ -1028,21 +1028,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "faculator-devkit"
-version = "0.1.0"
-dependencies = [
- "clap",
- "color-eyre",
- "dirs",
- "image",
- "serde",
- "serde_json",
- "tempfile",
- "texture_packer",
- "walkdir",
-]
-
-[[package]]
 name = "faculator-macros"
 version = "0.1.0"
 
@@ -1059,6 +1044,21 @@ name = "faculator-solver"
 version = "0.1.0"
 dependencies = [
  "good_lp",
+]
+
+[[package]]
+name = "faculator-x"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "color-eyre",
+ "dirs",
+ "image",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "texture_packer",
+ "walkdir",
 ]
 
 [[package]]
