@@ -6,9 +6,10 @@ use color_eyre::eyre::{Result, eyre};
 use faculator_core::{
     category::{FuelCategory, ModuleCategory},
     concept::{MaterialType, ModuleEffect, ModuleEffectModifier, Product},
+    entity::EntityId,
     material::{
-        FuelCapability, Item as CoreItem, ItemCapability, ItemFlag, ItemFlagSet, ItemType, ModuleCapability,
-        PlacementCapability, TransformationCapability,
+        FuelCapability, Item as CoreItem, ItemCapability, ItemFlag, ItemFlagSet, ItemId, ItemType,
+        ModuleCapability, PlacementCapability, TransformationCapability,
     },
 };
 
@@ -46,9 +47,11 @@ pub fn item_to_core(item: SourceItem) -> Result<CoreItem> {
         None
     };
 
-    let placement = if item.place_result.is_some() || item.place_as_equipment_result.is_some() {
+    let placement = if item.place_result.is_some() || item.plant_result.is_some() || item.place_as_equipment_result.is_some()
+    {
         Some(PlacementCapability {
-            place_result: item.place_result,
+            place_result: item.place_result.map(EntityId::from),
+            plant_result: item.plant_result.map(EntityId::from),
             place_as_equipment_result: item.place_as_equipment_result,
         })
     } else {
@@ -67,15 +70,15 @@ pub fn item_to_core(item: SourceItem) -> Result<CoreItem> {
                             .collect::<Result<Vec<_>>>()
                     })
                     .transpose()?,
-                spoil_result: item.spoil_result,
-                burnt_result: item.burnt_result,
+                spoil_result: item.spoil_result.map(ItemId::from),
+                burnt_result: item.burnt_result.map(ItemId::from),
             })
         } else {
             None
         };
 
     Ok(CoreItem {
-        name: item.name,
+        name: ItemId::from(item.name),
         item_type,
         order: item.order,
         hidden: item.hidden,
@@ -217,6 +220,7 @@ mod tests {
     fn item_to_core_accepts_supported_item_type() {
         let core_item = item_to_core(sample_item("item")).expect("supported item type should convert");
 
+        assert_eq!(core_item.name, ItemId::from("sample-item"));
         assert_eq!(core_item.item_type, ItemType::Item);
         assert!(core_item.flag_set.is_empty());
     }
@@ -239,6 +243,10 @@ mod tests {
         item.fuel_value = 1;
         item.fuel_category = Some("chemical".to_owned());
         item.category = Some("speed".to_owned());
+        item.place_result = Some("assembling-machine-1".to_owned());
+        item.plant_result = Some("tree-plant".to_owned());
+        item.spoil_result = Some("spoilage".to_owned());
+        item.burnt_result = Some("ash".to_owned());
         item.rocket_launch_products = Some(vec![SourceProduct {
             material_type: "item".to_owned(),
             name: "iron-plate".to_owned(),
@@ -262,6 +270,30 @@ mod tests {
         assert_eq!(
             core_item.capability.module.as_ref().and_then(|module| module.category),
             Some(ModuleCategory::Speed)
+        );
+        assert_eq!(
+            core_item.capability.placement.as_ref().and_then(|placement| placement.place_result.clone()),
+            Some(EntityId::from("assembling-machine-1"))
+        );
+        assert_eq!(
+            core_item.capability.placement.as_ref().and_then(|placement| placement.plant_result.clone()),
+            Some(EntityId::from("tree-plant"))
+        );
+        assert_eq!(
+            core_item
+                .capability
+                .transformation
+                .as_ref()
+                .and_then(|transformation| transformation.spoil_result.clone()),
+            Some(ItemId::from("spoilage"))
+        );
+        assert_eq!(
+            core_item
+                .capability
+                .transformation
+                .as_ref()
+                .and_then(|transformation| transformation.burnt_result.clone()),
+            Some(ItemId::from("ash"))
         );
         assert_eq!(
             core_item

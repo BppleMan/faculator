@@ -13,5 +13,5 @@ dump:
 atlas:
     cargo run -p faculator-x -- atlas
 
-gen-category:
-    cargo run -p faculator-x -- gen category
+codegen-category:
+    cargo run -p faculator-x -- codegen category

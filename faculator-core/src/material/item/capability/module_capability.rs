@@ -9,7 +9,6 @@ pub struct ModuleCapability {
     pub effects: Option<ModuleEffect>,
 
     /// 模块类别。
-    #[serde(rename = "category")]
     pub category: Option<ModuleCategory>,
 
     /// 模块等级。

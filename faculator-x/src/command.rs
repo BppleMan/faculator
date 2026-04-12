@@ -1,6 +1,6 @@
 pub mod atlas;
+pub mod codegen;
 pub mod dump;
-pub mod generate;
 pub mod sync;
 
 use crate::cli::SubCommand;
@@ -15,8 +15,8 @@ impl Commander for SubCommand {
         match self {
             Self::Dump(command) => command.execute(),
             Self::Atlas(command) => command.execute(),
+            Self::Codegen(command) => command.execute(),
             Self::Sync(command) => command.execute(),
-            Self::Gen(command) => command.execute(),
         }
     }
 }

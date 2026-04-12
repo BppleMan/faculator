@@ -6,8 +6,14 @@ pub use capability::*;
 pub use item_flag::*;
 pub use item_type::*;
 
+use faculator_macros::ID;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(ID, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct ItemId(String);
 
 /// 物品聚合根。
 ///
@@ -16,10 +22,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
 pub struct Item {
-    /// 物品名称。
+    /// 物品名称 / 身份。
     ///
-    /// 这是物品表的自然主键，也是绝大多数物品侧外键的目标键。
-    pub name: String,
+    /// 在领域上它既是物品名称，也是面向其他原型关系的稳定身份。
+    pub name: ItemId,
 
     /// 物品类型。
     ///

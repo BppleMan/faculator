@@ -1,4 +1,5 @@
 use crate::concept::Product;
+use crate::material::ItemId;
 use serde::{Deserialize, Serialize};
 
 /// 转化能力模型。
@@ -9,8 +10,8 @@ pub struct TransformationCapability {
     pub rocket_launch_products: Option<Vec<Product>>,
 
     /// 腐坏后的结果物名称。
-    pub spoil_result: Option<String>,
+    pub spoil_result: Option<ItemId>,
 
     /// 燃烧后的结果物名称。
-    pub burnt_result: Option<String>,
+    pub burnt_result: Option<ItemId>,
 }

@@ -1,6 +1,6 @@
 use crate::command::atlas::AtlasCommand;
+use crate::command::codegen::CodegenCommand;
 use crate::command::dump::DumpCommand;
-use crate::command::generate::GenCommand;
 use crate::command::sync::SyncCommand;
 use clap::{Parser, Subcommand};
 
@@ -19,6 +19,6 @@ pub enum SubCommand {
     Dump(DumpCommand),
     /// 将 assets/icons 中的已整理图标按尺寸分组打包为 atlas PNG 和 manifest
     Atlas(AtlasCommand),
-    /// 根据导出的 game-data.json 生成项目代码
-    Gen(GenCommand),
+    /// 将导出数据显式生成到仓库源码中
+    Codegen(CodegenCommand),
 }
