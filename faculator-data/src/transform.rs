@@ -1,15 +1,17 @@
 use crate::game_data::{
     concept::{ModuleEffect as SourceModuleEffect, Product as SourceProduct},
+    fluid::Fluid as SourceFluid,
     item::Item as SourceItem,
 };
 use color_eyre::eyre::{Result, eyre};
 use faculator_core::{
     category::{FuelCategory, ModuleCategory},
-    concept::{MaterialType, ModuleEffect, ModuleEffectModifier, Product},
+    concept::{Color as CoreColor, MaterialId, MaterialType, ModuleEffect, ModuleEffectModifier, Number, Product},
     entity::EntityId,
     material::{
-        FuelCapability, Item as CoreItem, ItemCapability, ItemFlag, ItemFlagSet, ItemId, ItemType,
-        ModuleCapability, PlacementCapability, TransformationCapability,
+        Fluid as CoreFluid, FluidColorSet, FluidFuelCapability, FluidId, FluidThermodynamics, FuelCapability,
+        Item as CoreItem, ItemCapability, ItemFlag, ItemFlagSet, ItemId, ItemType, ModuleCapability,
+        PlacementCapability, TransformationCapability,
     },
 };
 
@@ -47,16 +49,16 @@ pub fn item_to_core(item: SourceItem) -> Result<CoreItem> {
         None
     };
 
-    let placement = if item.place_result.is_some() || item.plant_result.is_some() || item.place_as_equipment_result.is_some()
-    {
-        Some(PlacementCapability {
-            place_result: item.place_result.map(EntityId::from),
-            plant_result: item.plant_result.map(EntityId::from),
-            place_as_equipment_result: item.place_as_equipment_result,
-        })
-    } else {
-        None
-    };
+    let placement =
+        if item.place_result.is_some() || item.plant_result.is_some() || item.place_as_equipment_result.is_some() {
+            Some(PlacementCapability {
+                place_result: item.place_result.map(EntityId::from),
+                plant_result: item.plant_result.map(EntityId::from),
+                place_as_equipment_result: item.place_as_equipment_result,
+            })
+        } else {
+            None
+        };
 
     let transformation =
         if item.rocket_launch_products.is_some() || item.spoil_result.is_some() || item.burnt_result.is_some() {
@@ -92,6 +94,38 @@ pub fn item_to_core(item: SourceItem) -> Result<CoreItem> {
             transformation,
         },
         flag_set: flags,
+    })
+}
+
+pub fn fluid_to_core(fluid: SourceFluid) -> Result<CoreFluid> {
+    let fluid_name = fluid.name.clone();
+    let fuel = if fluid.fuel_value > 0 {
+        Some(FluidFuelCapability {
+            fuel_value: fluid.fuel_value,
+            emissions_multiplier: fluid.emissions_multiplier,
+        })
+    } else {
+        None
+    };
+
+    Ok(CoreFluid {
+        name: FluidId::from(fluid.name),
+        order: fluid.order,
+        hidden: fluid.hidden,
+        thermodynamics: FluidThermodynamics {
+            default_temperature: fluid.default_temperature,
+            max_temperature: fluid.max_temperature,
+            heat_capacity: fluid.heat_capacity,
+            gas_temperature: exported_number_to_core(
+                &format!("game_data.fluids[{fluid_name:?}].gas_temperature"),
+                fluid.gas_temperature,
+            )?,
+        },
+        fuel,
+        color: FluidColorSet {
+            base: color_to_core(fluid.base_color),
+            flow: color_to_core(fluid.flow_color),
+        },
     })
 }
 
@@ -159,15 +193,37 @@ fn effect_value_to_core(value: rust_decimal::Decimal) -> ModuleEffectModifier {
     ModuleEffectModifier { bonus: value }
 }
 
+fn color_to_core(color: crate::game_data::concept::Color) -> CoreColor {
+    CoreColor {
+        r: color.r,
+        g: color.g,
+        b: color.b,
+        a: color.a,
+    }
+}
+
+fn exported_number_to_core(path: &str, value: crate::game_data::ExportedNumber) -> Result<Number> {
+    if value.is_sentinel() {
+        return Ok(Number::Sentinel);
+    }
+
+    value.as_decimal().map(Number::Decimal).ok_or_else(|| {
+        eyre!(
+            "failed to convert {path} = {:?} into faculator_core::concept::Number; expected decimal or known numeric sentinel",
+            value.as_str()
+        )
+    })
+}
+
 fn product_to_core(item_name: &str, product: SourceProduct) -> Result<Product> {
     let product_name = product.name.clone();
 
     Ok(Product {
-        material_type: material_type_to_core(
+        material: material_id_to_core(
             &format!("game_data.items[{item_name:?}].rocket_launch_products[{product_name:?}]"),
             product.material_type.as_str(),
+            product.name,
         )?,
-        name: product.name,
         amount: product.amount,
         amount_min: product.amount_min,
         amount_max: product.amount_max,
@@ -180,10 +236,17 @@ fn product_to_core(item_name: &str, product: SourceProduct) -> Result<Product> {
     })
 }
 
+fn material_id_to_core(path: &str, raw_material_type: &str, raw_name: String) -> Result<MaterialId> {
+    Ok(match material_type_to_core(path, raw_material_type)? {
+        MaterialType::Item => MaterialId::Item(ItemId::from(raw_name)),
+        MaterialType::Fluid => MaterialId::Fluid(FluidId::from(raw_name)),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::game_data::{ArrayOrEmptyObject, EmptyObject, item::Item};
+    use crate::game_data::{ArrayOrEmptyObject, EmptyObject, ExportedNumber, concept::Color, fluid::Fluid, item::Item};
     use rust_decimal::Decimal;
 
     fn sample_item(raw_item_type: &str) -> Item {
@@ -213,6 +276,34 @@ mod tests {
             spoil_result: None,
             send_to_orbit_mode: None,
             burnt_result: None,
+        }
+    }
+
+    fn sample_fluid(gas_temperature: ExportedNumber) -> Fluid {
+        Fluid {
+            name: "sample-fluid".to_owned(),
+            group: "fluids".to_owned(),
+            subgroup: "fluid".to_owned(),
+            order: "a".to_owned(),
+            hidden: false,
+            default_temperature: Decimal::new(25, 0),
+            max_temperature: Decimal::new(100, 0),
+            heat_capacity: Decimal::new(2, 0),
+            fuel_value: 100,
+            emissions_multiplier: Decimal::new(5, 1),
+            gas_temperature,
+            base_color: Color {
+                r: Decimal::ONE,
+                g: Decimal::ZERO,
+                b: Decimal::ZERO,
+                a: Decimal::ONE,
+            },
+            flow_color: Color {
+                r: Decimal::ZERO,
+                g: Decimal::ONE,
+                b: Decimal::ZERO,
+                a: Decimal::ONE,
+            },
         }
     }
 
@@ -272,11 +363,19 @@ mod tests {
             Some(ModuleCategory::Speed)
         );
         assert_eq!(
-            core_item.capability.placement.as_ref().and_then(|placement| placement.place_result.clone()),
+            core_item
+                .capability
+                .placement
+                .as_ref()
+                .and_then(|placement| placement.place_result.clone()),
             Some(EntityId::from("assembling-machine-1"))
         );
         assert_eq!(
-            core_item.capability.placement.as_ref().and_then(|placement| placement.plant_result.clone()),
+            core_item
+                .capability
+                .placement
+                .as_ref()
+                .and_then(|placement| placement.plant_result.clone()),
             Some(EntityId::from("tree-plant"))
         );
         assert_eq!(
@@ -302,8 +401,8 @@ mod tests {
                 .as_ref()
                 .and_then(|transformation| transformation.rocket_launch_products.as_ref())
                 .and_then(|products| products.first())
-                .map(|product| product.material_type),
-            Some(MaterialType::Item)
+                .map(|product| product.material.clone()),
+            Some(MaterialId::Item(ItemId::from("iron-plate")))
         );
     }
 
@@ -343,5 +442,26 @@ mod tests {
         assert!(message.contains("game_data.items[\"sample-item\"].fuel_category"));
         assert!(message.contains("future-fuel-category"));
         assert!(message.contains("supported values"));
+    }
+
+    #[test]
+    fn fluid_to_core_accepts_decimal_gas_temperature() {
+        let core_fluid =
+            fluid_to_core(sample_fluid(ExportedNumber::from("80"))).expect("decimal gas temperature should convert");
+
+        assert_eq!(core_fluid.name, FluidId::from("sample-fluid"));
+        assert_eq!(
+            core_fluid.thermodynamics.gas_temperature,
+            Number::Decimal(Decimal::new(80, 0))
+        );
+        assert!(core_fluid.is_fuel());
+    }
+
+    #[test]
+    fn fluid_to_core_accepts_sentinel_gas_temperature() {
+        let core_fluid = fluid_to_core(sample_fluid(ExportedNumber::from(ExportedNumber::F32_MAX_TEXT)))
+            .expect("sentinel gas temperature should convert");
+
+        assert_eq!(core_fluid.thermodynamics.gas_temperature, Number::Sentinel);
     }
 }

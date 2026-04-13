@@ -1,24 +1,17 @@
+mod effect;
+mod energy;
+mod environment;
+mod material;
 mod material_type;
+mod number;
+mod placement;
 mod product;
 
+pub use effect::*;
+pub use energy::*;
+pub use environment::*;
+pub use material::*;
 pub use material_type::*;
+pub use number::*;
+pub use placement::*;
 pub use product::*;
-
-use rust_decimal::Decimal;
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize)]
-pub struct ModuleEffectModifier {
-    pub bonus: Decimal,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize)]
-pub struct ModuleEffect {
-    pub consumption: Option<ModuleEffectModifier>,
-    pub speed: Option<ModuleEffectModifier>,
-    pub productivity: Option<ModuleEffectModifier>,
-    pub pollution: Option<ModuleEffectModifier>,
-    pub quality: Option<ModuleEffectModifier>,
-}

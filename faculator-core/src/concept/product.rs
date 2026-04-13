@@ -1,13 +1,11 @@
-use crate::concept::MaterialType;
+use crate::concept::MaterialId;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Serialize, Deserialize)]
 pub struct Product {
-    #[serde(rename = "type")]
-    pub material_type: MaterialType,
-    pub name: String,
+    pub material: MaterialId,
     pub amount: Option<Decimal>,
     pub amount_min: Option<Decimal>,
     pub amount_max: Option<Decimal>,

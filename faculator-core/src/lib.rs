@@ -1,7 +1,12 @@
 pub mod category;
 pub mod concept;
 pub mod entity;
+pub mod equipment;
 pub mod game;
+pub mod item_group;
 pub mod material;
 pub mod module;
+pub mod quality;
 pub mod recipe;
+pub mod space;
+pub mod technology;
