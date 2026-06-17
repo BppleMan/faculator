@@ -18,14 +18,14 @@ MVP 最小验收集包括：
 其中前三个已经有红瓶基准文档和 Excel 作为参考资产：
 
 ```text
-doc-new/red-bottle-quality-lp-reference.md
-doc-new/red-bottle-quality-lp-reference.xlsx
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
 ```
 
 原油配平原则参考：
 
 ```text
-doc-new/production-balancing-principles.md
+knowledge-base/production-balancing-principles.md
 ```
 
 ## 验收用例一：白板红瓶@1 60/min
@@ -423,14 +423,14 @@ c = 轻油裂解次数/分钟
 红瓶相关用例以以下文档为准：
 
 ```text
-doc-new/red-bottle-quality-lp-reference.md
-doc-new/red-bottle-quality-lp-reference.xlsx
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
 ```
 
 配平与原油原则以以下文档为准：
 
 ```text
-doc-new/production-balancing-principles.md
+knowledge-base/production-balancing-principles.md
 ```
 
 如果实现结果与这些资产冲突，应优先检查实现，而不是修改验收用例。

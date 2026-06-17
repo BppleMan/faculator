@@ -14,8 +14,13 @@
 解算模型
 UI 规格
 验收用例
-开放问题
-计算基准资产
+知识库
+```
+
+顶层只保留主线开发指导文档。原则推导、计算基准、开放问题等支撑资料放入：
+
+```text
+knowledge-base/
 ```
 
 ## 推荐阅读顺序
@@ -67,7 +72,7 @@ link
 
 ```text
 mvp-solving-model.md
-production-balancing-principles.md
+knowledge-base/production-balancing-principles.md
 ```
 
 `mvp-solving-model.md` 固定 MVP 解算口径：
@@ -82,7 +87,7 @@ solver-neutral LinearModel
 Web Worker 求解
 ```
 
-`production-balancing-principles.md` 固化更底层的配平经验：
+`knowledge-base/production-balancing-principles.md` 固化更底层的配平经验：
 
 ```text
 唯一解
@@ -131,8 +136,8 @@ UI 不应该隐藏解算边界
 
 ```text
 mvp-acceptance-cases.md
-red-bottle-quality-lp-reference.md
-red-bottle-quality-lp-reference.xlsx
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
 ```
 
 `mvp-acceptance-cases.md` 固定 MVP 最小验收集：
@@ -151,7 +156,7 @@ red-bottle-quality-lp-reference.xlsx
 品质策略相关问题看：
 
 ```text
-mvp-open-questions.md
+knowledge-base/quality-strategy-open-questions.md
 ```
 
 当前品质策略不阻塞 MVP 主文档落地，但后续必须继续决策。
@@ -160,15 +165,17 @@ mvp-open-questions.md
 
 ```text
 README.md
+AGENTS.md
 mvp-overview.md
 mvp-production-model.md
 mvp-solving-model.md
 mvp-ui-spec.md
 mvp-acceptance-cases.md
-mvp-open-questions.md
-production-balancing-principles.md
-red-bottle-quality-lp-reference.md
-red-bottle-quality-lp-reference.xlsx
+knowledge-base/README.md
+knowledge-base/quality-strategy-open-questions.md
+knowledge-base/production-balancing-principles.md
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
 ```
 
 ## 实现优先级建议
@@ -196,7 +203,7 @@ red-bottle-quality-lp-reference.xlsx
 
 ```text
 新的共识要落到 doc-new，不只停留在对话中
-开放问题要进入 mvp-open-questions.md
+开放问题要进入 knowledge-base/quality-strategy-open-questions.md
 计算基准要能被验收用例引用
 不要把旧脑暴文档当作 MVP 实现唯一依据
 如果新文档与旧 docs/ 冲突，优先以 doc-new 为准
@@ -209,5 +216,5 @@ mvp-production-model.md
 mvp-solving-model.md
 mvp-ui-spec.md
 mvp-acceptance-cases.md
-mvp-open-questions.md
+knowledge-base/quality-strategy-open-questions.md
 ```

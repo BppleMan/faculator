@@ -19,14 +19,14 @@ Web / PWA 中求解应如何运行
 本文不替代完整数学推导。配平、唯一解、截流、LP/MILP 的原则已经固化在：
 
 ```text
-doc-new/production-balancing-principles.md
+knowledge-base/production-balancing-principles.md
 ```
 
 红瓶品质矩阵的完整展开已经固化在：
 
 ```text
-doc-new/red-bottle-quality-lp-reference.md
-doc-new/red-bottle-quality-lp-reference.xlsx
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
 ```
 
 ## 核心未知数
@@ -535,6 +535,79 @@ highs-js adapter
 测试用 mock adapter
 ```
 
+## 配平原则的 MVP 化结论
+
+`knowledge-base/production-balancing-principles.md` 中保留了完整的配平经验推导。MVP 实现不需要在主线文档里重复所有推导，但必须吸收以下结论。
+
+第一，Faculator 所谓“配平”，不是让 solver 自由替玩家设计产线，而是在用户已经显式组织的解算域内求稳定流量。
+
+```text
+用户决定解算域边界
+用户决定配方展开范围
+用户决定外部供入
+用户决定下沉与边界契约
+solver 只在这个已定义空间内求过程执行率
+```
+
+第二，玩家常说的“唯一配平”，本质上来自固定拓扑后的物料守恒方程组。
+
+当以下条件已经固定时：
+
+```text
+配方路线
+副产物去向
+边界输入
+边界输出
+目标速率
+是否允许剩余
+是否允许替代路线
+```
+
+问题往往不再是开放优化，而是一个确定的非负流量求解问题。
+
+第三，无解不只表示代数方程无解，也包括游戏语义下不可执行的解。
+
+例如：
+
+```text
+某个过程执行次数为负数
+某个关键物料存在短缺
+目标需求不在当前解算域可达的非负流量空间中
+```
+
+这些情况都必须被解释为当前配置不可满足，而不是让 UI 隐藏或自动猜测修复。
+
+第四，剩余和短缺必须分开。
+
+```text
+短缺 = 当前解算域没有满足关键需求
+剩余 = 满足目标后仍有额外产出
+```
+
+剩余不一定是错误。它可能来自副产物、截流、品质分流、link 关闭后的超产，或目标下限约束导致的超额。
+
+第五，截流不是特殊机制，而是把某个中间物提升为外部目标或边界输出。
+
+因此截流应被表达为：
+
+```text
+目标
+边界输出
+外供输出
+```
+
+而不是隐式从某条中间物流里偷走一部分。
+
+第六，MVP 默认目标函数“最小化总过程执行次数”只是为了在存在自由度时收敛到稳定可解释解。
+
+它不表示 Faculator 要替玩家做蓝图优化，也不表示它要靠配平本身省矿。
+
+完整解释和原油示例见：
+
+```text
+knowledge-base/production-balancing-principles.md
+```
+
 ## PlanningResult
 
 solver 返回的变量值还不是用户最终看到的结果。
@@ -621,7 +694,7 @@ UI 不感知具体 solver
 但 MVP 暂不决定品质策略如何绑定到 `ProductionLine` 或具体过程。相关开放问题记录在：
 
 ```text
-doc-new/mvp-open-questions.md
+knowledge-base/quality-strategy-open-questions.md
 ```
 
 ## 实现验收标准

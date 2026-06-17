@@ -230,14 +230,14 @@ mvp-ui-spec.md
 mvp-acceptance-cases.md
   MVP 最小验收用例
 
-mvp-open-questions.md
+knowledge-base/quality-strategy-open-questions.md
   暂不阻塞 MVP 的开放问题
 
-production-balancing-principles.md
+knowledge-base/production-balancing-principles.md
   已固化的配平、唯一解、截流、LP/MILP 原则
 
-red-bottle-quality-lp-reference.md
-red-bottle-quality-lp-reference.xlsx
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
   红瓶品质线性规划基准资产
 ```
 

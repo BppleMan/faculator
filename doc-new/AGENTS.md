@@ -17,10 +17,11 @@ mvp-production-model.md
 mvp-solving-model.md
 mvp-ui-spec.md
 mvp-acceptance-cases.md
-mvp-open-questions.md
-production-balancing-principles.md
-red-bottle-quality-lp-reference.md
-red-bottle-quality-lp-reference.xlsx
+knowledge-base/README.md
+knowledge-base/quality-strategy-open-questions.md
+knowledge-base/production-balancing-principles.md
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
 ```
 
 These documents should stay mutually consistent and implementation-guiding.
@@ -53,7 +54,7 @@ Keep this sentence intact when the idea is referenced. It is one of the stronges
 - Keep documents closed-loop: a reader should understand the topic from the document itself, with links to related assets for deeper detail.
 - Use `text` code blocks for conceptual structures, matrices, flows, and examples.
 - Use exact model terms consistently: `ProductionPlan`, `ProductionBlock`, `ProductionLine`, `Level`, `BoundaryContract`, `link`, `LinearModel`, `LinearSolution`, `PlanningResult`.
-- Avoid unresolved placeholder markers or ellipsis-style unfinished notes. If a decision is open, write it in `mvp-open-questions.md` as an explicit open question.
+- Avoid unresolved placeholder markers or ellipsis-style unfinished notes. If a decision is open, write it in `knowledge-base/quality-strategy-open-questions.md` as an explicit open question.
 
 ## Source-of-Truth Order
 
@@ -82,7 +83,7 @@ mvp-production-model.md   for plan/block/line/level/boundary/link changes
 mvp-solving-model.md      for solver, matrix, objective, LP/MILP, machine conversion changes
 mvp-ui-spec.md            for UI/rendering/debug panel changes
 mvp-acceptance-cases.md   for validation case changes
-mvp-open-questions.md     for unresolved quality strategy decisions
+knowledge-base/quality-strategy-open-questions.md     for unresolved quality strategy decisions
 ```
 
 ## Non-Negotiable Modeling Decisions
@@ -123,8 +124,8 @@ Settled:
 - Red-bottle quality and recycling math is captured in:
 
 ```text
-red-bottle-quality-lp-reference.md
-red-bottle-quality-lp-reference.xlsx
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
 ```
 
 Open:
@@ -139,7 +140,7 @@ Open:
 When working on quality strategy, update:
 
 ```text
-mvp-open-questions.md
+knowledge-base/quality-strategy-open-questions.md
 mvp-production-model.md
 mvp-solving-model.md
 mvp-ui-spec.md
@@ -155,22 +156,22 @@ When adding or changing a concept:
 1. Update the document where the concept belongs.
 2. Update related documents if the concept changes cross-document behavior.
 3. Update `README.md` if the document map or reading order changes.
-4. Update `mvp-open-questions.md` if a decision remains unresolved.
+4. Update `knowledge-base/quality-strategy-open-questions.md` if a decision remains unresolved.
 5. Update `mvp-acceptance-cases.md` if the change affects what MVP must prove.
 
 Examples:
 
 - Changing `link` semantics requires updates to `mvp-production-model.md`, `mvp-ui-spec.md`, and likely `mvp-acceptance-cases.md`.
 - Changing the default objective function requires updates to `mvp-solving-model.md` and any acceptance case that describes expected solution behavior.
-- Deciding low-quality recycling defaults requires updates to `mvp-open-questions.md`, `mvp-ui-spec.md`, `mvp-solving-model.md`, and red-bottle acceptance wording.
+- Deciding low-quality recycling defaults requires updates to `knowledge-base/quality-strategy-open-questions.md`, `mvp-ui-spec.md`, `mvp-solving-model.md`, and red-bottle acceptance wording.
 
 ## Reference Asset Rules
 
-`red-bottle-quality-lp-reference.xlsx` is a calculation reference asset, not a casual attachment.
+`knowledge-base/red-bottle-quality-lp-reference.xlsx` is a calculation reference asset, not a casual attachment.
 
 Only edit it when the task explicitly involves spreadsheet/calculation asset updates. If editing it:
 
-- Preserve the corresponding markdown explanation in `red-bottle-quality-lp-reference.md`.
+- Preserve the corresponding markdown explanation in `knowledge-base/red-bottle-quality-lp-reference.md`.
 - Keep formulas auditable.
 - Verify the workbook after generation or editing.
 - Scan for formula errors.
@@ -183,11 +184,11 @@ Do not update the Excel file just because a prose document references it.
 Useful read-only checks after documentation edits:
 
 ```bash
-find doc-new -maxdepth 1 -type f | sort
-wc -l doc-new/*.md
+find doc-new -maxdepth 2 -type f | sort
+wc -l doc-new/*.md knowledge-base/*.md
 PLACEHOLDER_PATTERN="$(printf 'TO%sDO|FIX%sME|TB%sD|占%s位|待%s写|\\.\\.\\.' '' '' '' '' '')"
 rg -n "$PLACEHOLDER_PATTERN" doc-new --glob '!AGENTS.md'
-rg -n "^#|^##" doc-new/*.md
+rg -n "^#|^##" doc-new/*.md doc-new/knowledge-base/*.md
 git status --short
 ```
 

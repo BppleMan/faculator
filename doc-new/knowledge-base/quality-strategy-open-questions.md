@@ -32,8 +32,8 @@
 已固化参考：
 
 ```text
-doc-new/red-bottle-quality-lp-reference.md
-doc-new/red-bottle-quality-lp-reference.xlsx
+knowledge-base/red-bottle-quality-lp-reference.md
+knowledge-base/red-bottle-quality-lp-reference.xlsx
 ```
 
 开放问题不是“是否支持品质”，而是“品质策略如何成为 MVP 中可理解、可配置、可实现的用户能力”。

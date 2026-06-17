@@ -543,7 +543,7 @@ MVP UI 需要保留 `物料@品质` 的显示能力。
 这些记录在：
 
 ```text
-doc-new/mvp-open-questions.md
+knowledge-base/quality-strategy-open-questions.md
 ```
 
 UI 设计时不得把这些开放问题写死成不可逆选择。
