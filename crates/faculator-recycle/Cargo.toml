@@ -1,0 +1,11 @@
+[package]
+name = "faculator-recycle"
+version.workspace = true
+description.workspace = true
+repository.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+bigdecimal = { version = "0.4.10" }

@@ -1,0 +1,1825 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Faculator MVP Prototype</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg: #070b0f;
+      --panel: #0c1216;
+      --panel-2: #10191d;
+      --panel-3: #131f23;
+      --line: #263a40;
+      --line-soft: #1b2a2f;
+      --text: #dbe8e5;
+      --muted: #78908d;
+      --dim: #435753;
+      --brand: #f6b03d;
+      --brand-soft: rgba(246, 176, 61, .13);
+      --cyan: #3dd6c6;
+      --cyan-soft: rgba(61, 214, 198, .13);
+      --green: #78d879;
+      --green-soft: rgba(120, 216, 121, .13);
+      --red: #ff6b6b;
+      --red-soft: rgba(255, 107, 107, .14);
+      --blue: #6ea8ff;
+      --blue-soft: rgba(110, 168, 255, .14);
+      --violet: #a78bfa;
+      --amber: #f59e0b;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .25);
+      font-family: "Rajdhani", "DIN Condensed", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+    button, input {
+      font: inherit;
+      color: inherit;
+    }
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+    img {
+      display: block;
+      max-width: 100%;
+    }
+    .mono {
+      font-family: "JetBrains Mono", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+    }
+    .app {
+      height: 100vh;
+      min-width: 1180px;
+      display: grid;
+      grid-template-rows: 54px minmax(0, 1fr) 34px;
+      background:
+        radial-gradient(circle at 28% -14%, rgba(246, 176, 61, .08), transparent 28%),
+        linear-gradient(180deg, #090e12 0%, #070b0f 100%);
+    }
+    .topbar {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 14px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(6, 10, 13, .94);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 172px;
+    }
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      border: 2px solid var(--brand);
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 18px rgba(246, 176, 61, .18);
+      transform: rotate(30deg);
+    }
+    .brand-mark::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--brand);
+    }
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+    .brand-title span { color: var(--brand); }
+    .plan-tabs,
+    .view-tabs,
+    .micro-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+    .plan-tab,
+    .view-tab,
+    .micro-tab {
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: .16s ease;
+    }
+    .plan-tab {
+      padding: 7px 13px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .plan-tab small {
+      color: var(--dim);
+      font-size: 10px;
+      letter-spacing: 0;
+    }
+    .plan-tab.is-active {
+      background: var(--brand-soft);
+      color: var(--brand);
+      border-color: rgba(246, 176, 61, .18);
+    }
+    .view-tabs,
+    .micro-tabs {
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b1217;
+    }
+    .view-tab,
+    .micro-tab {
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .view-tab.is-active,
+    .micro-tab.is-active {
+      color: var(--text);
+      background: var(--panel-3);
+      border-color: var(--line);
+    }
+    .main {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 286px minmax(0, 1fr) 308px;
+      border-bottom: 1px solid var(--line);
+    }
+    .sidebar,
+    .inspector {
+      min-height: 0;
+      background: rgba(8, 13, 17, .94);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar {
+      border-right: 1px solid var(--line);
+    }
+    .inspector {
+      border-left: 1px solid var(--line);
+    }
+    .section-head {
+      height: 41px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .section-head strong {
+      font-size: 12px;
+      letter-spacing: .12em;
+      color: #a5bbb7;
+    }
+    .section-head span {
+      color: var(--dim);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .14em;
+    }
+    .sidebar-scroll,
+    .inspector-scroll {
+      min-height: 0;
+      overflow: auto;
+      padding: 10px;
+    }
+    .panel-block {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(16, 25, 29, .96), rgba(11, 17, 21, .96));
+      padding: 11px;
+      margin-bottom: 10px;
+    }
+    .panel-block.is-active {
+      border-color: rgba(246, 176, 61, .42);
+      box-shadow: inset 3px 0 0 var(--brand);
+    }
+    .panel-block.has-shortage {
+      border-color: rgba(255, 107, 107, .34);
+      box-shadow: inset 3px 0 0 var(--red);
+    }
+    .block-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .block-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+      background: var(--brand);
+      flex-shrink: 0;
+    }
+    .block-title {
+      flex: 1;
+      min-width: 0;
+      font-weight: 800;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .block-meta {
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .05em;
+    }
+    .badge-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 20px;
+      padding: 0 7px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: #0a1115;
+      color: #9db3af;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .badge.green { color: var(--green); border-color: rgba(120, 216, 121, .35); background: var(--green-soft); }
+    .badge.red { color: var(--red); border-color: rgba(255, 107, 107, .35); background: var(--red-soft); }
+    .badge.amber { color: var(--brand); border-color: rgba(246, 176, 61, .35); background: var(--brand-soft); }
+    .badge.cyan { color: var(--cyan); border-color: rgba(61, 214, 198, .35); background: var(--cyan-soft); }
+    .badge.blue { color: var(--blue); border-color: rgba(110, 168, 255, .35); background: var(--blue-soft); }
+    .root-list {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .root-line {
+      width: 100%;
+      text-align: left;
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 8px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, .02);
+    }
+    .root-line.is-active {
+      border-color: rgba(246, 176, 61, .28);
+      background: rgba(246, 176, 61, .09);
+    }
+    .root-line img {
+      width: 22px;
+      height: 22px;
+      image-rendering: auto;
+    }
+    .root-name {
+      min-width: 0;
+      font-size: 12px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .root-sub {
+      margin-top: 1px;
+      color: var(--dim);
+      font-size: 9px;
+      font-weight: 700;
+    }
+    .root-rate {
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .sidebar-footer {
+      border-top: 1px solid var(--line);
+      padding: 10px 12px;
+      flex-shrink: 0;
+      display: grid;
+      gap: 7px;
+    }
+    .mini-stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .mini-stat b {
+      color: var(--text);
+      font-size: 13px;
+    }
+    .workspace {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 42px minmax(0, 1fr) 192px;
+      background: #080d11;
+      position: relative;
+    }
+    .workspace-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9, 15, 19, .74);
+    }
+    .workspace-title {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      min-width: 0;
+      flex: 1;
+    }
+    .workspace-title strong {
+      font-size: 13px;
+      letter-spacing: .12em;
+      color: #aec4c0;
+      white-space: nowrap;
+    }
+    .workspace-title span {
+      min-width: 0;
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .view {
+      min-height: 0;
+      overflow: hidden;
+      position: relative;
+      display: none;
+    }
+    .view.is-active {
+      display: block;
+    }
+    .graph-canvas {
+      position: absolute;
+      inset: 0;
+      overflow: auto;
+      cursor: default;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+        #081016;
+      background-size: 28px 28px;
+    }
+    .graph-stage {
+      position: relative;
+      width: 1180px;
+      height: 660px;
+    }
+    .graph-stage svg {
+      position: absolute;
+      inset: 0;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .domain-band {
+      position: absolute;
+      border: 1px dashed rgba(246, 176, 61, .38);
+      border-radius: 8px;
+      background: rgba(246, 176, 61, .035);
+      pointer-events: none;
+    }
+    .domain-band strong {
+      position: absolute;
+      top: -21px;
+      left: 8px;
+      color: var(--brand);
+      font-size: 10px;
+      letter-spacing: .1em;
+    }
+    .node-card {
+      position: absolute;
+      width: 188px;
+      min-height: 104px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--line);
+      border-radius: 7px;
+      background: linear-gradient(180deg, rgba(17, 29, 34, .98), rgba(11, 18, 22, .98));
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .22);
+      padding: 9px 10px 8px;
+      text-align: left;
+    }
+    .node-card.is-selected {
+      outline: 2px solid rgba(246, 176, 61, .38);
+      outline-offset: 2px;
+    }
+    .node-card.is-sunk {
+      border-color: rgba(246, 176, 61, .45);
+    }
+    .node-card.has-shortage {
+      border-color: rgba(255, 107, 107, .55);
+      border-top-color: var(--red);
+    }
+    .node-top {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .item-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      background: #091014;
+      padding: 1px;
+      object-fit: contain;
+    }
+    .node-name {
+      min-width: 0;
+      color: var(--text);
+      font-weight: 900;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .quality {
+      height: 18px;
+      padding: 0 5px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 4px;
+      border: 1px solid rgba(167, 139, 250, .34);
+      color: var(--violet);
+      background: rgba(167, 139, 250, .12);
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .node-rate {
+      margin-top: 8px;
+      color: var(--brand);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .node-rate small {
+      color: var(--dim);
+      font-size: 10px;
+      margin-left: 2px;
+    }
+    .node-meta {
+      margin-top: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .node-chip-row {
+      margin-top: 7px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .tiny-chip {
+      height: 16px;
+      padding: 0 5px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 3px;
+      background: #0a1115;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 900;
+    }
+    .tree-view {
+      height: 100%;
+      display: grid;
+      grid-template-rows: 32px minmax(0, 1fr);
+      background: #081016;
+    }
+    .tree-header,
+    .tree-row {
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) 104px 104px 104px 96px 124px;
+      align-items: center;
+      column-gap: 10px;
+    }
+    .tree-header {
+      padding: 0 16px;
+      color: var(--dim);
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .12em;
+    }
+    .tree-scroll {
+      overflow: auto;
+      padding: 8px 14px 20px;
+    }
+    .tree-row {
+      min-width: 880px;
+      min-height: 40px;
+      padding: 4px 10px;
+      margin-bottom: 4px;
+      border: 1px solid var(--line-soft);
+      border-left: 4px solid var(--line);
+      border-radius: 6px;
+      background: rgba(13, 21, 25, .92);
+    }
+    .tree-row.is-selected {
+      border-color: rgba(246, 176, 61, .42);
+      box-shadow: inset 0 0 0 1px rgba(246, 176, 61, .14);
+    }
+    .tree-row.has-shortage {
+      border-left-color: var(--red);
+    }
+    .tree-row.is-sunk {
+      border-left-color: var(--brand);
+      background: linear-gradient(90deg, rgba(246, 176, 61, .08), rgba(13, 21, 25, .92) 32%);
+    }
+    .tree-main {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tree-indent {
+      flex-shrink: 0;
+      height: 1px;
+    }
+    .collapse-btn {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: #0a1115;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .collapse-btn.is-empty {
+      opacity: .38;
+      cursor: default;
+    }
+    .tree-name {
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tree-cell {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tree-cell.rate {
+      color: var(--brand);
+      font-size: 13px;
+      text-align: right;
+    }
+    .columns-view {
+      height: 100%;
+      display: flex;
+      min-width: 0;
+      overflow-x: auto;
+      background: #081016;
+    }
+    .column {
+      width: 244px;
+      flex: 0 0 244px;
+      border-right: 1px solid var(--line-soft);
+      display: grid;
+      grid-template-rows: 36px minmax(0, 1fr);
+      background: rgba(7, 12, 16, .55);
+    }
+    .column:nth-child(even) {
+      background: rgba(12, 18, 22, .62);
+    }
+    .column-head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .column-head i {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--brand);
+    }
+    .column-head strong {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #a9bfbb;
+      font-size: 11px;
+      letter-spacing: .08em;
+    }
+    .column-head span {
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .column-scroll {
+      min-height: 0;
+      overflow: auto;
+      padding: 9px;
+    }
+    .column-card {
+      width: 100%;
+      text-align: left;
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--line);
+      background: linear-gradient(180deg, rgba(17, 29, 34, .98), rgba(10, 16, 20, .98));
+      padding: 9px;
+      margin-bottom: 8px;
+    }
+    .column-card.is-selected {
+      border-color: rgba(246, 176, 61, .48);
+      border-top-color: var(--brand);
+      box-shadow: 0 0 0 1px rgba(246, 176, 61, .1);
+    }
+    .column-card.has-shortage {
+      border-top-color: var(--red);
+    }
+    .column-card-top {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .column-card-top img {
+      width: 22px;
+      height: 22px;
+    }
+    .column-card-name {
+      min-width: 0;
+      flex: 1;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .column-rate {
+      margin-top: 8px;
+      color: var(--brand);
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .column-sub {
+      margin-top: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .matrix-view {
+      height: 100%;
+      overflow: auto;
+      background: #081016;
+      padding: 14px;
+    }
+    .matrix-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 248px;
+      gap: 10px;
+      min-width: 0;
+    }
+    .data-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(13, 21, 25, .94);
+      overflow: hidden;
+    }
+    .data-panel-head {
+      height: 34px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      color: #a9bfbb;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .1em;
+    }
+    .data-panel-head span {
+      color: var(--dim);
+      font-size: 9px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      height: 30px;
+      padding: 0 9px;
+      border-bottom: 1px solid var(--line-soft);
+      color: var(--muted);
+      font-size: 11px;
+      text-align: right;
+      white-space: nowrap;
+    }
+    th {
+      color: var(--dim);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      background: rgba(0, 0, 0, .12);
+    }
+    th:first-child,
+    td:first-child {
+      text-align: left;
+      color: #b9cbc8;
+      font-weight: 800;
+    }
+    td.pos { color: var(--green); }
+    td.neg { color: var(--red); }
+    td.warn { color: var(--brand); }
+    .debug-drawer {
+      min-height: 0;
+      border-top: 1px solid var(--line);
+      background: rgba(8, 13, 17, .96);
+      display: grid;
+      grid-template-rows: 34px minmax(0, 1fr);
+    }
+    .debug-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .debug-head strong {
+      color: #a9bfbb;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .12em;
+    }
+    .debug-head span {
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .debug-body {
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr) 270px;
+      gap: 10px;
+      padding: 10px 12px;
+    }
+    .debug-list {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      gap: 6px;
+      align-content: start;
+    }
+    .debug-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 27px;
+      border: 1px solid var(--line-soft);
+      border-radius: 5px;
+      background: rgba(255, 255, 255, .02);
+      padding: 0 8px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .debug-pill b { color: var(--text); }
+    .inspector-scroll {
+      padding: 14px;
+    }
+    .selected-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(17, 29, 34, .98), rgba(9, 15, 18, .98));
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .selected-head {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 9px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .selected-head img {
+      width: 32px;
+      height: 32px;
+      border-radius: 5px;
+      border: 1px solid var(--line);
+      background: #091014;
+      padding: 2px;
+    }
+    .selected-title {
+      min-width: 0;
+      font-size: 16px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .selected-sub {
+      margin-top: 2px;
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-top: 8px;
+    }
+    .metric {
+      min-width: 0;
+      border: 1px solid var(--line-soft);
+      border-radius: 6px;
+      background: #0a1115;
+      padding: 8px 9px;
+    }
+    .metric span {
+      display: block;
+      color: var(--dim);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      margin-bottom: 3px;
+    }
+    .metric b {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .control-group {
+      border-top: 1px solid var(--line-soft);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+    .control-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .1em;
+      margin-bottom: 8px;
+    }
+    .stepper {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) 34px;
+      gap: 7px;
+      align-items: center;
+    }
+    .icon-btn,
+    .text-btn {
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0b1418;
+      color: var(--muted);
+      font-weight: 900;
+    }
+    .icon-btn {
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .text-btn {
+      padding: 0 10px;
+      font-size: 11px;
+      letter-spacing: .06em;
+    }
+    .text-btn.is-primary,
+    .icon-btn.is-primary {
+      color: var(--brand);
+      border-color: rgba(246, 176, 61, .38);
+      background: var(--brand-soft);
+    }
+    .text-btn.is-danger {
+      color: var(--red);
+      border-color: rgba(255, 107, 107, .38);
+      background: var(--red-soft);
+    }
+    .stepper-value {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0b1418;
+      color: var(--brand);
+      font-size: 20px;
+      font-weight: 900;
+    }
+    .stepper-value small {
+      color: var(--dim);
+      font-size: 10px;
+      margin-left: 3px;
+    }
+    .toggle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+    .switch {
+      position: relative;
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0b1418;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .05em;
+    }
+    .switch.is-on {
+      color: var(--green);
+      border-color: rgba(120, 216, 121, .38);
+      background: var(--green-soft);
+    }
+    .contract-box {
+      border: 1px solid var(--line-soft);
+      border-radius: 7px;
+      background: rgba(0, 0, 0, .14);
+      padding: 9px;
+      display: grid;
+      gap: 7px;
+    }
+    .contract-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .contract-row b {
+      color: var(--text);
+    }
+    .contract-row .good { color: var(--green); }
+    .contract-row .bad { color: var(--red); }
+    .contract-row .warn { color: var(--brand); }
+    .statusbar {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 16px;
+      background: #060a0d;
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+    .status-led {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px rgba(120, 216, 121, .75);
+    }
+    .status-item b {
+      color: var(--text);
+      letter-spacing: 0;
+      font-size: 11px;
+    }
+    .status-item .warn { color: var(--brand); }
+    .status-item .bad { color: var(--red); }
+    .spacer { flex: 1; }
+    .is-hidden { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #2b4146; border-radius: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+  </style>
+</head>
+<body>
+  <div id="app" class="app"></div>
+
+  <script>
+    const ICON = "../../assets/icons/item/";
+    const icons = {
+      red: ICON + "automation-science-pack.png",
+      green: ICON + "logistic-science-pack.png",
+      chem: ICON + "chemical-science-pack.png",
+      copperPlate: ICON + "copper-plate.png",
+      copperOre: ICON + "copper-ore.png",
+      gear: ICON + "iron-gear-wheel.png",
+      ironPlate: ICON + "iron-plate.png",
+      ironOre: ICON + "iron-ore.png",
+      assembler: ICON + "assembling-machine-3.png",
+      furnace: ICON + "electric-furnace.png",
+      miner: ICON + "burner-mining-drill.png",
+      circuit: ICON + "electronic-circuit.png",
+      belt: ICON + "transport-belt.png",
+      inserter: ICON + "inserter.png",
+      quality: ICON + "quality-module-3.png"
+    };
+
+    const state = {
+      activePlan: "science-base",
+      activeBlock: "basic-science",
+      activeRoot: "red5",
+      view: "graph",
+      selected: "gear",
+      targetRate: 60,
+      gearSunk: true,
+      gearLink: true,
+      gearTarget: 72,
+      externalCopper: false,
+      externalIronOre: true,
+      exportLowQuality: true,
+      collapsed: { copper: false, gear: false, ironPlate: false },
+      columnPath: ["red5", "gear", "ironPlate"]
+    };
+
+    const rootMeta = {
+      red5: {
+        id: "red5",
+        item: "red",
+        name: "红瓶@5",
+        goal: "红瓶@5 >= 60/min",
+        quality: "Q5",
+        block: "basic-science",
+        solver: "可行",
+        note: "独立解算 root line"
+      },
+      green3: {
+        id: "green3",
+        item: "green",
+        name: "绿瓶@3",
+        goal: "绿瓶@3 >= 45/min",
+        quality: "Q3",
+        block: "basic-science",
+        solver: "缺口",
+        note: "独立解算 root line"
+      }
+    };
+
+    const plans = [
+      { id: "science-base", name: "科研基地", meta: "3 Blocks", status: "ok" },
+      { id: "module-line", name: "模块生产", meta: "1 Block", status: "surplus" },
+      { id: "oil-plan", name: "原油裂解", meta: "2 Blocks", status: "gap" },
+      { id: "new-plan", name: "新建计划", meta: "+", status: "draft" }
+    ];
+
+    const blocks = [
+      { id: "basic-science", name: "基础科研", roots: ["red5", "green3"], status: "gap", external: 1, export: 1 },
+      { id: "military-science", name: "军工科研", roots: [], status: "idle", external: 0, export: 0 },
+      { id: "quality-loop", name: "品质回收线", roots: [], status: "surplus", external: 0, export: 2 }
+    ];
+
+    function fmt(n, digits = 0) {
+      if (Math.abs(n) >= 100) return n.toFixed(0);
+      if (Math.abs(n) >= 10) return n.toFixed(digits);
+      return n.toFixed(digits || 1);
+    }
+
+    function cls(...parts) {
+      return parts.filter(Boolean).join(" ");
+    }
+
+    function itemIcon(key, alt = "") {
+      return `<img class="item-icon" src="${icons[key] || icons.assembler}" alt="${alt}">`;
+    }
+
+    function getLines() {
+      if (state.activeRoot === "green3") {
+        return getGreenLines();
+      }
+      return getRedLines();
+    }
+
+    function getRedLines() {
+      const rootRate = state.targetRate;
+      const gearDemand = rootRate;
+      const gearRate = state.gearSunk ? (state.gearLink ? gearDemand : state.gearTarget) : gearDemand;
+      const gearDiff = state.gearSunk ? gearRate - gearDemand : 0;
+      const copperRate = rootRate;
+      const ironPlateRate = gearRate * 2;
+      const ironOreRate = ironPlateRate;
+      const copperOreRate = copperRate;
+      const lowQualitySurplus = Math.round(rootRate * 0.34);
+
+      const rows = [
+        {
+          id: "red5", parent: null, depth: 0, domain: "D0", level: 0, x: 34, y: 60,
+          name: "红瓶@5", item: "red", quality: "Q5", kind: "target", process: "造红瓶@5",
+          recipe: "组装机3 · 品质模块3", target: rootRate, rate: rootRate, demand: rootRate,
+          machines: rootRate / 12, status: "ok", children: ["copper", "gear"],
+          badges: ["目标", "root", "D0"]
+        },
+        {
+          id: "copper", parent: "red5", depth: 1, domain: "D0", level: 0, x: 312, y: 40,
+          name: "铜板@5", item: "copperPlate", quality: "Q5", kind: "internal", process: "冶铜板@5",
+          recipe: "电炉 · 品质模块3", target: null, rate: copperRate, demand: copperRate,
+          machines: copperRate / 31.25, status: state.externalCopper ? "external" : "ok",
+          external: state.externalCopper, children: state.externalCopper ? [] : ["copperOre"],
+          badges: [state.externalCopper ? "外部供入" : "内部过程", "D0"]
+        },
+        {
+          id: "copperOre", parent: "copper", depth: 2, domain: "D0", level: 0, x: 588, y: 40,
+          name: "铜矿@5", item: "copperOre", quality: "Q5", kind: "source", process: "采铜矿@5",
+          recipe: "电力采矿机 · 品质模块3", target: null, rate: copperOreRate, demand: copperOreRate,
+          machines: copperOreRate / 30, status: "ok", children: [], badges: ["源头", "D0"]
+        },
+        {
+          id: "gear", parent: "red5", depth: 1, domain: state.gearSunk ? "D1" : "D0", level: state.gearSunk ? 1 : 0,
+          x: 312, y: 220, name: "齿轮@5", item: "gear", quality: "Q5", kind: "boundary",
+          process: state.gearSunk ? "边界契约：齿轮供给" : "造齿轮@5",
+          recipe: state.gearSunk ? "BoundaryContract" : "组装机3 · 品质模块3",
+          target: gearRate, rate: gearRate, demand: gearDemand, machines: gearRate / 60,
+          status: gearDiff < 0 ? "shortage" : gearDiff > 0 ? "surplus" : "ok",
+          sunk: state.gearSunk, link: state.gearLink, diff: gearDiff, children: ["ironPlate"],
+          badges: [state.gearSunk ? "下沉子域" : "内部过程", state.gearSunk ? (state.gearLink ? "link on" : "link off") : "D0", state.gearSunk ? "D1" : "D0"]
+        },
+        {
+          id: "ironPlate", parent: "gear", depth: 2, domain: state.gearSunk ? "D1" : "D0", level: state.gearSunk ? 1 : 0,
+          x: 588, y: 220, name: "铁板@5", item: "ironPlate", quality: "Q5", kind: "internal",
+          process: "冶铁板@5", recipe: "电炉 · 品质模块3",
+          target: null, rate: ironPlateRate, demand: ironPlateRate, machines: ironPlateRate / 31.25,
+          status: "ok", children: ["ironOre"], badges: ["内部过程", state.gearSunk ? "D1" : "D0"]
+        },
+        {
+          id: "ironOre", parent: "ironPlate", depth: 3, domain: state.gearSunk ? "D1" : "D0", level: state.gearSunk ? 1 : 0,
+          x: 864, y: 220, name: "铁矿@5", item: "ironOre", quality: "Q5", kind: "source",
+          process: "外部供入：铁矿@5", recipe: "边界输入",
+          target: null, rate: ironOreRate, demand: ironOreRate, machines: 0,
+          status: state.externalIronOre ? "external" : "shortage",
+          external: state.externalIronOre, children: [],
+          badges: [state.externalIronOre ? "外部供入" : "缺口", state.gearSunk ? "D1" : "D0"]
+        }
+      ];
+
+      rows.push({
+        id: "lowRed", parent: "red5", depth: 1, domain: "D0", level: 0, x: 312, y: 405,
+        name: "低星红瓶", item: "red", quality: "Q1-4", kind: "surplus", process: "品质副产物",
+        recipe: state.exportLowQuality ? "外供输出声明" : "保留在当前域",
+        target: null, rate: lowQualitySurplus, demand: 0, machines: 0,
+        status: state.exportLowQuality ? "export" : "surplus",
+        export: state.exportLowQuality, children: [],
+        badges: [state.exportLowQuality ? "外供输出" : "剩余", "D0"]
+      });
+
+      return rows;
+    }
+
+    function getGreenLines() {
+      const rate = 45;
+      return [
+        { id: "green3", parent: null, depth: 0, domain: "D0", level: 0, x: 42, y: 70, name: "绿瓶@3", item: "green", quality: "Q3", kind: "target", process: "造绿瓶@3", recipe: "组装机2 · 默认配方", target: rate, rate, demand: rate, machines: 4.5, status: "shortage", children: ["belt", "inserter"], badges: ["目标", "root", "D0"] },
+        { id: "belt", parent: "green3", depth: 1, domain: "D0", level: 0, x: 328, y: 55, name: "运输带@3", item: "belt", quality: "Q3", kind: "internal", process: "造运输带@3", recipe: "组装机2", target: null, rate: 45, demand: 45, machines: 1.5, status: "ok", children: ["ironPlate"], badges: ["内部过程", "D0"] },
+        { id: "inserter", parent: "green3", depth: 1, domain: "D0", level: 0, x: 328, y: 235, name: "机械臂@3", item: "inserter", quality: "Q3", kind: "internal", process: "造机械臂@3", recipe: "组装机2", target: null, rate: 45, demand: 45, machines: 2.1, status: "shortage", children: ["circuit", "ironPlate"], badges: ["缺口", "D0"] },
+        { id: "circuit", parent: "inserter", depth: 2, domain: "D0", level: 0, x: 614, y: 235, name: "电子电路@3", item: "circuit", quality: "Q3", kind: "internal", process: "造电子电路@3", recipe: "组装机2", target: null, rate: 45, demand: 45, machines: 1.7, status: "shortage", children: [], badges: ["缺口", "D0"] },
+        { id: "ironPlate", parent: "belt", depth: 2, domain: "D0", level: 0, x: 614, y: 55, name: "铁板@3", item: "ironPlate", quality: "Q3", kind: "source", process: "外部供入：铁板@3", recipe: "边界输入不足", target: null, rate: 180, demand: 225, machines: 0, status: "shortage", external: true, children: [], badges: ["外部供入不足", "D0"] }
+      ];
+    }
+
+    function lineById(lines, id) {
+      return lines.find(line => line.id === id) || lines[0];
+    }
+
+    function childLines(lines, parent) {
+      return lines.filter(line => line.parent === parent);
+    }
+
+    function statusBadge(line) {
+      if (line.status === "shortage") return `<span class="badge red">缺口</span>`;
+      if (line.status === "surplus") return `<span class="badge amber">剩余</span>`;
+      if (line.status === "export") return `<span class="badge amber">外供</span>`;
+      if (line.status === "external") return `<span class="badge cyan">外部供入</span>`;
+      return `<span class="badge green">可行</span>`;
+    }
+
+    function render() {
+      const lines = getLines();
+      if (!lineById(lines, state.selected)) state.selected = lines[0].id;
+      document.getElementById("app").innerHTML = `
+        ${renderTopbar()}
+        <main class="main">
+          ${renderSidebar(lines)}
+          ${renderWorkspace(lines)}
+          ${renderInspector(lines)}
+        </main>
+        ${renderStatusbar(lines)}
+      `;
+    }
+
+    function renderTopbar() {
+      return `
+        <header class="topbar">
+          <div class="brand">
+            <div class="brand-mark"></div>
+            <div class="brand-title">FAC<span>ULATOR</span></div>
+          </div>
+          <div class="plan-tabs">
+            ${plans.map(plan => `
+              <button class="plan-tab ${plan.id === state.activePlan ? "is-active" : ""}" data-action="plan" data-id="${plan.id}">
+                ${plan.name}<small>${plan.meta}</small>
+              </button>
+            `).join("")}
+          </div>
+          <div class="view-tabs">
+            ${[
+              ["graph", "节点图"],
+              ["tree", "层级树"],
+              ["columns", "分栏"],
+              ["matrix", "矩阵调试"]
+            ].map(([id, label]) => `
+              <button class="view-tab ${state.view === id ? "is-active" : ""}" data-action="view" data-id="${id}">${label}</button>
+            `).join("")}
+          </div>
+          <div class="micro-tabs">
+            <button class="micro-tab is-active">边界可见</button>
+            <button class="micro-tab">独立 root</button>
+          </div>
+        </header>
+      `;
+    }
+
+    function renderSidebar(lines) {
+      const domains = new Set(lines.map(line => line.domain));
+      const root = rootMeta[state.activeRoot];
+      const shortageCount = lines.filter(line => line.status === "shortage").length;
+      const exportCount = lines.filter(line => line.export || line.status === "surplus").length;
+      return `
+        <aside class="sidebar">
+          <div class="section-head">
+            <strong>计划结构</strong>
+            <span>PLAN / BLOCK / ROOT</span>
+          </div>
+          <div class="sidebar-scroll">
+            <div class="panel-block is-active">
+              <div class="block-top">
+                <div class="block-dot"></div>
+                <div class="block-title">${plans.find(p => p.id === state.activePlan).name}</div>
+                <div class="block-meta">${domains.size} 域</div>
+              </div>
+              <div class="badge-line">
+                <span class="badge green">Tab = ProductionPlan</span>
+                <span class="badge ${shortageCount ? "red" : "green"}">${shortageCount ? shortageCount + " 缺口" : "无短缺"}</span>
+                <span class="badge amber">${exportCount} 剩余/外供</span>
+              </div>
+            </div>
+            ${blocks.map(block => renderBlock(block)).join("")}
+          </div>
+          <div class="sidebar-footer">
+            <div class="mini-stat"><span>当前 root</span><b>${root.name}</b></div>
+            <div class="mini-stat"><span>目标</span><b class="mono">${root.id === "red5" ? state.targetRate : 45}/min</b></div>
+            <div class="mini-stat"><span>默认合并</span><b>关闭</b></div>
+          </div>
+        </aside>
+      `;
+    }
+
+    function renderBlock(block) {
+      const active = block.id === state.activeBlock;
+      const hasShortage = block.status === "gap";
+      return `
+        <section class="panel-block ${active ? "is-active" : ""} ${hasShortage ? "has-shortage" : ""}" data-action="block" data-id="${block.id}">
+          <div class="block-top">
+            <div class="block-dot" style="background:${hasShortage ? "var(--red)" : block.status === "surplus" ? "var(--brand)" : "var(--green)"}"></div>
+            <div class="block-title">${block.name}</div>
+            <div class="block-meta">${block.roots.length} root</div>
+          </div>
+          <div class="badge-line">
+            <span class="badge blue">ProductionBlock</span>
+            <span class="badge ${hasShortage ? "red" : "green"}">${hasShortage ? "有缺口" : "隔离可行"}</span>
+            ${block.external ? `<span class="badge cyan">${block.external} 外部供入</span>` : ""}
+            ${block.export ? `<span class="badge amber">${block.export} 外供</span>` : ""}
+          </div>
+          ${block.roots.length ? `
+            <div class="root-list">
+              ${block.roots.map(id => renderRootLine(rootMeta[id])).join("")}
+            </div>
+          ` : ""}
+        </section>
+      `;
+    }
+
+    function renderRootLine(root) {
+      const rate = root.id === "red5" ? state.targetRate : 45;
+      return `
+        <button class="root-line ${state.activeRoot === root.id ? "is-active" : ""}" data-action="root" data-id="${root.id}">
+          <img src="${icons[root.item]}" alt="">
+          <span>
+            <span class="root-name">${root.name}</span>
+            <span class="root-sub">${root.note}</span>
+          </span>
+          <span class="root-rate mono">${rate}/m</span>
+        </button>
+      `;
+    }
+
+    function renderWorkspace(lines) {
+      const root = rootMeta[state.activeRoot];
+      return `
+        <section class="workspace">
+          <div class="workspace-head">
+            <div class="workspace-title">
+              <strong>${viewTitle()}</strong>
+              <span>${root.goal} · ${root.note} · 外供/外部供入不会跨 Block 自动绑定</span>
+            </div>
+            <button class="text-btn is-primary" data-action="view" data-id="matrix">调试矩阵</button>
+          </div>
+          <div class="view ${state.view === "graph" ? "is-active" : ""}">${renderGraph(lines)}</div>
+          <div class="view ${state.view === "tree" ? "is-active" : ""}">${renderTree(lines)}</div>
+          <div class="view ${state.view === "columns" ? "is-active" : ""}">${renderColumns(lines)}</div>
+          <div class="view ${state.view === "matrix" ? "is-active" : ""}">${renderMatrix(lines)}</div>
+          ${renderDebugDrawer(lines)}
+        </section>
+      `;
+    }
+
+    function viewTitle() {
+      return {
+        graph: "节点图",
+        tree: "层级树",
+        columns: "分栏视图",
+        matrix: "矩阵调试"
+      }[state.view];
+    }
+
+    function renderGraph(lines) {
+      const maxY = Math.max(...lines.map(line => line.y)) + 170;
+      const selected = state.selected;
+      const edgeMap = lines.filter(line => line.parent).map(line => {
+        const p = lineById(lines, line.parent);
+        const sx = p.x + 188;
+        const sy = p.y + 52;
+        const ex = line.x;
+        const ey = line.y + 52;
+        const mx = sx + (ex - sx) / 2;
+        const color = line.status === "shortage" ? "var(--red)" : line.external ? "var(--cyan)" : line.sunk ? "var(--brand)" : "#39545a";
+        return `<path d="M ${sx} ${sy} C ${mx} ${sy}, ${mx} ${ey}, ${ex} ${ey}" stroke="${color}" stroke-width="${line.parent === selected || line.id === selected ? 2.2 : 1.3}" fill="none" opacity="${line.parent === selected || line.id === selected ? .95 : .58}"></path>`;
+      }).join("");
+      const domain = state.gearSunk && state.activeRoot === "red5" ? `
+        <div class="domain-band" style="left:292px;top:196px;width:786px;height:206px;">
+          <strong>D1 · 下沉局部解算域</strong>
+        </div>
+      ` : "";
+      return `
+        <div class="graph-canvas">
+          <div class="graph-stage" style="height:${Math.max(620, maxY)}px;">
+            <svg width="1180" height="${Math.max(620, maxY)}">${edgeMap}</svg>
+            ${domain}
+            ${lines.map(renderNodeCard).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderNodeCard(line) {
+      const topColor = line.status === "shortage" ? "var(--red)" : line.external ? "var(--cyan)" : line.status === "surplus" || line.export ? "var(--brand)" : line.sunk ? "var(--brand)" : "var(--line)";
+      return `
+        <button class="node-card ${state.selected === line.id ? "is-selected" : ""} ${line.sunk ? "is-sunk" : ""} ${line.status === "shortage" ? "has-shortage" : ""}"
+          data-action="select" data-id="${line.id}" style="left:${line.x}px;top:${line.y}px;border-top-color:${topColor};">
+          <div class="node-top">
+            ${itemIcon(line.item, line.name)}
+            <div class="node-name">${line.name}</div>
+            <div class="quality">${line.quality}</div>
+          </div>
+          <div class="node-rate mono">${fmt(line.rate)}<small>/min</small></div>
+          <div class="node-meta">
+            <span>${line.process}</span>
+            <span class="mono">M ${line.machines ? fmt(line.machines, 1) : "—"}</span>
+          </div>
+          <div class="node-chip-row">
+            ${line.badges.map(label => `<span class="tiny-chip">${label}</span>`).join("")}
+          </div>
+        </button>
+      `;
+    }
+
+    function renderTree(lines) {
+      const roots = lines.filter(line => !line.parent);
+      return `
+        <div class="tree-view">
+          <div class="tree-header">
+            <div>ProductionLine / 配方过程</div>
+            <div>Level</div>
+            <div>解算域</div>
+            <div>状态</div>
+            <div>机器</div>
+            <div style="text-align:right;">速率</div>
+          </div>
+          <div class="tree-scroll">
+            ${roots.map(root => renderTreeLine(lines, root)).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTreeLine(lines, line) {
+      const children = childLines(lines, line.id);
+      const collapsed = state.collapsed[line.id];
+      const color = line.status === "shortage" ? "var(--red)" : line.external ? "var(--cyan)" : line.sunk ? "var(--brand)" : "#365359";
+      return `
+        <div class="tree-row ${state.selected === line.id ? "is-selected" : ""} ${line.status === "shortage" ? "has-shortage" : ""} ${line.sunk ? "is-sunk" : ""}" data-action="select" data-id="${line.id}" style="border-left-color:${color};">
+          <div class="tree-main">
+            <span class="tree-indent" style="width:${line.depth * 26}px"></span>
+            <button class="collapse-btn ${children.length ? "" : "is-empty"}" data-action="collapse" data-id="${line.id}">${children.length ? (collapsed ? "+" : "−") : ""}</button>
+            ${itemIcon(line.item, line.name)}
+            <span class="tree-name">${line.name}</span>
+            ${line.badges.slice(0, 2).map(b => `<span class="tiny-chip">${b}</span>`).join("")}
+          </div>
+          <div class="tree-cell">L${line.level}</div>
+          <div class="tree-cell">${line.domain}</div>
+          <div class="tree-cell">${statusBadge(line)}</div>
+          <div class="tree-cell mono">${line.machines ? fmt(line.machines, 1) : "—"}</div>
+          <div class="tree-cell rate mono">${fmt(line.rate)}/m</div>
+        </div>
+        ${!collapsed ? children.map(child => renderTreeLine(lines, child)).join("") : ""}
+      `;
+    }
+
+    function renderColumns(lines) {
+      const roots = lines.filter(line => !line.parent);
+      const columns = [];
+      const path = state.columnPath.filter(id => lineById(lines, id));
+      columns.push({ title: "root lines", color: "var(--violet)", items: roots });
+      let parent = path[0] || roots[0]?.id;
+      for (let i = 0; i < 4; i++) {
+        const kids = childLines(lines, parent);
+        if (!kids.length) break;
+        const parentLine = lineById(lines, parent);
+        columns.push({ title: parentLine.name + " 的输入", color: parentLine.status === "shortage" ? "var(--red)" : "var(--brand)", items: kids });
+        parent = path[i + 1] || kids[0].id;
+      }
+      return `
+        <div class="columns-view">
+          ${columns.map((column, index) => `
+            <section class="column">
+              <div class="column-head">
+                <i style="background:${column.color};"></i>
+                <strong>${column.title}</strong>
+                <span class="mono">${column.items.length}</span>
+              </div>
+              <div class="column-scroll">
+                ${column.items.map(line => renderColumnCard(line, index)).join("")}
+              </div>
+            </section>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderColumnCard(line, index) {
+      return `
+        <button class="column-card ${state.selected === line.id ? "is-selected" : ""} ${line.status === "shortage" ? "has-shortage" : ""}" data-action="column-select" data-id="${line.id}" data-index="${index}">
+          <div class="column-card-top">
+            <img class="item-icon" src="${icons[line.item]}" alt="">
+            <div class="column-card-name">${line.name}</div>
+            <div class="quality">${line.quality}</div>
+          </div>
+          <div class="column-rate mono">${fmt(line.rate)}<small style="color:var(--dim);font-size:10px;"> /min</small></div>
+          <div class="column-sub">
+            <span>${line.domain} · L${line.level}</span>
+            <span>${line.children.length} 子项</span>
+          </div>
+          <div class="node-chip-row">
+            ${line.badges.slice(0, 3).map(label => `<span class="tiny-chip">${label}</span>`).join("")}
+          </div>
+        </button>
+      `;
+    }
+
+    function renderMatrix(lines) {
+      const matrix = matrixRows(lines);
+      return `
+        <div class="matrix-view">
+          <div class="matrix-layout">
+            <div class="data-panel">
+              <div class="data-panel-head">
+                <strong>物料变化矩阵</strong>
+                <span>行 = 物料@品质 · 列 = 过程变量</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>物料行</th>
+                    <th>造红瓶</th>
+                    <th>冶铜板</th>
+                    <th>边界齿轮</th>
+                    <th>冶铁板</th>
+                    <th>外部供入</th>
+                    <th>平衡</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${matrix.map(row => `
+                    <tr>
+                      <td>${row.name}</td>
+                      ${row.values.map(value => `<td class="${value > 0 ? "pos" : value < 0 ? "neg" : ""}">${value ? value : "0"}</td>`).join("")}
+                      <td class="${row.balance < 0 ? "neg" : row.balance > 0 ? "warn" : "pos"}">${row.balanceText}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+            <div class="data-panel">
+              <div class="data-panel-head">
+                <strong>LinearModel 摘要</strong>
+                <span>solver-neutral</span>
+              </div>
+              <table>
+                <tbody>
+                  ${summaryRows(lines).map(row => `
+                    <tr>
+                      <td>${row[0]}</td>
+                      <td class="mono ${row[2] || ""}">${row[1]}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function matrixRows(lines) {
+      const gear = lineById(lines, "gear");
+      const ironOre = lineById(lines, "ironOre");
+      const gearGap = gear?.diff < 0 ? gear.diff : 0;
+      return [
+        { name: "红瓶@5", values: [1, 0, 0, 0, 0], balance: 0, balanceText: `${state.activeRoot === "red5" ? state.targetRate : 45}/min 满足` },
+        { name: "铜板@5", values: [-1, 1, 0, 0, 0], balance: 0, balanceText: "0 剩余" },
+        { name: "齿轮@5", values: [-1, 0, 1, 0, 0], balance: gear?.diff || 0, balanceText: gearGap ? `${Math.abs(gearGap)}/min 缺口` : gear?.diff > 0 ? `${gear.diff}/min 剩余` : "0 剩余" },
+        { name: "铁板@5", values: [0, 0, -2, 1, 0], balance: 0, balanceText: "0 剩余" },
+        { name: "铁矿@5", values: [0, 0, 0, -1, ironOre?.external ? 1 : 0], balance: ironOre?.external ? 0 : -1, balanceText: ironOre?.external ? "边界覆盖" : "外部供入缺失" },
+        { name: "红瓶@1..4", values: [.34, 0, 0, 0, 0], balance: 1, balanceText: state.exportLowQuality ? "外供输出" : "保留剩余" }
+      ];
+    }
+
+    function summaryRows(lines) {
+      const shortage = lines.filter(line => line.status === "shortage").length;
+      const domains = new Set(lines.map(line => line.domain)).size;
+      return [
+        ["解算域", domains],
+        ["过程变量", lines.filter(line => line.kind !== "surplus").length],
+        ["物料行", matrixRows(lines).length],
+        ["目标函数", "满足目标，避免短缺，最小过程次数"],
+        ["solver 状态", shortage ? "有短缺" : "可行", shortage ? "neg" : "pos"],
+        ["机器换算", "后处理 ceil，不反向改解"]
+      ];
+    }
+
+    function renderDebugDrawer(lines) {
+      if (state.view === "matrix") {
+        return `<div class="debug-drawer is-hidden"></div>`;
+      }
+      const selected = lineById(lines, state.selected);
+      const vars = lines.filter(line => line.kind !== "surplus");
+      return `
+        <div class="debug-drawer">
+          <div class="debug-head">
+            <strong>调试面板</strong>
+            <span>当前选中 ${selected.domain} / ${selected.process}</span>
+            <span class="spacer"></span>
+            <button class="text-btn" data-action="view" data-id="matrix">展开矩阵</button>
+          </div>
+          <div class="debug-body">
+            <div class="debug-list">
+              ${vars.map(line => `<div class="debug-pill"><span>${line.process}</span><b class="mono">${fmt(line.rate)}/m</b></div>`).join("")}
+            </div>
+            <div class="data-panel">
+              <div class="data-panel-head">
+                <strong>物料平衡</strong>
+                <span>target / gap / surplus 分离</span>
+              </div>
+              <table>
+                <tbody>
+                  ${matrixRows(lines).slice(0, 5).map(row => `
+                    <tr>
+                      <td>${row.name}</td>
+                      <td class="${row.balance < 0 ? "neg" : row.balance > 0 ? "warn" : "pos"}">${row.balanceText}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+            <div class="debug-list">
+              ${summaryRows(lines).map(row => `<div class="debug-pill"><span>${row[0]}</span><b class="mono ${row[2] || ""}">${row[1]}</b></div>`).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderInspector(lines) {
+      const selected = lineById(lines, state.selected);
+      const canSink = selected.id === "gear";
+      const root = rootMeta[state.activeRoot];
+      const gear = lineById(lines, "gear");
+      const diff = gear?.diff || 0;
+      return `
+        <aside class="inspector">
+          <div class="section-head">
+            <strong>选择检查器</strong>
+            <span>LINE / BOUNDARY</span>
+          </div>
+          <div class="inspector-scroll">
+            <section class="selected-card">
+              <div class="selected-head">
+                <img src="${icons[selected.item]}" alt="">
+                <div>
+                  <div class="selected-title">${selected.name}</div>
+                  <div class="selected-sub">${selected.process} · ${selected.recipe}</div>
+                </div>
+              </div>
+              <div class="badge-line">
+                ${statusBadge(selected)}
+                <span class="badge blue">Level ${selected.level}</span>
+                <span class="badge cyan">${selected.domain}</span>
+              </div>
+              <div class="metric-grid">
+                <div class="metric"><span>过程执行次数</span><b class="mono">${fmt(selected.rate)}/min</b></div>
+                <div class="metric"><span>理论机器数</span><b class="mono">${selected.machines ? fmt(selected.machines, 2) : "—"}</b></div>
+                <div class="metric"><span>目标/需求</span><b class="mono">${fmt(selected.demand || selected.rate)}/min</b></div>
+                <div class="metric"><span>取整机器</span><b class="mono">${selected.machines ? Math.ceil(selected.machines) : "—"}</b></div>
+              </div>
+            </section>
+
+            <section class="selected-card">
+              <div class="control-title"><span>当前 root 目标</span><span>${root.quality}</span></div>
+              <div class="stepper">
+                <button class="icon-btn" data-action="target-dec">−</button>
+                <div class="stepper-value mono">${state.activeRoot === "red5" ? state.targetRate : 45}<small>/min</small></div>
+                <button class="icon-btn is-primary" data-action="target-inc">+</button>
+              </div>
+            </section>
+
+            <section class="selected-card">
+              <div class="control-title"><span>下沉 / 上升</span><span>Level != 缩进</span></div>
+              <div class="toggle-row">
+                <button class="text-btn ${state.gearSunk ? "is-primary" : ""}" data-action="toggle-sink" ${canSink ? "" : "disabled"}>${state.gearSunk ? "已下沉" : "下沉"}</button>
+                <button class="text-btn ${!state.gearSunk ? "is-primary" : ""}" data-action="raise" ${canSink ? "" : "disabled"}>上升</button>
+              </div>
+              <div class="control-group">
+                <div class="control-title"><span>link 状态</span><span>${state.gearLink ? "跟随父级" : "自由速率"}</span></div>
+                <button class="switch ${state.gearLink ? "is-on" : ""}" data-action="toggle-link" ${state.gearSunk ? "" : "disabled"}>${state.gearLink ? "link on" : "link off"}</button>
+              </div>
+              <div class="control-group ${state.gearSunk && !state.gearLink ? "" : "is-hidden"}">
+                <div class="control-title"><span>子级目标速率</span><span>link off</span></div>
+                <div class="stepper">
+                  <button class="icon-btn" data-action="gear-dec">−</button>
+                  <div class="stepper-value mono">${state.gearTarget}<small>/min</small></div>
+                  <button class="icon-btn is-primary" data-action="gear-inc">+</button>
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="contract-box">
+                  <div class="contract-row"><span>父级需求</span><b class="mono">${state.activeRoot === "red5" ? state.targetRate : 45}/min</b></div>
+                  <div class="contract-row"><span>子级目标</span><b class="mono">${gear ? fmt(gear.rate) : "—"}/min</b></div>
+                  <div class="contract-row"><span>差额</span><b class="mono ${diff < 0 ? "bad" : diff > 0 ? "warn" : "good"}">${diff > 0 ? "+" : ""}${fmt(diff)}/min</b></div>
+                  <div class="contract-row"><span>BoundaryContract</span><b>${state.gearSunk ? "可见" : "未生成"}</b></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="selected-card">
+              <div class="control-title"><span>边界声明</span><span>不自动跨 Block</span></div>
+              <div class="toggle-row">
+                <button class="switch ${state.externalIronOre ? "is-on" : ""}" data-action="toggle-iron-external">铁矿外部供入</button>
+                <button class="switch ${state.exportLowQuality ? "is-on" : ""}" data-action="toggle-export">低星外供输出</button>
+              </div>
+              <div class="toggle-row" style="margin-top:7px;">
+                <button class="switch ${state.externalCopper ? "is-on" : ""}" data-action="toggle-copper-external">铜板外部供入</button>
+                <button class="switch" data-action="view" data-id="matrix">矩阵视图</button>
+              </div>
+            </section>
+          </div>
+        </aside>
+      `;
+    }
+
+    function renderStatusbar(lines) {
+      const shortage = lines.filter(line => line.status === "shortage").length;
+      const domains = new Set(lines.map(line => line.domain)).size;
+      const variables = lines.filter(line => line.kind !== "surplus").length;
+      const surplus = lines.filter(line => line.status === "surplus" || line.export).length;
+      return `
+        <footer class="statusbar">
+          <div class="status-item"><span class="status-led" style="background:${shortage ? "var(--red)" : "var(--green)"};box-shadow:0 0 10px ${shortage ? "rgba(255,107,107,.75)" : "rgba(120,216,121,.75)"};"></span><span>solver</span><b class="${shortage ? "bad" : ""}">${shortage ? "有短缺" : "可行"}</b></div>
+          <div class="status-item"><span>解算域</span><b class="mono">${domains}</b></div>
+          <div class="status-item"><span>变量</span><b class="mono">${variables}</b></div>
+          <div class="status-item"><span>剩余/外供</span><b class="mono warn">${surplus}</b></div>
+          <div class="status-item"><span>机器换算</span><b>后处理</b></div>
+          <div class="spacer"></div>
+          <div class="status-item"><span>source</span><b>doc-new MVP</b></div>
+        </footer>
+      `;
+    }
+
+    document.addEventListener("click", event => {
+      const target = event.target.closest("[data-action]");
+      if (!target) return;
+      const action = target.dataset.action;
+      const id = target.dataset.id;
+      if (target.disabled) return;
+      event.preventDefault();
+
+      if (action === "view") state.view = id;
+      if (action === "plan") state.activePlan = id;
+      if (action === "block") state.activeBlock = id;
+      if (action === "root") {
+        state.activeRoot = id;
+        state.selected = id;
+        state.columnPath = [id];
+      }
+      if (action === "select") state.selected = id;
+      if (action === "column-select") {
+        state.selected = id;
+        const index = Number(target.dataset.index);
+        state.columnPath = state.columnPath.slice(0, index);
+        state.columnPath[index] = id;
+      }
+      if (action === "collapse") {
+        event.stopPropagation();
+        state.collapsed[id] = !state.collapsed[id];
+      }
+      if (action === "target-inc" && state.activeRoot === "red5") state.targetRate = Math.min(180, state.targetRate + 5);
+      if (action === "target-dec" && state.activeRoot === "red5") state.targetRate = Math.max(10, state.targetRate - 5);
+      if (action === "gear-inc") state.gearTarget = Math.min(180, state.gearTarget + 5);
+      if (action === "gear-dec") state.gearTarget = Math.max(10, state.gearTarget - 5);
+      if (action === "toggle-sink") state.gearSunk = !state.gearSunk;
+      if (action === "raise") state.gearSunk = false;
+      if (action === "toggle-link") state.gearLink = !state.gearLink;
+      if (action === "toggle-iron-external") state.externalIronOre = !state.externalIronOre;
+      if (action === "toggle-copper-external") state.externalCopper = !state.externalCopper;
+      if (action === "toggle-export") state.exportLowQuality = !state.exportLowQuality;
+
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

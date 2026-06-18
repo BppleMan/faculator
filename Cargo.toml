@@ -8,6 +8,7 @@ members = [
     "faculator-migration",
     "faculator-x",
     "faculator-macros",
+    "crates/faculator-recycle"
 ]
 
 [workspace.package]
