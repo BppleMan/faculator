@@ -1,5 +1,7 @@
-mod quality;
-mod quality_transform;
+pub mod quality;
+pub mod quality_transform;
+mod recipe_execute;
+pub mod recycle_transform;
 
 use bigdecimal::{BigDecimal as Decimal, One, Zero};
 
