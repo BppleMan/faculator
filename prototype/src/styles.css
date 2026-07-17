@@ -506,7 +506,7 @@
 .rail-origin-control {
   position: absolute;
   top: 10px;
-  left: 416px;
+  left: 376px;
   z-index: 12;
   width: 35px;
   height: 35px;
@@ -536,12 +536,13 @@
 .rail-output-anchor {
   z-index: 5;
   width: auto;
-  height: auto;
+  height: 120px;
+  align-self: center;
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 50px minmax(0, 1fr);
   align-items: center;
-  gap: 18px;
-  padding: 22px;
+  gap: 12px;
+  padding: 14px;
   overflow: hidden;
   border: 1px solid #57c98f;
   border-left: 4px solid #57d99c;
@@ -565,8 +566,8 @@
 }
 
 .rail-output-icon {
-  width: 62px;
-  height: 62px;
+  width: 50px;
+  height: 50px;
   display: grid;
   place-items: center;
   border: 1px solid #34554a;
@@ -581,7 +582,7 @@
 .rail-output-anchor small {
   color: var(--green);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 7px;
+  font-size: 6px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -589,18 +590,18 @@
 .rail-output-anchor.is-byproduct small { color: var(--amber); }
 
 .rail-output-anchor strong {
-  margin-top: 8px;
+  margin-top: 5px;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rail-output-anchor em {
-  margin-top: 9px;
+  margin-top: 6px;
   color: var(--green);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 10px;
+  font-size: 8px;
   font-style: normal;
 }
 
@@ -623,33 +624,40 @@
 .recipe-rail-node {
   z-index: 4;
   min-width: 0;
+  display: grid;
+  align-items: center;
 }
 
+.recipe-rail-node.is-selected { z-index: 30; }
+
 .recipe-station {
+  position: relative;
   width: 100%;
   min-width: 0;
+  max-height: 100%;
+  align-self: center;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: 100px minmax(0, 1fr) 100px;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--branch-color) 52%, #5b6468);
-  border-top: 3px solid var(--branch-color);
+  grid-template-columns: 88px minmax(0, 1fr) 88px;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--branch-color) 38%, #48545a);
+  border-top: 2px solid var(--branch-color);
   color: var(--text);
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025), transparent 9%, transparent 91%, rgba(255, 255, 255, 0.025)),
-    linear-gradient(150deg, #263038, #151c21 42%, #0c1216 100%);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018), transparent 12%, transparent 88%, rgba(255, 255, 255, 0.018)),
+    linear-gradient(160deg, #20292e, #11181c 48%, #090f12 100%);
   box-shadow:
-    0 16px 34px rgba(0, 0, 0, 0.42),
-    inset 0 1px rgba(255, 255, 255, 0.1),
+    0 9px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px rgba(255, 255, 255, 0.075),
     inset 0 -1px rgba(0, 0, 0, 0.7);
 }
 
 .recipe-station.is-selected {
   box-shadow:
-    0 0 0 2px #4f9fff,
-    0 18px 38px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(67, 160, 255, 0.18),
-    inset 0 1px rgba(255, 255, 255, 0.1);
+    0 0 0 1px #52a8ff,
+    0 10px 24px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(67, 160, 255, 0.16),
+    inset 0 1px rgba(255, 255, 255, 0.09);
 }
 
 .recipe-card-port-column,
@@ -659,81 +667,119 @@
 }
 
 .recipe-card-port-column {
+  align-self: stretch;
+  display: grid;
+  align-items: center;
+  overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035), transparent 45%, rgba(0, 0, 0, 0.2)),
-    #10171b;
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025), transparent 46%, rgba(0, 0, 0, 0.18)),
+    #0c1317;
 }
 
 .recipe-card-port-column.is-output { border-right: 1px solid #4b555a; }
 .recipe-card-port-column.is-input { border-left: 1px solid #4b555a; }
 
 .recipe-card-port-list {
-  height: 100%;
   min-height: 0;
-  display: grid;
-  grid-template-rows: repeat(var(--port-count), minmax(0, 1fr));
-  overflow: hidden;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .recipe-material-port {
   position: relative;
   box-sizing: border-box;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto;
+  height: 22px;
+  min-height: 22px;
+  flex: 0 0 22px;
+  display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 0;
+  gap: 3px;
+  padding: 2px 3px;
   overflow: hidden;
   color: #7ddab0;
-  border-bottom: 1px solid #2e383d;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.025), transparent 58%);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025), inset 0 -1px rgba(0, 0, 0, 0.4);
+  border: 1px solid #2d383d;
+  border-left: 2px solid #52c88e;
+  background: linear-gradient(180deg, #1a2429, #10171b);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035), inset 0 -1px rgba(0, 0, 0, 0.45);
 }
 
-.recipe-material-port.is-input { color: #78cce0; }
+.recipe-material-port.is-input {
+  color: #78cce0;
+  border-left: 1px solid #2d383d;
+  border-right: 2px solid #5bbfd4;
+}
 .recipe-material-port[data-material-type="fluid"] { color: #78dff1; }
 
 .recipe-material-port-icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 1px solid #515c61;
-  background: radial-gradient(circle at 40% 35%, #333d42, #101619 70%);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.5);
+  border: 1px solid #465258;
+  background: #11181c;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
-.recipe-material-port > strong {
+.recipe-material-port-copy {
+  min-width: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1;
+}
+
+.recipe-material-port-copy > strong {
   min-width: 0;
   overflow: hidden;
   color: #dce1df;
   font-size: 6px;
   font-weight: 600;
+  line-height: 1.05;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.recipe-material-port > small {
+.recipe-material-port-copy > small {
+  min-width: 0;
+  margin-top: 2px;
+  overflow: hidden;
   color: currentColor;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 5px;
+  line-height: 1;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .recipe-card-core {
   position: relative;
   display: grid;
-  grid-template-rows: 48px 40px 28px 52px 28px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "identity"
+    "machine"
+    "modules"
+    "beacon"
+    "metrics";
+  align-content: center;
+  min-height: 136px;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px),
-    linear-gradient(145deg, #202a30, #11181c 66%);
-  background-size: 16px 16px, 16px 16px, auto;
+    linear-gradient(rgba(255, 255, 255, 0.014) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.011) 1px, transparent 1px),
+    linear-gradient(145deg, #1d262b, #0e1519 70%);
+  background-size: 14px 14px, 14px 14px, auto;
 }
 
 .recipe-card-identity {
+  grid-area: identity;
   min-width: 0;
   display: block;
   align-items: stretch;
@@ -747,10 +793,10 @@
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns: 26px minmax(0, 1fr);
   align-items: center;
   gap: 5px;
-  padding: 5px 7px;
+  padding: 4px 6px;
   border: 0;
   color: inherit;
   background: transparent;
@@ -764,8 +810,8 @@
 }
 
 .recipe-card-recipe-icon {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   border: 1px solid #697176;
@@ -783,7 +829,7 @@
   overflow: hidden;
   color: var(--branch-color);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 5px;
+  font-size: 4px;
   letter-spacing: 0.02em;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -792,7 +838,7 @@
 .recipe-card-title-copy strong {
   margin-top: 2px;
   overflow: hidden;
-  font-size: 9px;
+  font-size: 8px;
   line-height: 1.15;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -802,7 +848,7 @@
   margin-top: 2px;
   color: #9bdaba;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 7px;
+  font-size: 6px;
   font-style: normal;
   white-space: nowrap;
 }
@@ -816,33 +862,36 @@
 }
 
 .recipe-card-machine-bay {
+  grid-area: machine;
   display: grid;
-  grid-template-rows: 12px minmax(0, 1fr);
-  padding: 2px 6px 3px;
-  background: rgba(8, 13, 16, 0.32);
-}
-
-.recipe-card-machine-bay > header {
-  display: flex;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  color: #8c969a;
-  font-size: 6px;
+  gap: 5px;
+  min-height: 27px;
+  padding: 3px 5px;
+  background: rgba(8, 13, 16, 0.38);
 }
 
-.recipe-card-machine-bay > header em {
+.recipe-card-machine-label {
+  color: #8c969a;
+  font-size: 5px;
+  white-space: nowrap;
+}
+
+.recipe-card-machine-count {
   color: var(--amber);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 6px;
+  font-size: 5px;
   font-style: normal;
+  white-space: nowrap;
 }
 
-.recipe-card-machine-bay > header strong { font-size: 9px; }
+.recipe-card-machine-count strong { font-size: 8px; }
 
 .recipe-card-machine-options {
   min-width: 0;
   display: flex;
-  gap: 4px;
+  gap: 3px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -851,9 +900,9 @@
 
 .recipe-card-machine-options button {
   position: relative;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
   display: grid;
   place-items: center;
   padding: 1px;
@@ -873,26 +922,15 @@
 }
 
 .recipe-card-module-bay {
+  grid-area: modules;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 4px 7px;
-  background: linear-gradient(90deg, rgba(63, 75, 82, 0.22), rgba(8, 13, 16, 0.3));
-}
-
-.recipe-card-beacon-bay label > span {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.recipe-card-beacon-bay small {
-  overflow: hidden;
-  margin-top: 2px;
-  color: #7d898e;
-  font-size: 5px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-height: 25px;
+  padding: 4px 5px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--branch-color) 10%, transparent), transparent 34%),
+    rgba(8, 13, 16, 0.46);
 }
 
 .recipe-card-module-rack {
@@ -944,20 +982,71 @@
 }
 
 .recipe-card-beacon-bay {
-  display: grid;
-  grid-template-columns: 0.72fr 1.28fr;
+  grid-area: beacon;
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 7px;
-  background: rgba(8, 13, 16, 0.42);
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 5px;
+  background: rgba(8, 13, 16, 0.48);
 }
 
-.recipe-card-beacon-bay label {
+.recipe-card-beacon-count {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 4px;
 }
+
+.recipe-card-beacon-stepper {
+  display: grid;
+  grid-template-columns: 14px 24px 14px;
+  height: 16px;
+  border: 1px solid #4a555a;
+  background: #090f12;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.72);
+}
+
+.recipe-card-beacon-stepper button {
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  color: #d6ddd9;
+  background: linear-gradient(#303a3f, #171e22);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.recipe-card-beacon-stepper button:disabled {
+  color: #596267;
+  cursor: default;
+}
+
+.recipe-card-beacon-stepper input {
+  width: 24px;
+  height: 14px;
+  margin: 0;
+  padding: 0 2px;
+  border: 0;
+  border-right: 1px solid #3e494e;
+  border-left: 1px solid #3e494e;
+  color: #f0b659;
+  background: #0a1013;
+  box-shadow: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 6px;
+  text-align: center;
+  outline: 0;
+  appearance: textfield;
+}
+
+.recipe-card-beacon-stepper input::-webkit-inner-spin-button,
+.recipe-card-beacon-stepper input::-webkit-outer-spin-button { margin: 0; appearance: none; }
 
 .recipe-card-beacon-slots {
   min-width: 0;
@@ -971,28 +1060,13 @@
   gap: 3px;
 }
 
-.recipe-card-core input {
-  min-width: 0;
-  width: 100%;
-  height: 18px;
-  margin-top: 2px;
-  padding: 0 4px;
-  border: 1px solid #535e63;
-  border-radius: 0;
-  color: #e1e2dd;
-  background: linear-gradient(#11181c, #080d10);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.75), 0 1px rgba(255, 255, 255, 0.035);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 6px;
-  outline: 0;
-}
-
-.recipe-card-core input:focus {
+.recipe-card-beacon-stepper input:focus {
   border-color: #62bfd6;
-  box-shadow: 0 0 0 1px rgba(98, 191, 214, 0.22), inset 0 1px 3px rgba(0, 0, 0, 0.75);
+  box-shadow: inset 0 0 0 1px rgba(98, 191, 214, 0.35);
 }
 
 .recipe-card-metrics {
+  grid-area: metrics;
   min-height: 0;
   display: grid;
   grid-template-columns: 1.2fr 0.93fr 0.93fr 0.94fr;
@@ -1005,15 +1079,15 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 2px 4px;
+  padding: 2px 3px;
   overflow: hidden;
   border-right: 1px solid #333d42;
 }
 
 .recipe-card-metrics > span:last-child { border-right: 0; }
-.recipe-card-metrics small { overflow: hidden; color: #748087; font-size: 5px; text-overflow: ellipsis; white-space: nowrap; }
-.recipe-card-metrics strong { margin-top: 1px; color: #95d6b7; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 7px; }
-.recipe-card-metrics em { margin-left: 2px; color: var(--amber); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 6px; font-style: normal; }
+.recipe-card-metrics small { overflow: hidden; color: #748087; font-size: 4px; text-overflow: ellipsis; white-space: nowrap; }
+.recipe-card-metrics strong { margin-top: 1px; color: #95d6b7; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 6px; }
+.recipe-card-metrics em { margin-left: 2px; color: var(--amber); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 5px; font-style: normal; }
 .recipe-card-metrics > span:first-child { display: grid; grid-template-columns: 1fr auto; align-content: center; column-gap: 2px; }
 .recipe-card-metrics > span:first-child small { grid-column: 1 / -1; }
 .recipe-card-metrics > span:first-child strong,
@@ -1021,11 +1095,13 @@
 
 .recipe-module-picker {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  bottom: 4px;
-  left: 4px;
+  top: calc(100% + 5px);
+  right: auto;
+  bottom: auto;
+  left: 50%;
   z-index: 20;
+  width: 218px;
+  transform: translateX(-50%);
   display: grid;
   grid-template-rows: 24px 28px 15px auto 22px;
   overflow: hidden;
@@ -6340,6 +6416,681 @@ button.flow-chip:hover {
   .rate-field {
     margin-top: 6px;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Factory console visual system                                              */
+/* Preserves the workspace geometry and interaction model; replaces its UI.   */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  --factory-ink: #161615;
+  --factory-iron: #252522;
+  --factory-steel: #34332e;
+  --factory-rim: #5d5a50;
+  --factory-rim-dark: #171715;
+  --factory-slot: #191918;
+  --factory-slot-lit: #24231e;
+  --factory-text: #e9e5d8;
+  --factory-muted: #aba89b;
+  --factory-amber: #f1b44c;
+  --factory-amber-hot: #ffd77f;
+  --factory-copper: #bb7540;
+  --factory-green: #79d19a;
+  --factory-blue: #88bdd4;
+  --factory-red: #e06f61;
+  --bg: var(--factory-ink);
+  --header: #21211f;
+  --panel: #2a2925;
+  --panel-2: #34322d;
+  --panel-3: #403d35;
+  --canvas: #181816;
+  --line: #5a574d;
+  --line-soft: #403e37;
+  --text: var(--factory-text);
+  --text-dim: #cbc7ba;
+  --text-faint: #969286;
+  --amber: var(--factory-amber);
+  --amber-strong: var(--factory-amber-hot);
+  --cyan: var(--factory-blue);
+  --green: var(--factory-green);
+  --red: var(--factory-red);
+  --blue: #7aa6cf;
+  font-family: "Arial Narrow", "Roboto Condensed", Inter, ui-sans-serif, sans-serif;
+}
+
+body {
+  color: var(--factory-text);
+  background-color: var(--factory-ink);
+  background-image: url("../design-assets/ui/factory-gunmetal-panel-v1.png");
+  background-size: 512px 512px;
+}
+
+button,
+input {
+  font-family: "Arial Narrow", "Roboto Condensed", Inter, ui-sans-serif, sans-serif;
+}
+
+button {
+  border-radius: 0;
+  letter-spacing: 0.015em;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 1px solid var(--factory-amber-hot);
+  outline-offset: 2px;
+}
+
+.app-shell,
+.line-workspace,
+.block-observation-canvas,
+.block-view-stage,
+.sankey-block-view,
+.finder-columns-shell,
+.radial-block-view,
+.topology-canvas-shell {
+  background-color: var(--factory-ink);
+  background-image: url("../design-assets/ui/factory-gunmetal-panel-v1.png");
+  background-size: 512px 512px;
+}
+
+.app-header,
+.sidebar,
+.goal-rail,
+.inspector,
+.app-statusbar,
+.line-header,
+.target-deck,
+.root-line-dock,
+.block-canvas-toolbar,
+.block-view-summary,
+.modal,
+.modal-heading,
+.target-encyclopedia,
+.recipe-library,
+.recipe-alternative-picker {
+  background-color: var(--factory-iron) !important;
+  background-image: url("../design-assets/ui/factory-gunmetal-panel-v1.png") !important;
+  background-size: 384px 384px !important;
+  border-color: var(--factory-rim) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 211, 0.18),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.7) !important;
+}
+
+.app-header,
+.sidebar,
+.goal-rail,
+.inspector {
+  border-color: #686356 !important;
+}
+
+.brand {
+  border-color: #686356;
+  background-color: rgba(18, 18, 16, 0.46);
+  box-shadow: inset -1px 0 rgba(255, 242, 208, 0.08);
+}
+
+.brand-mark,
+.loading-mark {
+  border: 2px solid #8e774e;
+  background-color: #161613;
+  box-shadow:
+    0 0 0 2px #211f1a,
+    inset 0 1px 0 rgba(255, 244, 215, 0.16),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.74);
+}
+
+.brand strong {
+  color: #f1e7ce;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 0 #000;
+}
+
+.brand small,
+.eyebrow,
+.breadcrumb {
+  color: #b9a97d;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.1em;
+}
+
+.plan-tabs {
+  gap: 2px;
+  padding: 7px 7px 0;
+  background-color: rgba(14, 14, 13, 0.64);
+}
+
+.plan-tab,
+.plan-add {
+  min-height: 54px;
+  padding: 9px 16px;
+  border: 1px solid #4e4b42;
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
+  background-color: #2a2925;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 214, 0.14),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.58);
+}
+
+.plan-tab:hover,
+.plan-add:hover {
+  color: #fff1ce;
+  border-color: #9d875a;
+  background-color: #3a362b;
+}
+
+.plan-tab.is-active {
+  color: #fff1d0;
+  border-color: #9c8b66;
+  background-color: #3a372d;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 244, 205, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.64);
+}
+
+.plan-tab.is-active::after {
+  height: 4px;
+  background: var(--factory-amber);
+  box-shadow: 0 -1px #6f4d21;
+}
+
+.plan-tab-name { font-weight: 800; }
+.plan-tab-meta { color: #b9a77d; }
+.plan-add { color: #c5b890; text-transform: uppercase; }
+
+.quiet-button,
+.block-add-line,
+.block-view-switch button,
+.block-add-line,
+.domain-action,
+.boundary-row button,
+.modal-heading button,
+.recipe-module-picker > header button,
+.recipe-module-picker > footer button,
+.target-confirmation > button,
+.goal-empty-state button,
+.loading-screen button {
+  border: 1px solid #80755e !important;
+  color: #f5e8c8 !important;
+  background-color: #3a382f !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 217, 0.18),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.64),
+    0 1px 0 rgba(0, 0, 0, 0.8) !important;
+}
+
+.quiet-button:hover,
+.block-add-line:hover,
+.block-view-switch button:hover,
+.domain-action:hover,
+.boundary-row button:hover,
+.modal-heading button:hover,
+.recipe-module-picker > header button:hover,
+.recipe-module-picker > footer button:hover {
+  border-color: #e2b55e !important;
+  color: #fff7df !important;
+  background-color: #54472e !important;
+}
+
+.target-confirmation > button,
+.goal-empty-state button,
+.loading-screen button {
+  border-color: #f3c45f !important;
+  color: #25190c !important;
+  background-color: var(--factory-amber) !important;
+  font-weight: 900;
+  text-shadow: 0 1px rgba(255,255,255,0.28);
+}
+
+.target-confirmation > button:hover:not(:disabled),
+.goal-empty-state button:hover,
+.loading-screen button:hover {
+  background-color: var(--factory-amber-hot) !important;
+}
+
+.sidebar-heading,
+.line-header,
+.target-deck,
+.root-line-dock,
+.block-canvas-toolbar {
+  position: relative;
+}
+
+.sidebar-heading::after,
+.line-header::after,
+.target-deck::after,
+.root-line-dock::after,
+.block-canvas-toolbar::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 4px;
+  height: 1px;
+  background: rgba(255, 237, 191, 0.12);
+  pointer-events: none;
+}
+
+.sidebar-heading h2,
+.line-title-block h1,
+.goal-rail-heading h3,
+.modal-heading h2 {
+  color: #f0e3c4;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px #000;
+}
+
+.block-canvas-card,
+.block-canvas-card.block-switcher,
+.root-line-row,
+.child-line-row,
+.block-line-identity,
+.root-domain-card,
+.root-domain-add,
+.target-deck-card,
+.target-deck-add,
+.goal-card,
+.sankey-line-lane,
+.finder-column,
+.finder-preview-column {
+  border-color: #686253 !important;
+  background-color: #292822 !important;
+  background-image: url("../design-assets/ui/factory-gunmetal-panel-v1.png") !important;
+  background-size: 320px 320px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 215, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.66) !important;
+}
+
+.block-canvas-card:hover,
+.block-canvas-card.block-switcher:hover,
+.root-line-row:hover,
+.child-line-row:hover,
+.block-line-identity:hover,
+.root-domain-card:hover,
+.root-domain-add:hover,
+.target-deck-card:hover,
+.target-deck-add:hover,
+.goal-card:hover {
+  border-color: #b99a5c !important;
+  background-color: #393326 !important;
+}
+
+.block-canvas-card.is-active,
+.block-canvas-card.block-switcher.is-active,
+.root-line-row.is-active,
+.block-line-identity.is-active,
+.root-domain-card.is-active,
+.target-deck-card.is-active,
+.goal-card.is-active {
+  border-color: #e2b358 !important;
+  border-left-color: var(--factory-amber) !important;
+  color: #fff4d8;
+  background-color: #433720 !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 211, 112, 0.32),
+    inset 0 -3px 0 #5b3d1d,
+    0 1px 0 #000 !important;
+}
+
+.block-canvas-badge,
+.line-domain-caption,
+.status-badge,
+.goal-count,
+.target-default-recipe > em,
+.recipe-demand-lock {
+  border-color: #a8854c !important;
+  border-radius: 2px;
+  color: #f2c36a !important;
+  background-color: #2c251a !important;
+  box-shadow: inset 0 1px rgba(255, 239, 198, 0.11), inset 0 -1px rgba(0,0,0,.64);
+}
+
+.status-badge { border-radius: 2px; }
+.status-dot,
+.block-switcher > i,
+.block-card-topline i,
+.footer-lamp,
+.data-source i,
+.link-lamp,
+.goal-state,
+.material-state {
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 0 5px currentColor;
+}
+
+.block-view-switch {
+  gap: 3px;
+}
+
+.block-view-switch button {
+  border-color: #686355 !important;
+  color: #c8c3b4 !important;
+  background-color: #292821 !important;
+}
+
+.block-view-switch button.is-active {
+  border-color: #e3b55a !important;
+  color: #fff1cf !important;
+  background-color: #443820 !important;
+  box-shadow: inset 0 -3px #f1b44c, inset 0 0 0 1px rgba(255,221,145,.2) !important;
+}
+
+.block-view-switch button > span,
+.block-line-code,
+.root-domain-index,
+.block-card-topline em,
+.line-domain-caption,
+.block-view-summary strong {
+  color: #e7b653;
+}
+
+.block-view-summary {
+  background-color: #1d1d1a !important;
+  background-image: none !important;
+}
+
+.block-view-summary > span {
+  border-color: #4f4b41;
+}
+
+.block-view-summary small,
+.block-view-heading strong,
+.line-copy small,
+.root-domain-copy small,
+.block-canvas-card > small,
+.sidebar-footnote p,
+.goal-rail-note,
+.solve-hint {
+  color: #aaa596 !important;
+}
+
+/* Every interactive field becomes a physical inset control or inventory slot. */
+input,
+.rate-field,
+.child-rate-field input,
+.target-confirmation label > div,
+.recipe-search,
+.target-search,
+.recipe-card-beacon-stepper {
+  border-color: #161614 !important;
+  background-color: #141412 !important;
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.72),
+    inset 0 0 0 1px #4d493e,
+    0 1px rgba(255, 245, 212, 0.08) !important;
+}
+
+input {
+  color: #f6e7c4 !important;
+  background-color: transparent !important;
+}
+
+.recipe-search input:focus,
+.target-search input:focus,
+.child-rate-field input:focus,
+.target-confirmation input:focus,
+.recipe-card-beacon-stepper input:focus {
+  border-color: #f1b44c !important;
+  box-shadow: inset 0 0 0 1px rgba(241,180,76,.65) !important;
+}
+
+.recipe-station {
+  border: 2px solid #777164;
+  border-top: 4px solid var(--branch-color);
+  background-color: #25241f;
+  background-image: url("../design-assets/ui/factory-gunmetal-panel-v1.png");
+  background-size: 288px 288px;
+  box-shadow:
+    0 3px 0 #0b0b0a,
+    0 8px 18px rgba(0,0,0,.48),
+    inset 0 1px 0 rgba(255,245,217,.2),
+    inset 0 -2px 0 rgba(0,0,0,.65);
+}
+
+.recipe-station.is-selected {
+  border-color: #f0b74f;
+  border-top-color: var(--branch-color);
+  box-shadow:
+    0 0 0 2px #6a4a1f,
+    0 4px 0 #0b0b0a,
+    0 10px 24px rgba(0,0,0,.58),
+    inset 0 1px 0 rgba(255,245,217,.24),
+    inset 0 -2px 0 rgba(0,0,0,.65);
+}
+
+.recipe-card-port-column {
+  background-color: rgba(18,18,16,.9) !important;
+  background-image: none !important;
+}
+
+.recipe-card-port-column.is-output { border-right-color: #665f50 !important; }
+.recipe-card-port-column.is-input { border-left-color: #665f50 !important; }
+
+.recipe-material-port {
+  border-color: #4e4b42;
+  border-left-color: #85cfa0;
+  background-color: #1e1e1a;
+  background-image: none;
+  box-shadow: inset 0 1px rgba(255,245,218,.1), inset 0 -2px rgba(0,0,0,.5);
+}
+
+.recipe-material-port.is-input {
+  border-left-color: #4e4b42;
+  border-right-color: #86b8d2;
+}
+
+.recipe-material-port-copy > strong { color: #eee6d6; }
+.recipe-material-port-icon,
+.recipe-card-recipe-icon,
+.recipe-card-machine-options button,
+.recipe-module-slot,
+.recipe-module-tier-row > button,
+.target-detail-icon,
+.target-detail-heading .game-icon,
+.alternative-recipe-icon,
+.io-icons span {
+  border-color: #7a7363 !important;
+  background-color: #171715 !important;
+  background-image: none !important;
+  box-shadow:
+    inset 0 1px rgba(255,245,218,.15),
+    inset 0 -2px rgba(0,0,0,.72),
+    0 1px 0 #080807 !important;
+}
+
+.recipe-card-core {
+  background-color: #2b2923 !important;
+  background-image: none !important;
+}
+
+.recipe-card-identity {
+  border-bottom-color: #70695a;
+  background-color: #3b382e !important;
+  background-image: none !important;
+  box-shadow: inset 0 1px rgba(255,244,216,.2), inset 0 -2px rgba(0,0,0,.58);
+}
+
+.recipe-card-title:hover {
+  background-color: rgba(100, 75, 31, 0.45) !important;
+  box-shadow: inset 3px 0 #f1b44c;
+}
+
+.recipe-card-machine-bay,
+.recipe-card-module-bay,
+.recipe-card-beacon-bay {
+  border-bottom-color: #514c41;
+  background-color: rgba(20,20,17,.72) !important;
+  background-image: none !important;
+}
+
+.recipe-card-machine-label,
+.recipe-card-machine-count,
+.recipe-card-title-copy small,
+.recipe-material-port-copy > small,
+.recipe-card-metrics strong {
+  color: #f0bd55;
+}
+
+.recipe-card-machine-options button.is-active,
+.recipe-module-slot.is-filled,
+.recipe-module-tier-row > button.is-active {
+  border-color: #f1b44c !important;
+  background-color: #4b3c21 !important;
+  box-shadow:
+    0 0 0 1px rgba(241,180,76,.35),
+    inset 0 1px rgba(255,245,218,.2),
+    inset 0 -2px rgba(0,0,0,.68) !important;
+}
+
+.recipe-card-beacon-stepper button {
+  color: #ead9b4;
+  background-color: #39362d;
+}
+
+.recipe-card-metrics {
+  background-color: #171715 !important;
+  background-image: none !important;
+}
+
+.recipe-card-metrics > span { border-right-color: #4e493e; }
+
+.recipe-module-picker,
+.modal.is-target-encyclopedia,
+.modal.is-recipe-alternatives {
+  border: 2px solid #9a8252 !important;
+  border-top: 4px solid #e6b151 !important;
+  background-color: #2b2923 !important;
+  background-image: url("../design-assets/ui/factory-gunmetal-panel-v1.png") !important;
+  background-size: 320px 320px !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.72), inset 0 1px rgba(255,245,218,.22), inset 0 -2px rgba(0,0,0,.7) !important;
+}
+
+.recipe-module-picker > header,
+.recipe-module-picker > footer,
+.target-index-intro,
+.target-detail-heading,
+.recipe-alternative-context {
+  background-color: #3a372e !important;
+  background-image: none !important;
+  border-color: #766f5f !important;
+}
+
+.recipe-module-picker > nav,
+.target-subgroup-tabs,
+.target-search,
+.recipe-search,
+.target-group-rail,
+.target-index-pane,
+.target-detail,
+.target-grid-scroll {
+  background-color: #211f1b !important;
+  background-image: none !important;
+  border-color: #5c574b !important;
+}
+
+.recipe-module-picker > nav button,
+.target-subgroup-tabs button,
+.target-group-rail button,
+.target-entry-grid > button,
+.target-recipe-list > button,
+.recipe-library-list > button,
+.recipe-alternative-list > button,
+.product-picker button,
+.template-picker button {
+  border-color: #6e6758 !important;
+  color: #ded6c4 !important;
+  background-color: #302e28 !important;
+  background-image: url("../design-assets/ui/factory-gunmetal-panel-v1.png") !important;
+  background-size: 256px 256px !important;
+  box-shadow: inset 0 1px rgba(255,245,218,.13), inset 0 -2px rgba(0,0,0,.63) !important;
+}
+
+.recipe-module-picker > nav button.is-active,
+.target-subgroup-tabs button.is-active,
+.target-group-rail button.is-active,
+.target-entry-grid > button.is-selected,
+.target-recipe-list > button.is-selected,
+.recipe-library-list > button:hover,
+.recipe-alternative-list > button:hover:not(:disabled),
+.product-picker button:hover:not(:disabled),
+.template-picker button:hover {
+  border-color: #f1b44c !important;
+  color: #fff3d5 !important;
+  background-color: #493a21 !important;
+  box-shadow: inset 0 0 0 1px rgba(255,220,136,.18), inset 0 -3px #6b4821 !important;
+}
+
+.recipe-library-list,
+.target-entry-grid,
+.recipe-alternative-list,
+.product-picker,
+.template-picker,
+.finder-column-list {
+  scrollbar-color: #b38a45 #191816;
+}
+
+.sankey-node-bar,
+.sankey-inspector,
+.finder-preview-card,
+.topology-process-card,
+.topology-process-row,
+.radial-inspector,
+.material-node,
+.process-node,
+.input-node,
+.boundary-row,
+.debug-facts > div,
+.inspector-facts span,
+.recipe-io > div {
+  border-color: #696254 !important;
+  background-color: #292721 !important;
+  background-image: url("../design-assets/ui/factory-gunmetal-panel-v1.png") !important;
+  background-size: 256px 256px !important;
+  box-shadow: inset 0 1px rgba(255,245,218,.11), inset 0 -2px rgba(0,0,0,.62) !important;
+}
+
+.finder-pathbar,
+.sankey-method-strip,
+.canvas-legend,
+.topology-legend,
+.contract-strip,
+.boundary-note,
+.modal-note,
+.modal-empty-note {
+  border-color: #6d6556 !important;
+  background-color: #24221d !important;
+  color: #d4cbbb !important;
+}
+
+.sankey-node.is-target .sankey-node-bar,
+.sankey-node:hover .sankey-node-bar,
+.sankey-node.is-active .sankey-node-bar,
+.topology-process-row.is-active,
+.material-node.is-selected,
+.process-node.is-selected {
+  border-color: #e5b45a !important;
+  box-shadow: inset 0 0 0 1px rgba(255,219,135,.2), 0 1px 0 #000 !important;
+}
+
+.app-statusbar {
+  background-color: #151512 !important;
+  background-image: none !important;
+}
+
+.app-statusbar > span {
+  border-color: #4d493f;
+  color: #d7cfbd;
+}
+
+/* Rails stay legible as equipment: do not recolor the approved transport art. */
+.transport-tile {
+  filter: saturate(1.05) contrast(1.07) drop-shadow(0 1px 1px rgba(0,0,0,.78));
 }
 
 @media (max-width: 1320px) {

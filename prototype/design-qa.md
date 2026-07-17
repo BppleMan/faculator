@@ -225,4 +225,138 @@
 - Image quality and asset fidelity: all recipe, item, fluid, entity, module, quality, and transport imagery uses the existing real icon/atlas pipeline; broken image count is zero.
 - Copy and content: visible section headings requested for removal are gone, while recipe names, material names, rates, machine data, slot counts, and accessible labels remain data-driven and localized.
 
+## Iteration 8 — content-hugging equipment-card redesign
+
+### Comparison target and state
+
+- Source visual truth: the user-annotated `1424 x 1178` high-speed-splitter canvas in which single material entries and the native beacon input stretched inside a `400 x 200` recipe card.
+- Captured source state: `/tmp/faculator-card-before.png`.
+- Browser-rendered implementation: in-app Browser capture of `http://127.0.0.1:4173/`, `zh-CN`, `生产区块 01`, `高速分流器`, `60/min`.
+- Before and after were reviewed together in one comparison pass after the production build was reloaded.
+
+### Findings
+
+- [P1] The material side columns distributed entries with `repeat(count, 1fr)`. A one-input recipe therefore turned one compact material record into a roughly `65px`-tall panel.
+- [P1] The center stack used five fixed rows and forced every recipe card to remain `400 x 200`, even when its content only needed a little over half that height.
+- [P2] The native full-width number input visually outweighed the two beacon slots and did not read as a small machine configuration control.
+- [P2] Heavy borders, equal-height table cells, and oversized empty surfaces made the card read as a reduced spreadsheet rather than a Factorio equipment plate.
+
+### Fixes applied
+
+- Rebuilt the center as a content-driven two-column equipment plate: recipe identity spans the top, machine and machine slots share one compact row, beacon controls span the next row, and metrics occupy a shallow footer.
+- Changed input and output lists to centered flex stacks. Every material row now hugs its content at `22px` rather than inheriting a fraction of the card height.
+- Reduced the rail allocation from `400 x 200` to `360 x 160`; ordinary recipe cards render at about `360 x 123` and stay vertically centered on the unchanged transport centerline.
+- Replaced the large native beacon field with a `54 x 16` industrial stepper containing a `24 x 14` numeric field and dedicated decrement/increment controls.
+- Preserved real recipe, material, machine, module, beacon, and quality data. The title still opens recipe alternatives; machine buttons, per-slot module encyclopedias, and beacon calculations remain interactive.
+- Moved the module encyclopedia below the selected card as a `218 x 185` popover so the smaller card does not become a clipping viewport.
+
+### Required fidelity surfaces
+
+- Fonts and typography: retained the industrial system/monospace hierarchy, with recipe names and rates still legible at the new density; no semantic label or data value was replaced by placeholder copy.
+- Spacing and layout rhythm: common cards are `360 x 122.7`; one-, two-, and three-material sides keep `22px` rows with `2px` gaps. The real six-input `量子处理器` recipe renders at `153px` inside its `160px` rail allocation with no overflow.
+- Colors and visual tokens: graphite metal, inset bevels, cyan input edges, green output edges, amber active machinery, and branch-color top rails remain consistent with the transport artwork.
+- Image quality and asset fidelity: all visible recipe, item, entity, module, beacon, and quality icons use the existing real asset pipeline. Browser verification found `178` loaded images and zero broken images.
+- Copy and content: recipe names, material names, rates, machine counts, slot counts, and effect metrics remain sourced from `game-data.json` and i18n. Accessible material-side and slot labels remain present without adding visible title rows.
+
+### Browser and interaction verification
+
+- Common high-speed-splitter card: `360 x 122.7`; wrapper: `360 x 160`; material entry: `22px` high; beacon field: `24 x 14`.
+- Dense real-data case: the six-input quantum-processor card is `360 x 153`; all six entries remain `22px`, list overflow is `0px`, and the card stays within its `160px` wrapper.
+- Switched the root recipe from 组装机1型 to 组装机3型, exercised the beacon stepper `0 → 1 → 0`, and restored the original machine.
+- Opened a real machine-module slot; the category/tier/quality encyclopedia rendered fully below the card and closed normally.
+- Final high-speed-splitter line contains `17` rendered recipe cards. Browser error log is empty and broken-image count is zero.
+
+### Runtime verification
+
+- `npm run build`: passed with 31 transformed modules.
+- `git diff --check`: passed.
+- Development URL: `http://127.0.0.1:4173/`.
+
+No actionable P0, P1, or P2 findings remain.
+
+## Iteration 9 — independent machine and module rows
+
+### Comparison target and state
+
+- Source visual truth: browser annotation on `生产机器 4 ×` plus the follow-up material-port annotation.
+- Source capture: `/tmp/faculator-machine-module-before.png`.
+- Implementation capture: `/tmp/faculator-machine-module-final.png`.
+- Focused comparison: `/tmp/faculator-machine-module-before-focus-root.png` and `/tmp/faculator-machine-module-after-focus-root.png`.
+- Viewport: `1424 x 1234`; state: `zh-CN`, material rail, `高速分流器`, `60/min`, root recipe using 组装机3型.
+- Full-view and focused before/after captures were opened together in one comparison input.
+
+### Findings
+
+- [P1] Machine selection and machine module slots shared the same visual row. Their different ownership semantics were not visible, making a machine choice look like another plugin choice.
+- [P2] Material ports placed icon, title, and rate on one horizontal line. Rate text competed with the material name inside an `88px` side column.
+
+### Fixes applied
+
+- Rebuilt the card core as five full-width rows: recipe identity, machine selection, machine slots, beacon configuration, and metrics.
+- Consolidated the machine label, compatible-machine choices, and required-machine count into one `27px` row.
+- Moved the selected machine's real slot controls into their own following `27px` row. Slot count and allowed modules still come from the selected machine in `game-data.json`.
+- Changed every input/output material port to `flex-row(icon, flex-col(title, rate))`; the port remains `22px` high while title and quantity now read as separate lines.
+
+### Required fidelity surfaces
+
+- Fonts and typography: existing industrial system/monospace hierarchy remains; material title and rate now have distinct line positions and no longer compete for horizontal space.
+- Spacing and layout rhythm: machine and module rows are adjacent, full-width `27px` tracks. Common cards render at `360 x 139`; the six-input quantum-processor card remains `153px` high inside its `160px` wrapper with zero list overflow.
+- Colors and visual tokens: graphite bevels, branch-color accents, amber active machine state, cyan input edge, and green output edge remain unchanged.
+- Image quality and asset fidelity: all recipe, material, machine, module, beacon, and transport imagery still uses the existing real assets. Final browser state contains `178` images and zero broken images.
+- Copy and content: machine names, material names, rates, machine counts, slot counts, and effect metrics remain data-driven and localized; no new placeholder labels were introduced.
+
+### Interaction and runtime verification
+
+- Switched the root card to 组装机3型 and confirmed four real machine slots appeared on the dedicated slot row.
+- Opened and closed the per-slot module encyclopedia; the `218 x 185` popover remained fully visible below the card.
+- Verified the output material port computes as `display:flex`; its copy container is `flex-direction:column`, with the quantity physically below the title.
+- Verified the six-input real-data recipe retains six `22px` rows, `153px` total card height, and zero overflow.
+- Browser error log is empty; broken-image count is zero.
+- `npm run build`: passed with 31 transformed modules.
+- `git diff --check`: passed.
+
+No actionable P0, P1, or P2 findings remain.
+
+## Iteration 10 — factory-console visual system
+
+### Comparison target and state
+
+- Source visual truth: the official Factorio crafting/inventory capture at `/tmp/factorio-crafting-tab.png`, supported by the official train-schedule capture at `/tmp/factorio-train-schedule.png`.
+- Browser-rendered implementation: `/tmp/faculator-factory-ui-module-picker.png`, captured from `http://127.0.0.1:4173/` at `1424 x 1234`, `zh-CN`, `生产区块 01`, `高速分流器 60/min`, with the root recipe's module encyclopedia open.
+- Full-view comparison evidence: `/tmp/faculator-design-qa-comparison.png` places the reference and the browser capture side by side at a normalized height.
+- Focused-region evidence: `/tmp/faculator-factory-ui-encyclopedia.png` validates the item encyclopedia; `/tmp/faculator-factory-ui-module-picker.png` validates compact icon-slot treatment, the selected amber recipe plate, and the plugin picker.
+- The screens are intentionally not the same product state: the reference establishes the industrial Factorio UI language, while Faculator retains its own plan / block / line / graph information architecture and real-data planning controls.
+
+### Findings and fixes
+
+- [P1] Before this pass, shared panels, navigation, target libraries, cards, and controls mixed blue application chrome with thin technical borders. The system read as a generic dashboard rather than a coherent factory console.
+- [P2] Dense interactive inventory-like pickers lacked a shared physical surface treatment, so cards and controls did not have a clear hierarchy of metal plate, inset slot, selected state, and action state.
+
+### Fixes applied
+
+- Introduced a shared factory token layer: charcoal gunmetal ground, graphite plate surfaces, warm amber active/action state, cyan telemetry/input state, green output/satisfied state, muted steel borders, and consistent inset/highlight shadows.
+- Added `prototype/design-assets/ui/factory-gunmetal-panel-v1.png`, an original tileable gunmetal panel texture, and applied it only as material treatment beneath the existing semantic surfaces. It does not replace any game icon, transport artwork, or interaction affordance.
+- Re-skinned tabs, sidebars, plan/block cards, panel frames, target encyclopedia, recipe library, recipe station cards, slot pickers, steppers, bottom status controls, and all four observation views with compact beveled industrial surfaces.
+- Preserved the existing material-rail card geometry, static CSS Grid, inspectable transport tiles, real item/entity/module icons, `game-data.json` calculations, and i18n-driven copy.
+
+### Required fidelity surfaces — factory console
+
+- Fonts and typography: hierarchy remains compact and legible: display labels use high-contrast weights, operational labels retain technical uppercase/monospace treatment, and data rates do not wrap or clip at the tested desktop viewport.
+- Spacing and layout rhythm: no region was resized as a consequence of the visual skin; the plan tabs, block sidebar, root-line workspace, target inspector, and bottom diagnostic rail retain their existing relationship. The rail cards stay deliberately compact rather than being inflated to match the texture.
+- Colors and visual tokens: comparison confirms the intended reference relationship—dark cast-metal framing, low-gloss inner fields, restrained cool telemetry highlights, and sparse amber for current action/selection. Faculator's green output semantic and cyan route/input semantic remain intentionally distinct from Factorio's neutral inventory grid.
+- Image quality and asset fidelity: Factorio-derived game icons and transport atlas remain untouched and sharp. The single new original raster asset is tileable gunmetal texture at native resolution with no stretching or visible seam in the captured workspace. Browser audit: `178` loaded images, `0` broken images.
+- Copy and content: plan, block, line, target, recipe, machine, module, rate, and view labels are unchanged. The populated rail still derives from real `game-data.json` data and localized strings rather than visual mock content.
+
+### Interaction and regression verification
+
+- Selected `高速分流器` through the real item encyclopedia and confirmed its `60/min` target expands to the BOM rail.
+- Switched among material rail, dependency rings, Finder columns, and Sankey; each retains its original data visualization while inheriting the shared factory-console surfaces.
+- Changed the root recipe machine to `组装机3型`, opened a real machine-module slot, selected `速度插件 · 1 星品质`, and confirmed the picker closes and effective speed/required-machine values update (`×1` → `×1.2`, `1.6` → `1.33` before ceiling).
+- Browser audit at `1424 x 1234`: page-level horizontal overflow `0px`; browser warning/error logs empty; broken images `0`.
+- `git diff --check`: passed. `npm run build`: passed with 31 transformed modules.
+
+### Final assessment
+
+- No actionable P0, P1, or P2 findings remain. The remaining intentional difference is that Faculator is an industrial planning workspace rather than a literal clone of Factorio's character window; its multi-canvas layout and information density are preserved while its surfaces now share the same factory-era material language.
+
 final result: passed

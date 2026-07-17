@@ -4,13 +4,13 @@ import { formatRate, iconPath, localeText } from "./domain.js";
 const BRANCH_HUES = [188, 143, 37, 274, 338, 213, 18, 164];
 const TRANSPORT_TILE_SIZE = 40;
 const RAIL_TARGET_X = 40;
-const RAIL_CARD_WIDTH = 400;
-const RAIL_CARD_HEIGHT = 200;
+const RAIL_CARD_WIDTH = 360;
+const RAIL_CARD_HEIGHT = 160;
 const RAIL_TARGET_WIDTH = RAIL_CARD_WIDTH;
 const RAIL_TARGET_HEIGHT = RAIL_CARD_HEIGHT;
 const RAIL_RECIPE_X = RAIL_TARGET_X + RAIL_TARGET_WIDTH + TRANSPORT_TILE_SIZE;
 const RAIL_COLUMN_GAP = RAIL_CARD_WIDTH + TRANSPORT_TILE_SIZE * 3;
-const RAIL_ROW_GAP = 280;
+const RAIL_ROW_GAP = 240;
 const RAIL_STAGE_TOP = 40;
 const RAIL_TRANSPORT_TYPE = "belt";
 const MODULE_CATEGORY_ORDER = ["speed", "productivity", "quality", "efficiency"];
@@ -412,8 +412,10 @@ function RecipeMaterialPort({ entry, rate, status, nameOf, t, output = false }) 
       title={`${materialName} · ${formatRate(rate)} / min · ${t(status)}`}
     >
       <span className="recipe-material-port-icon"><GameIcon type={entry.type} name={entry.name} size={16} /></span>
-      <strong>{materialName}</strong>
-      <small>{formatRate(rate)} / min</small>
+      <span className="recipe-material-port-copy">
+        <strong>{materialName}</strong>
+        <small>{formatRate(rate)} / min</small>
+      </span>
     </div>
   );
 }
@@ -535,6 +537,8 @@ function RecipeStation({ entry, item, selectedNode, nameOf, onSelectNode, onRepl
   const selected = selectedNode === process.id;
   const configuration = process.configuration ?? {};
   const patchConfiguration = (patch) => onUpdateProcessConfig(entry.line, process, patch);
+  const beaconCount = Math.max(0, Math.min(64, Math.floor(Number(configuration.beaconCount) || 0)));
+  const setBeaconCount = (value) => patchConfiguration({ beaconCount: Math.max(0, Math.min(64, Math.floor(Number(value) || 0))) });
   const [modulePicker, setModulePicker] = useState(null);
   const updateModuleSlot = (owner, slotIndex, module, quality) => {
     const resolvedSlots = owner === "machine" ? process.machineModuleSlots : process.beaconModuleSlots;
@@ -554,12 +558,12 @@ function RecipeStation({ entry, item, selectedNode, nameOf, onSelectNode, onRepl
   return (
     <article
       className={`recipe-station ${selected ? "is-selected" : ""}`}
-      style={{ height: item.cardHeight, "--branch-color": nodeColor(item.branchIndex, item.depth) }}
+      style={{ "--branch-color": nodeColor(item.branchIndex, item.depth) }}
       data-process-id={process.id}
       data-choice-key={process.choiceKey}
     >
       <section className="recipe-card-port-column is-output" aria-label={t("recipeOutputSide")}>
-        <div className="recipe-card-port-list" style={{ "--port-count": Math.max(1, process.recipe.products.length) }}>
+        <div className="recipe-card-port-list">
           {process.recipe.products.map((product, productIndex) => (
             <RecipeMaterialPort
               key={`${product.type}:${product.name}:${productIndex}`}
@@ -595,10 +599,7 @@ function RecipeStation({ entry, item, selectedNode, nameOf, onSelectNode, onRepl
         </header>
 
         <section className="recipe-card-machine-bay">
-          <header>
-            <span>{t("productionMachine")}</span>
-            <em><strong>{process.roundedMachines}</strong> ×</em>
-          </header>
+          <span className="recipe-card-machine-label">{t("productionMachine")}</span>
           <div className="recipe-card-machine-options" data-testid={`machine-select-${process.nodePath}`}>
             {process.machines.map((machine) => (
               <button
@@ -614,6 +615,7 @@ function RecipeStation({ entry, item, selectedNode, nameOf, onSelectNode, onRepl
               </button>
             ))}
           </div>
+          <em className="recipe-card-machine-count"><strong>{process.roundedMachines}</strong> ×</em>
         </section>
 
         <section className="recipe-card-module-bay" aria-label={`${t("machineModuleFill")} · ${process.machineSlots} ${t("moduleSlots")}`}>
@@ -633,10 +635,14 @@ function RecipeStation({ entry, item, selectedNode, nameOf, onSelectNode, onRepl
         </section>
 
         <section className="recipe-card-beacon-bay">
-          <label className="recipe-card-beacon-count">
+          <div className="recipe-card-beacon-count" role="group" aria-label={t("beaconCount")}>
             <GameIcon type="entity" name="beacon" size={16} />
-            <span><small>{t("beaconCount")}</small><input type="number" min="0" max="64" value={configuration.beaconCount} onChange={(event) => patchConfiguration({ beaconCount: event.target.value })} /></span>
-          </label>
+            <span className="recipe-card-beacon-stepper">
+              <button type="button" disabled={beaconCount === 0} aria-label={t("decreaseBeaconCount")} onClick={() => setBeaconCount(beaconCount - 1)}>−</button>
+              <input aria-label={t("beaconCount")} type="number" min="0" max="64" value={beaconCount} onChange={(event) => setBeaconCount(event.target.value)} />
+              <button type="button" disabled={beaconCount === 64} aria-label={t("increaseBeaconCount")} onClick={() => setBeaconCount(beaconCount + 1)}>+</button>
+            </span>
+          </div>
           <div className="recipe-card-beacon-slots" aria-label={`${t("beaconModule")} · ${process.beaconSlots} ${t("moduleSlots")}`}>
             <div>
               {Array.from({ length: process.beaconSlots }, (_, slotIndex) => (
@@ -679,7 +685,7 @@ function RecipeStation({ entry, item, selectedNode, nameOf, onSelectNode, onRepl
       </section>
 
       <section className="recipe-card-port-column is-input" aria-label={t("recipeInputSide")}>
-        <div className="recipe-card-port-list" style={{ "--port-count": Math.max(1, process.recipe.ingredients.length) }}>
+        <div className="recipe-card-port-list">
           {process.recipe.ingredients.map((ingredient, ingredientIndex) => (
             <RecipeMaterialPort
               key={`${ingredient.type}:${ingredient.name}:${ingredientIndex}`}
@@ -845,7 +851,7 @@ function RailGraph({ entry, root, selectedNode, nameOf, onSelectNode, onReplaceP
           {layout.outputs.map((output) => <OutputAnchor key={output.id} output={output} nameOf={nameOf} onSelectNode={onSelectNode} t={t} />)}
           {layout.nodes.map((item) => (
             <div
-              className="recipe-rail-node"
+              className={`recipe-rail-node ${selectedNode === item.process.id ? "is-selected" : ""}`}
               key={item.node.id}
               style={{ ...gridCardPlacement(item.x, item.y), "--branch-color": nodeColor(item.branchIndex, item.depth) }}
             >
