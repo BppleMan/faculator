@@ -1,0 +1,13 @@
+0 verbose cli /Users/bppleman/.local/share/fnm/node-versions/v24.18.0/installation/bin/node /Users/bppleman/.local/state/fnm_multishells/57342_1784261057695/bin/npm
+1 info using npm@11.16.0
+2 info using node@v24.18.0
+3 silly config load:file:/Users/bppleman/.local/share/fnm/node-versions/v24.18.0/installation/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/bppleman/RustroverProjects/faculator/prototype/.npmrc
+5 silly config load:file:/Users/bppleman/.npmrc
+6 silly config load:file:/Users/bppleman/.local/share/fnm/node-versions/v24.18.0/installation/etc/npmrc
+7 verbose title npm run dev --host 127.0.0.1 --port 5173 --strictPort
+8 verbose argv "run" "dev" "--" "--host" "127.0.0.1" "--port" "5173" "--strictPort"
+9 verbose logfile logs-max:10 dir:/Users/bppleman/RustroverProjects/faculator/prototype/.npm-cache/_logs/2026-07-17T16_30_48_827Z-
+10 verbose logfile /Users/bppleman/RustroverProjects/faculator/prototype/.npm-cache/_logs/2026-07-17T16_30_48_827Z-debug-0.log
+11 silly logfile start cleaning logs, removing 1 files
+12 silly logfile done cleaning log files

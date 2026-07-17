@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Card</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .recipe-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .recipe-identity {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: auto;
+        }
+
+        .recipe-machine {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: auto;
+        }
+
+        .recipe-beacon {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: auto;
+        }
+
+    </style>
+</head>
+<body>
+<div class="recipe-card">
+    <div class="recipe-output">
+        <div class="label">
+            <img src="https://via.placeholder.com/150" alt="产出 1" style="width: 40px; height: 40px;">
+            <span>a/每分钟</span>
+        </div>
+        <div class="label">
+            <img src="https://via.placeholder.com/150" alt="产出 2" style="width: 40px; height: 40px;">
+            <span>b/每分钟</span>
+        </div>
+        <div class="label">
+            <img src="https://via.placeholder.com/150" alt="产出 3" style="width: 40px; height: 40px;">
+            <span>c/每分钟</span>
+        </div>
+        <div class="label">
+            <img src="https://via.placeholder.com/150" alt="产出 4" style="width: 40px; height: 40px;">
+            <span>d/每分钟</span>
+        </div>
+    </div>
+    <div style="display: flex; flex-direction: column;">
+        <div class="recipe-identity">
+            <img src="https://via.placeholder.com/150" alt="icon" style="width: 40px; height: 40px;">
+            <div style="display: flex; flex-direction: column;">
+                <label>
+                    <select>
+                        <option value="recipe1">配方 1</option>
+                        <option value="recipe2">配方 2</option>
+                        <option value="recipe3">配方 3</option>
+                    </select>
+                </label>
+                <span>20 次 / 分钟</span>
+            </div>
+        </div>
+        <div class="recipe-machine radio-btn">
+            <button>机器 1</button>
+            <button>机器 2</button>
+            <button>机器 3</button>
+            <button>机器 4</button>
+            <span> x 10 个</span>
+        </div>
+        <div class="recipe-beacon">
+            <label class="recipe-slot">
+                <select>
+                    <option value="beacon1">插件 1</option>
+                    <option value="beacon2">插件 2</option>
+                    <option value="beacon3">插件 3</option>
+                </select>
+            </label>
+            <label class="recipe-slot">
+                <select>
+                    <option value="beacon1">插件 1</option>
+                    <option value="beacon2">插件 2</option>
+                    <option value="beacon3">插件 3</option>
+                </select>
+            </label>
+            <label class="recipe-slot">
+                <select>
+                    <option value="beacon1">插件 1</option>
+                    <option value="beacon2">插件 2</option>
+                    <option value="beacon3">插件 3</option>
+                </select>
+            </label>
+            <label class="recipe-slot">
+                <select>
+                    <option value="beacon1">插件 1</option>
+                    <option value="beacon2">插件 2</option>
+                    <option value="beacon3">插件 3</option>
+                </select>
+            </label>
+        </div>
+    </div>
+    <div class="recipe-input">
+        <div class="label">
+            <img src="https://via.placeholder.com/150" alt="输入 1" style="width: 40px; height: 40px;">
+            <span>a/每分钟</span>
+        </div>
+        <div class="label">
+            <img src="https://via.placeholder.com/150" alt="输入 2" style="width: 40px; height: 40px;">
+            <span>b/每分钟</span>
+        </div>
+        <div class="label">
+            <img src="https://via.placeholder.com/150" alt="输入 3" style="width: 40px; height: 40px;">
+            <span>c/每分钟</span>
+        </div>
+        <div class="label">
+            <img src="https://via.placeholder.com/150" alt="输入 4" style="width: 40px; height: 40px;">
+            <span>d/每分钟</span>
+        </div>
+    </div>
+</div>
+</body>
+</html>
