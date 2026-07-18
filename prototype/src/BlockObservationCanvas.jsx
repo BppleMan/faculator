@@ -1,5 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { formatRate, iconPath, localeText } from "./domain.js";
+import materialRailViewIcon from "../design-assets/ui/view-material-rail.svg";
+import dependencyRingsViewIcon from "../design-assets/ui/view-dependency-rings.svg";
+import finderColumnsViewIcon from "../design-assets/ui/view-finder-columns.svg";
+import flowSankeyViewIcon from "../design-assets/ui/view-flow-sankey.svg";
 
 const BRANCH_HUES = [188, 143, 37, 274, 338, 213, 18, 164];
 const TRANSPORT_TILE_SIZE = 40;
@@ -95,9 +99,10 @@ function defaultNodePath(root) {
 
 function LineIdentity({ entry, lineIndex, active, locale, nameOf, onSelectLine, t }) {
   const targets = entry.line.targets;
+  const target = targets[0];
   return (
     <button className={`block-line-identity ${active ? "is-active" : ""}`} type="button" onClick={() => onSelectLine(entry.line)}>
-      <span className="block-line-code">LINE {String(lineIndex + 1).padStart(2, "0")} · L0</span>
+      <span className="block-line-code">LINE {String(lineIndex + 1).padStart(2, "0")}</span>
       <span className="block-line-icons">
         {targets.length === 0 ? (
           <GameIcon type="item" name="blueprint-book" size={28} />
@@ -107,7 +112,7 @@ function LineIdentity({ entry, lineIndex, active, locale, nameOf, onSelectLine, 
       </span>
       <span className="block-line-copy">
         <strong>{localeText(entry.line.title, locale)}</strong>
-        <small>{targets.length === 0 ? t("draftLine") : `${targets.length} ${t("targetsCount")} · ${t("independent")}`}</small>
+        <small>{target ? `${nameOf(target.type, target.name)} · ≥ ${formatRate(target.minimum)} / min` : t("draftLine")}</small>
       </span>
       <span className={`block-line-state ${targets.length === 0 ? "is-draft" : entry.line.dirty ? "is-pending" : "is-ready"}`} />
     </button>
@@ -818,98 +823,101 @@ function createRailLayout(entry, root) {
   };
 }
 
-function RailGraph({ entry, root, selectedNode, nameOf, onSelectNode, onReplaceProcess, onUpdateProcessConfig, t }) {
-  const layout = useMemo(() => createRailLayout(entry, root), [entry, root]);
-  const transportLayers = useMemo(() => groupTransportLayers(layout.links), [layout.links]);
-  const scrollerRef = useRef(null);
-  useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    scroller.scrollTop = 0;
-    scroller.scrollLeft = 0;
-  }, [root.id]);
-  return (
-    <div className="material-rail-frame">
-      <button className="rail-origin-control" type="button" title={t("returnToOutput")} aria-label={t("returnToOutput")} onClick={() => scrollerRef.current?.scrollTo({ left: 0, top: 0, behavior: "smooth" })}>
-        <GameIcon type={root.material.type} name={root.material.name} size={24} />
-      </button>
-      <div className="material-rail-scroll" ref={scrollerRef} tabIndex="0" aria-label={t("materialRail")}>
-        <div
-          className="material-rail-stage"
-          data-layout-mode="css-grid"
-          data-supported-transport-topologies="single straight corner tee cross"
-          data-transport-model="nesw-bitmask"
-          style={{
-            "--rail-grid-columns": Math.ceil(layout.width / TRANSPORT_TILE_SIZE),
-            "--rail-grid-rows": Math.ceil(layout.height / TRANSPORT_TILE_SIZE),
-            "--rail-grid-size": `${TRANSPORT_TILE_SIZE}px`,
-          }}
-        >
-          <div className="rail-output-column-label" style={gridCardPlacement(RAIL_TARGET_X, 0, RAIL_TARGET_WIDTH, TRANSPORT_TILE_SIZE)}>{t("outputColumn")}</div>
-          {transportLayers.independentLinks.map((link) => <TransportLink key={link.id} link={link} />)}
-          {transportLayers.supplyBundles.map((bundle) => <TransportBundle key={bundle.id} {...bundle} />)}
-          {layout.outputs.map((output) => <OutputAnchor key={output.id} output={output} nameOf={nameOf} onSelectNode={onSelectNode} t={t} />)}
-          {layout.nodes.map((item) => (
-            <div
-              className={`recipe-rail-node ${selectedNode === item.process.id ? "is-selected" : ""}`}
-              key={item.node.id}
-              style={{ ...gridCardPlacement(item.x, item.y), "--branch-color": nodeColor(item.branchIndex, item.depth) }}
-            >
-              <RecipeStation
-                entry={entry}
-                item={item}
-                selectedNode={selectedNode}
-                nameOf={nameOf}
-                onSelectNode={onSelectNode}
-                onReplaceProcess={onReplaceProcess}
-                onUpdateProcessConfig={onUpdateProcessConfig}
-                t={t}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+function offsetRailLayout(layout, offsetY) {
+  const move = (value) => value + offsetY;
+  return {
+    ...layout,
+    nodes: layout.nodes.map((item) => ({ ...item, y: move(item.y) })),
+    outputs: layout.outputs.map((output) => ({ ...output, y: move(output.y), sourceY: output.sourceY == null ? output.sourceY : move(output.sourceY) })),
+    links: layout.links.map((link) => ({
+      ...link,
+      fromY: move(link.fromY),
+      toY: move(link.toY),
+      parentY: link.parentY == null ? link.parentY : move(link.parentY),
+    })),
+  };
 }
 
 function MaterialRailView({ entries, activeLineId, selectedNode, locale, nameOf, onSelectLine, onSelectNode, onReplaceProcess, onUpdateProcessConfig, onChooseTarget, t }) {
+  const canvas = useMemo(() => {
+    const graphs = [];
+    const drafts = [];
+    let cursorY = 0;
+    let width = 840;
+
+    entries.forEach((entry) => {
+      if (entry.line.targets.length === 0) {
+        drafts.push({ entry, y: cursorY + RAIL_STAGE_TOP });
+        cursorY += RAIL_ROW_GAP;
+        return;
+      }
+
+      (entry.result.bomRoots ?? []).forEach((root) => {
+        if (!root.expansion) return;
+        const layout = offsetRailLayout(createRailLayout(entry, root), cursorY);
+        graphs.push({ entry, root, layout, transportLayers: groupTransportLayers(layout.links) });
+        width = Math.max(width, layout.width);
+        cursorY += layout.height + TRANSPORT_TILE_SIZE * 2;
+      });
+    });
+
+    return { graphs, drafts, width, height: Math.max(560, cursorY || 560) };
+  }, [entries]);
+
   return (
-    <div className="block-view-scroll material-rail-view" data-testid="block-view-rail">
-      {entries.map((entry, lineIndex) => (
-        <section className={`material-line-lane ${entry.line.id === activeLineId ? "is-active" : ""}`} key={entry.line.id}>
-          <header>
-            <LineIdentity entry={entry} lineIndex={lineIndex} active={entry.line.id === activeLineId} locale={locale} nameOf={nameOf} onSelectLine={onSelectLine} t={t} />
-            <span className="lane-instance-rule">{t("recipeRailRule")}</span>
-          </header>
-          {entry.line.targets.length === 0 ? (
-            <div className="line-draft-panel">
-              <GameIcon type="item" name="blueprint-book" size={56} />
-              <span><strong>{t("noTargetTitle")}</strong><small>{t("noTargetHint")}</small></span>
-              <button type="button" onClick={() => onChooseTarget(entry.line)}>{t("openTargetSelector")}</button>
-            </div>
-          ) : (
-            <div className="line-root-rails">
-              {(entry.result.bomRoots ?? []).map((root) => root.expansion ? (
-                <section className="line-root-rail" key={root.id}>
-                  <div className="line-root-label">
-                    <GameIcon type={root.material.type} name={root.material.name} size={28} />
-                    <span><small>{t("deliveryFlow")}</small><strong>{nameOf(root.material.type, root.material.name)}</strong></span>
-                    <em>≥ {formatRate(root.demand)} / min</em>
-                  </div>
-                  <RailGraph entry={entry} root={root} selectedNode={selectedNode} nameOf={nameOf} onSelectNode={onSelectNode} onReplaceProcess={onReplaceProcess} onUpdateProcessConfig={onUpdateProcessConfig} t={t} />
-                </section>
-              ) : (
-                <div className="existing-output-root" key={root.id}>
-                  <GameIcon type={root.material.type} name={root.material.name} size={30} />
-                  <span><small>{t("existingNetworkSupply")}</small><strong>{nameOf(root.material.type, root.material.name)}</strong></span>
-                  <em>{formatRate(root.demand)} / min</em>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      ))}
+    <div
+      className="block-view-scroll material-rail-view"
+      data-testid="block-view-rail"
+      data-scroll-axis="both"
+      tabIndex="0"
+      aria-label={t("materialRail")}
+    >
+      <div
+        className="material-rail-stage"
+        data-layout-mode="css-grid"
+        data-supported-transport-topologies="single straight corner tee cross"
+        data-transport-model="nesw-bitmask"
+        data-line-count={entries.length}
+        style={{
+          "--rail-grid-columns": Math.ceil(canvas.width / TRANSPORT_TILE_SIZE),
+          "--rail-grid-rows": Math.ceil(canvas.height / TRANSPORT_TILE_SIZE),
+          "--rail-grid-size": `${TRANSPORT_TILE_SIZE}px`,
+        }}
+      >
+        <div className="rail-output-column-label" style={gridCardPlacement(RAIL_TARGET_X, 0, RAIL_TARGET_WIDTH, TRANSPORT_TILE_SIZE)}>{t("outputColumn")}</div>
+        {canvas.graphs.map(({ entry, root, layout, transportLayers }) => (
+          <Fragment key={`${entry.line.id}:${root.id}`}>
+            {transportLayers.independentLinks.map((link) => <TransportLink key={link.id} link={link} />)}
+            {transportLayers.supplyBundles.map((bundle) => <TransportBundle key={bundle.id} {...bundle} />)}
+            {layout.outputs.map((output) => <OutputAnchor key={output.id} output={output} nameOf={nameOf} onSelectNode={onSelectNode} t={t} />)}
+            {layout.nodes.map((item) => (
+              <div
+                className={`recipe-rail-node ${selectedNode === item.process.id ? "is-selected" : ""}`}
+                key={item.node.id}
+                style={{ ...gridCardPlacement(item.x, item.y), "--branch-color": nodeColor(item.branchIndex, item.depth) }}
+              >
+                <RecipeStation
+                  entry={entry}
+                  item={item}
+                  selectedNode={selectedNode}
+                  nameOf={nameOf}
+                  onSelectNode={onSelectNode}
+                  onReplaceProcess={onReplaceProcess}
+                  onUpdateProcessConfig={onUpdateProcessConfig}
+                  t={t}
+                />
+              </div>
+            ))}
+          </Fragment>
+        ))}
+        {canvas.drafts.map(({ entry, y }) => (
+          <div className="line-draft-panel material-rail-draft" key={entry.line.id} style={gridCardPlacement(RAIL_TARGET_X, y, 720, RAIL_TARGET_HEIGHT)}>
+            <GameIcon type="item" name="blueprint-book" size={56} />
+            <span><strong>{t("noTargetTitle")}</strong><small>{t("noTargetHint")}</small></span>
+            <button type="button" onClick={() => onChooseTarget(entry.line)}>{t("openTargetSelector")}</button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1069,9 +1077,8 @@ function RadialLineCard({ entry, lineIndex, active, selectedNode, locale, nameOf
   const root = roots.find((candidate) => candidate.id === activeRootId) ?? roots[0];
   return (
     <section className={`radial-line-card ${active ? "is-active" : ""}`}>
-      <header>
-        <LineIdentity entry={entry} lineIndex={lineIndex} active={active} locale={locale} nameOf={nameOf} onSelectLine={onSelectLine} t={t} />
-        <div className="radial-root-tabs">
+      {roots.length > 1 && (
+        <div className="radial-root-tabs is-floating">
           {roots.map((candidate, index) => (
             <button className={candidate.id === root?.id ? "is-active" : ""} type="button" key={candidate.id} onClick={() => setActiveRootId(candidate.id)}>
               <GameIcon type={candidate.material.type} name={candidate.material.name} size={22} />
@@ -1079,7 +1086,7 @@ function RadialLineCard({ entry, lineIndex, active, selectedNode, locale, nameOf
             </button>
           ))}
         </div>
-      </header>
+      )}
       {entry.line.targets.length === 0 ? (
         <div className="line-draft-panel is-radial">
           <GameIcon type="item" name="blueprint-book" size={56} />
@@ -1515,21 +1522,14 @@ function ColumnMaterialRow({ entry, node, selected, nameOf, onSelect, t }) {
 function FinderColumnsView({ entries, activeLineId, selectedNode, locale, nameOf, onSelectLine, onSelectNode, onReplaceProcess, onChooseTarget, t }) {
   const activeEntry = entries.find((entry) => entry.line.id === activeLineId) ?? entries[0];
   const roots = activeEntry?.result.bomRoots ?? [];
-  const [activeRootId, setActiveRootId] = useState(roots[0]?.id ?? "");
-  const activeRoot = roots.find((root) => root.id === activeRootId) ?? roots[0];
+  const activeRoot = roots[0];
   const [path, setPath] = useState(() => defaultNodePath(activeRoot));
 
   useEffect(() => {
     const nextRoots = activeEntry?.result.bomRoots ?? [];
     const nextRoot = nextRoots[0];
-    setActiveRootId(nextRoot?.id ?? "");
     setPath(defaultNodePath(nextRoot));
   }, [activeEntry?.line.id]);
-
-  useEffect(() => {
-    const root = roots.find((candidate) => candidate.id === activeRootId) ?? roots[0];
-    setPath(defaultNodePath(root));
-  }, [activeRootId, roots.map((root) => root.id).join("|")]);
 
   const lineIndex = useMemo(() => activeEntry ? indexLine(activeEntry) : { nodes: new Map() }, [activeEntry]);
   const pathNodes = path.map((id) => lineIndex.nodes.get(id)).filter(Boolean);
@@ -1570,27 +1570,21 @@ function FinderColumnsView({ entries, activeLineId, selectedNode, locale, nameOf
           </div>
         </section>
 
-        <section className="finder-column is-targets">
-          <header><span>02</span><strong>{t("targetColumn")}</strong><em>{roots.length}</em></header>
-          <div className="finder-column-list">
-            {activeEntry?.line.targets.length === 0 ? (
+        {activeEntry?.line.targets.length === 0 && (
+          <section className="finder-column is-targets">
+            <header><span>02</span><strong>{t("targetColumn")}</strong><em>0</em></header>
+            <div className="finder-column-list">
               <button className="finder-create-target" type="button" onClick={() => onChooseTarget(activeEntry.line)}>
                 <GameIcon type="item" name="blueprint-book" size={38} />
                 <span><strong>{t("noTargetTitle")}</strong><small>{t("openTargetSelector")}</small></span>
               </button>
-            ) : roots.map((root, index) => (
-              <button className={`finder-target-row ${root.id === activeRoot?.id ? "is-selected" : ""}`} type="button" key={root.id} onClick={() => setActiveRootId(root.id)}>
-                <GameIcon type={root.material.type} name={root.material.name} size={32} />
-                <span><strong>{nameOf(root.material.type, root.material.name)}</strong><small>≥ {formatRate(root.demand)} / min</small></span>
-                <em>GOAL {String(index + 1).padStart(2, "0")}</em>
-              </button>
-            ))}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
 
         {activeRoot?.expansion && (
           <section className="finder-column is-root-process">
-            <header><span>03</span><strong>{t("targetAnchor")}</strong><em>1</em></header>
+            <header><span>02</span><strong>{t("rootNode")}</strong><em>1</em></header>
             <div className="finder-column-list">
               <ColumnMaterialRow entry={activeEntry} node={activeRoot.expansion} selected nameOf={nameOf} onSelect={() => selectNodeAtLevel(activeRoot.expansion, 0)} t={t} />
             </div>
@@ -1599,7 +1593,7 @@ function FinderColumnsView({ entries, activeLineId, selectedNode, locale, nameOf
 
         {dependencyColumns.map((column, columnIndex) => (
           <section className="finder-column" key={column.parent.id}>
-            <header><span>{String(columnIndex + 4).padStart(2, "0")}</span><strong>{nameOf(column.parent.material.type, column.parent.material.name)} · {t("inputs")}</strong><em>{column.items.length}</em></header>
+            <header><span>{String(columnIndex + 3).padStart(2, "0")}</span><strong>{nameOf(column.parent.material.type, column.parent.material.name)} · {t("inputs")}</strong><em>{column.items.length}</em></header>
             <div className="finder-column-list">
               {column.items.map((node) => (
                 <ColumnMaterialRow
@@ -1662,6 +1656,7 @@ export function BlockObservationCanvas({
   const targetCount = entries.reduce((total, entry) => total + entry.line.targets.length, 0);
   const instanceCount = entries.reduce((total, entry) => total + (entry.result.bomRoots ?? []).reduce((subtotal, root) => subtotal + countBomNodes(root.expansion), 0), 0);
   const maximumDepth = Math.max(0, ...entries.flatMap((entry) => (entry.result.bomRoots ?? []).map((root) => maxBomDepth(root.expansion))));
+  const allLinesAreDrafts = entries.every((entry) => entry.line.targets.length === 0);
   const sharedProps = {
     entries,
     activeLineId: activeLine.id,
@@ -1684,17 +1679,17 @@ export function BlockObservationCanvas({
           <strong>{t("blockViewHint")}</strong>
         </div>
         <div className="block-view-switch" role="tablist" aria-label={t("blockViews")}>
-          <button className={viewMode === "rail" ? "is-active" : ""} type="button" role="tab" data-testid="view-rail" onClick={() => setViewMode("rail")}>
-            <span>01</span><strong>{t("materialRail")}</strong><small>{t("materialRailHint")}</small>
+          <button className={viewMode === "rail" ? "is-active" : ""} type="button" role="tab" aria-label={t("materialRail")} data-tooltip={t("materialRail")} data-testid="view-rail" onClick={() => setViewMode("rail")}>
+            <img src={materialRailViewIcon} alt="" />
           </button>
-          <button className={viewMode === "radial" ? "is-active" : ""} type="button" role="tab" data-testid="view-radial" onClick={() => setViewMode("radial")}>
-            <span>02</span><strong>{t("dependencyRings")}</strong><small>{t("dependencyRingsHint")}</small>
+          <button className={viewMode === "radial" ? "is-active" : ""} type="button" role="tab" aria-label={t("dependencyRings")} data-tooltip={t("dependencyRings")} data-testid="view-radial" onClick={() => setViewMode("radial")}>
+            <img src={dependencyRingsViewIcon} alt="" />
           </button>
-          <button className={viewMode === "columns" ? "is-active" : ""} type="button" role="tab" data-testid="view-columns" onClick={() => setViewMode("columns")}>
-            <span>03</span><strong>{t("finderColumns")}</strong><small>{t("finderColumnsHint")}</small>
+          <button className={viewMode === "columns" ? "is-active" : ""} type="button" role="tab" aria-label={t("finderColumns")} data-tooltip={t("finderColumns")} data-testid="view-columns" onClick={() => setViewMode("columns")}>
+            <img src={finderColumnsViewIcon} alt="" />
           </button>
-          <button className={viewMode === "sankey" ? "is-active" : ""} type="button" role="tab" data-testid="view-sankey" onClick={() => setViewMode("sankey")}>
-            <span>04</span><strong>{t("flowSankey")}</strong><small>{t("flowSankeyHint")}</small>
+          <button className={viewMode === "sankey" ? "is-active" : ""} type="button" role="tab" aria-label={t("flowSankey")} data-tooltip={t("flowSankey")} data-testid="view-sankey" onClick={() => setViewMode("sankey")}>
+            <img src={flowSankeyViewIcon} alt="" />
           </button>
         </div>
         <button className="block-add-line" type="button" onClick={onAddLine}>{t("addRootLine")}</button>
@@ -1705,11 +1700,17 @@ export function BlockObservationCanvas({
         <span><small>{t("targetsCount")}</small><strong>{targetCount}</strong></span>
         <span><small>{t("instances")}</small><strong>{instanceCount}</strong></span>
         <span><small>{t("dependencyDepth")}</small><strong>{maximumDepth}</strong></span>
-        <em>{t("sameMaterialIndependent")}</em>
       </div>
 
       <div className="block-view-stage">
-        {viewMode === "rail" && <MaterialRailView {...sharedProps} />}
+        {viewMode === "rail" && allLinesAreDrafts && (
+          <div className="line-draft-panel is-block-draft">
+            <GameIcon type="item" name="blueprint-book" size={56} />
+            <span><strong>{t("noTargetTitle")}</strong><small>{t("noTargetHint")}</small></span>
+            <button type="button" onClick={() => onChooseTarget(activeLine)}>{t("openTargetSelector")}</button>
+          </div>
+        )}
+        {viewMode === "rail" && !allLinesAreDrafts && <MaterialRailView {...sharedProps} />}
         {viewMode === "radial" && <DependencyRingsView {...sharedProps} />}
         {viewMode === "columns" && <FinderColumnsView {...sharedProps} />}
         {viewMode === "sankey" && <FlowSankeyView {...sharedProps} />}

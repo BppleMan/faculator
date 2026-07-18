@@ -18,15 +18,19 @@ const UI = {
   "zh-CN": {
     plan: "计划",
     newPlan: "新建计划",
+    closePlan: "关闭计划",
+    keepOnePlan: "至少保留一个计划",
     block: "生产区块",
     newBlock: "新增 Block",
-    rootLine: "Root Line",
-    newLine: "新增 Root Line",
+    deleteBlock: "删除 Block",
+    keepOneBlock: "至少保留一个 Block",
+    rootLine: "生产线",
+    newLine: "新增生产线",
     independent: "独立解算",
     localDomain: "局部解算域",
     goals: "交付目标",
     constraints: "净边界产出约束",
-    promote: "提升现有产物为目标",
+    promote: "从现有产物新建生产线",
     solve: "应用约束并解算",
     solving: "正在配平…",
     feasible: "目标可满足",
@@ -34,12 +38,13 @@ const UI = {
     pending: "约束已修改",
     minimum: "不少于",
     perMinute: "/ 分钟",
+    minuteUnit: "分钟",
     remove: "移除",
     fit: "适配视图",
     focus: "聚焦选择",
     changeRecipe: "目标百科",
     blockViews: "Block 多 Line 观察视图",
-    blockViewHint: "当前 ProductionBlock 的所有 Root Line 都留在同一画布中；切换视图只改变观察方式。",
+    blockViewHint: "当前 ProductionBlock 的所有 Production Line 都留在同一画布中；切换视图只改变观察方式。",
     materialRail: "物料轨道",
     materialRailHint: "目标物品 → 配方实例",
     recipeRailRule: "除目标外均为配方实例 · 每条边是一种独立物料",
@@ -82,7 +87,7 @@ const UI = {
     dependencyRings: "依赖环",
     dependencyRingsHint: "DaisyDisk 式全链占比",
     finderColumns: "分栏钻取",
-    finderColumnsHint: "Line → 目标 → 逐级输入",
+    finderColumnsHint: "Production Line → Root 节点 → 逐级输入",
     flowSankey: "流量桑基",
     flowSankeyHint: "标准守恒 · 线性机时带宽",
     flowInspector: "守恒负荷实例",
@@ -102,12 +107,13 @@ const UI = {
     sankeyInstanceHint: "每个节点都严格分解为本级加工与独立上游子树；同名物料实例不合并。",
     sankeyLineRule: "线性机时带宽 · 节点严格守恒 · 外供虚线",
     targetAnchor: "目标锚点",
+    rootNode: "Root 节点",
     instanceLabel: "需求实例",
     instanceInspector: "实例检查器",
     instances: "独立实例",
     sameMaterialIndependent: "同名物料不合并 · 每个需求实例独立展开",
     radialInstanceHint: "每一段圆弧都对应一个独立需求实例；同名物料会保留为不同圆弧。",
-    lineColumn: "Root Lines",
+    lineColumn: "生产线",
     targetColumn: "交付目标",
     topologyView: "ProductionLine 依赖树",
     topologyGenerated: "按下游需求展开的全链路 BOM",
@@ -147,7 +153,7 @@ const UI = {
     singleRecipeNotice: "替换后，当前 ProductionLine 会收敛为一个单配方解算域；目标默认取该配方的主产物。",
     choosePrimaryTarget: "选择第一个目标",
     noTargetTitle: "尚未选择生产目标",
-    noTargetHint: "这个 Root Line 目前只是草稿。选择目标后，才会建立第一条配方与交付约束。",
+    noTargetHint: "这个 Production Line 目前只是草稿。选择目标后，才会建立 root 配方节点。",
     openTargetSelector: "打开目标百科",
     targetEncyclopedia: "目标百科",
     targetEncyclopediaHint: "按游戏 item group、subgroup 与 order 原序浏览；确认目标与速率后，系统自动展开 BOM。",
@@ -162,7 +168,7 @@ const UI = {
     noProducerRecipe: "game-data 中没有可用生产配方",
     selectEntryHint: "从左侧百科选择一个目标",
     targetRate: "目标速率",
-    createLineWithTarget: "创建 Root Line",
+    createLineWithTarget: "创建 Production Line",
     applyTarget: "设为当前 Line 目标",
     draftLine: "无目标草稿",
     itemType: "物品",
@@ -232,13 +238,13 @@ const UI = {
     followsParent: "子级目标跟随父级边界需求",
     customChildRate: "子级独立目标",
     boundaryContract: "边界契约",
-    noBoundary: "当前过程仍在 Root Line 解算域内",
-    targetDialog: "提升现有产物",
-    targetDialogHint: "只能选择当前 ProductionLine 工艺图已经能够产出的物料；这里不提供全局物料搜索。",
+    noBoundary: "当前过程仍在 Production Line 解算域内",
+    targetDialog: "从现有产物新建 Production Line",
+    targetDialogHint: "每个交付目标对应一个 Production Line。这里只能从当前工艺图已经能够产出的物料中创建新的生产线。",
     alreadyTarget: "已是目标",
-    addAsTarget: "设为目标",
-    allPromoted: "当前可产出物都已成为目标。你可以先移除一个目标，再通过这里提升回来。",
-    lineDialog: "选择 Root Line 模板",
+    addAsTarget: "新建 Production Line",
+    allPromoted: "当前没有可用于新建 Production Line 的其它产物。",
+    lineDialog: "选择 Production Line 模板",
     oilTemplate: "多目标炼油配平",
     acidTemplate: "硫酸需求展开",
     plasticTemplate: "塑料需求展开",
@@ -252,7 +258,7 @@ const UI = {
     loadFailed: "无法装载真实数据源",
     retry: "重新加载",
     blocks: "Blocks",
-    roots: "Root Lines",
+    roots: "条生产线",
     targetsCount: "目标",
     recipes: "真实配方",
     netBoundaryNote: "目标比较的是 ProductionLine 内部消耗之后的净边界产出。",
@@ -272,20 +278,24 @@ const UI = {
     machineCount: "取整机器",
     blockCanvas: "Block 组织画布",
     switchCanvas: "切换画布",
-    organizesOnly: "组织容器 · Root Line 不共同解算",
-    rootDomains: "Root 独立域",
+    organizesOnly: "组织容器 · Production Line 独立解算",
+    rootDomains: "生产线",
     childDomains: "子级局部域",
     currentBlock: "当前 Block",
-    addRootLine: "新增 Root Line",
+    addRootLine: "新增生产线",
     sourceLabel: "game-data.json + icons + i18n",
   },
   en: {
     plan: "Plan",
     newPlan: "New plan",
+    closePlan: "Close plan",
+    keepOnePlan: "Keep at least one plan",
     block: "Production blocks",
     newBlock: "Add block",
-    rootLine: "Root Line",
-    newLine: "Add Root Line",
+    deleteBlock: "Delete Block",
+    keepOneBlock: "Keep at least one Block",
+    rootLine: "Production Line",
+    newLine: "Add Production Line",
     independent: "Independent solve",
     localDomain: "Local solve domain",
     goals: "Delivery targets",
@@ -298,12 +308,13 @@ const UI = {
     pending: "Constraints changed",
     minimum: "At least",
     perMinute: "/ min",
+    minuteUnit: "min",
     remove: "Remove",
     fit: "Fit view",
     focus: "Focus selection",
     changeRecipe: "Target encyclopedia",
     blockViews: "Block multi-Line views",
-    blockViewHint: "Every Root Line in this ProductionBlock stays on one canvas; switching views only changes how it is observed.",
+    blockViewHint: "Every Production Line in this ProductionBlock stays on one canvas; switching views only changes how it is observed.",
     materialRail: "Material rail",
     materialRailHint: "Target item → recipe instances",
     recipeRailRule: "Every graph node after the target is a recipe instance · one material per edge",
@@ -346,7 +357,7 @@ const UI = {
     dependencyRings: "Dependency rings",
     dependencyRingsHint: "DaisyDisk-style full-chain share",
     finderColumns: "Column drilldown",
-    finderColumnsHint: "Line → target → upstream inputs",
+    finderColumnsHint: "Production Line → root node → upstream inputs",
     flowSankey: "Flow Sankey",
     flowSankeyHint: "Conserved · linear machine-time width",
     flowInspector: "Conserved workload instance",
@@ -366,12 +377,13 @@ const UI = {
     sankeyInstanceHint: "Every node decomposes exactly into local processing and independent upstream subtrees; repeated materials never merge.",
     sankeyLineRule: "Linear machine-time width · strict node conservation · external guides",
     targetAnchor: "Target anchor",
+    rootNode: "Root node",
     instanceLabel: "Demand instance",
     instanceInspector: "Instance inspector",
     instances: "Independent instances",
     sameMaterialIndependent: "Same-named materials never merge · every demand instance expands independently",
     radialInstanceHint: "Each arc is one demand instance; identical materials remain separate arcs.",
-    lineColumn: "Root Lines",
+    lineColumn: "Production Lines",
     targetColumn: "Delivery targets",
     topologyView: "ProductionLine dependency tree",
     topologyGenerated: "Full-chain BOM expanded from downstream demand",
@@ -411,7 +423,7 @@ const UI = {
     singleRecipeNotice: "Replacing collapses the current ProductionLine into one single-recipe solve domain; its main product becomes the default target.",
     choosePrimaryTarget: "Choose first target",
     noTargetTitle: "No production target selected",
-    noTargetHint: "This Root Line is still a draft. Its first recipe and delivery constraint are created only after you choose a target.",
+    noTargetHint: "This Production Line is still a draft. Its root recipe node is created after you choose a target.",
     openTargetSelector: "Open target encyclopedia",
     targetEncyclopedia: "Target encyclopedia",
     targetEncyclopediaHint: "Browse in the game's item group, subgroup, and order sequence; confirm a target and rate, then the system expands its BOM.",
@@ -426,7 +438,7 @@ const UI = {
     noProducerRecipe: "No producing recipe is available in game-data",
     selectEntryHint: "Choose a target from the encyclopedia",
     targetRate: "Target rate",
-    createLineWithTarget: "Create Root Line",
+    createLineWithTarget: "Create Production Line",
     applyTarget: "Set current Line target",
     draftLine: "Targetless draft",
     itemType: "Item",
@@ -496,13 +508,13 @@ const UI = {
     followsParent: "Child target follows parent boundary demand",
     customChildRate: "Independent child target",
     boundaryContract: "Boundary contract",
-    noBoundary: "This process remains inside the Root Line solve domain",
-    targetDialog: "Promote existing output",
-    targetDialogHint: "Only materials already produced by this ProductionLine graph are available. There is no global material search here.",
+    noBoundary: "This process remains inside the Production Line solve domain",
+    targetDialog: "Create a Production Line from an output",
+    targetDialogHint: "Each delivery target owns one Production Line. A new line can only start from a material already produced by this graph.",
     alreadyTarget: "Already a target",
-    addAsTarget: "Set target",
-    allPromoted: "Every producible material is already a target. Remove one and promote it again to exercise this flow.",
-    lineDialog: "Choose a Root Line template",
+    addAsTarget: "Create Production Line",
+    allPromoted: "No other output is available for a new Production Line.",
+    lineDialog: "Choose a Production Line template",
     oilTemplate: "Multi-target oil balance",
     acidTemplate: "Sulfuric acid expansion",
     plasticTemplate: "Plastic expansion",
@@ -516,7 +528,7 @@ const UI = {
     loadFailed: "Could not load the real data source",
     retry: "Reload",
     blocks: "Blocks",
-    roots: "Root Lines",
+    roots: "Production Lines",
     targetsCount: "Targets",
     recipes: "Real recipes",
     netBoundaryNote: "Targets compare against net boundary output after internal consumption.",
@@ -536,11 +548,11 @@ const UI = {
     machineCount: "Rounded machines",
     blockCanvas: "Block organization canvas",
     switchCanvas: "Switch canvas",
-    organizesOnly: "Organization container · Root Lines never joint-solve",
-    rootDomains: "Independent Root domains",
+    organizesOnly: "Organization container · Production Lines solve independently",
+    rootDomains: "Production Lines",
     childDomains: "Child local domains",
     currentBlock: "Current Block",
-    addRootLine: "Add Root Line",
+    addRootLine: "Add Production Line",
     sourceLabel: "game-data.json + icons + i18n",
   },
 };
@@ -568,24 +580,27 @@ function StatusBadge({ status, dirty, t, compact = false }) {
   );
 }
 
-function PlanTabs({ plans, activePlan, locale, onSelect, onAdd, t }) {
+function PlanTabs({ plans, activePlan, locale, onSelect, onAdd, onClose, t }) {
   return (
     <nav className="plan-tabs" aria-label={t("plan")}>
       {plans.map((plan) => {
-        const rootCount = plan.blocks.reduce((count, block) => count + block.lines.length, 0);
         const dirty = plan.blocks.some((block) => block.lines.some((line) => line.dirty));
+        const active = plan.id === activePlan.id;
         return (
-          <button
-            className={`plan-tab ${plan.id === activePlan.id ? "is-active" : ""}`}
-            key={plan.id}
-            onClick={() => onSelect(plan)}
-          >
-            <span className="plan-tab-name">{localeText(plan.name, locale)}</span>
-            <span className="plan-tab-meta">
-              {plan.blocks.length} {t("blocks")} · {rootCount} {t("roots")}
-            </span>
-            {dirty && <span className="plan-tab-dirty" aria-label={t("pending")} />}
-          </button>
+          <span className={`plan-tab-shell ${active ? "is-active" : ""}`} key={plan.id}>
+            <button className={`plan-tab ${active ? "is-active" : ""}`} onClick={() => onSelect(plan)}>
+              <span className="plan-tab-name">{localeText(plan.name, locale)}</span>
+              {dirty && <span className="plan-tab-dirty" aria-label={t("pending")} />}
+            </button>
+            <button
+              className="plan-tab-close"
+              type="button"
+              aria-label={`${t("closePlan")}：${localeText(plan.name, locale)}`}
+              title={plans.length === 1 ? t("keepOnePlan") : t("closePlan")}
+              disabled={plans.length === 1}
+              onClick={() => onClose(plan)}
+            >×</button>
+          </span>
         );
       })}
       <button className="plan-add" onClick={onAdd} title={t("newPlan")}>
@@ -595,7 +610,7 @@ function PlanTabs({ plans, activePlan, locale, onSelect, onAdd, t }) {
   );
 }
 
-function Sidebar({ plan, activeBlock, locale, onSelectBlock, onAddBlock, t }) {
+function Sidebar({ plan, activeBlock, locale, onSelectBlock, onAddBlock, onDeleteBlock, t }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-heading">
@@ -610,27 +625,28 @@ function Sidebar({ plan, activeBlock, locale, onSelectBlock, onAddBlock, t }) {
 
       <div className="block-list">
         {plan.blocks.map((block, blockIndex) => (
-          <button
-            className={`block-canvas-card block-switcher ${block.id === activeBlock.id ? "is-active" : ""}`}
-            key={block.id}
-            onClick={() => onSelectBlock(block)}
-          >
-            <span className="block-switcher-icon">
-              <GameIcon type="item" name="blueprint-book" size={30} />
-            </span>
-            <span className="block-switcher-copy">
-              <small>BLOCK {String(blockIndex + 1).padStart(2, "0")}</small>
-              <strong>{localeText(block.name, locale)}</strong>
-              <em>{block.lines.length} {t("roots")}</em>
-            </span>
-            <i className={block.lines.some((line) => line.dirty) ? "is-pending" : block.lines.every((line) => line.targets.length === 0) ? "is-draft" : "is-ready"} />
-          </button>
+          <div className={`block-canvas-card block-switcher ${block.id === activeBlock.id ? "is-active" : ""}`} key={block.id}>
+            <button className="block-switcher-main" type="button" onClick={() => onSelectBlock(block)}>
+              <span className="block-switcher-icon">
+                <GameIcon type="item" name="blueprint-book" size={30} />
+              </span>
+              <span className="block-switcher-copy">
+                <small>BLOCK {String(blockIndex + 1).padStart(2, "0")}</small>
+                <strong>{localeText(block.name, locale)}</strong>
+                <em>{block.lines.length} {t("roots")}</em>
+              </span>
+              <i className={block.lines.some((line) => line.dirty) ? "is-pending" : block.lines.every((line) => line.targets.length === 0) ? "is-draft" : "is-ready"} />
+            </button>
+            <button
+              className="block-switcher-delete"
+              type="button"
+              aria-label={`${t("deleteBlock")}：${localeText(block.name, locale)}`}
+              title={plan.blocks.length === 1 ? t("keepOneBlock") : t("deleteBlock")}
+              disabled={plan.blocks.length === 1}
+              onClick={() => onDeleteBlock(block)}
+            >×</button>
+          </div>
         ))}
-      </div>
-
-      <div className="sidebar-footnote">
-        <span className="status-dot status-feasible" />
-        <p>{t("isolationNote")}</p>
       </div>
     </aside>
   );
@@ -1432,7 +1448,7 @@ function GoalRail({ line, result, nameOf, onTargetChange, onRemoveTarget, onProm
                   value={target.minimum}
                   onChange={(event) => onTargetChange(index, event.target.value)}
                 />
-                <span>{t("perMinute")}</span>
+                <span>{t("minuteUnit")}</span>
               </label>
               <div className="goal-result-mini">
                 <span>{t("netOutput")}</span>
@@ -2213,6 +2229,23 @@ export function App() {
     setDrawerCollapsed(true);
   };
 
+  const closePlan = (planToClose) => {
+    if (plans.length === 1) return;
+    if (planToClose.id === activePlan.id) {
+      const currentIndex = plans.findIndex((plan) => plan.id === planToClose.id);
+      const nextPlan = plans[currentIndex + 1] ?? plans[currentIndex - 1];
+      const nextBlock = nextPlan.blocks[0];
+      const nextLine = nextBlock.lines[0];
+      setActivePlanId(nextPlan.id);
+      setActiveBlockId(nextBlock.id);
+      setActiveLineId(nextLine.id);
+      setSelectedNode("");
+      setDrawerCollapsed(true);
+      setGoalPanelOpen(false);
+    }
+    setPlans((current) => current.filter((plan) => plan.id !== planToClose.id));
+  };
+
   const addBlock = () => {
     const suffix = `${Date.now()}`;
     const line = createDraftLine(suffix);
@@ -2227,6 +2260,22 @@ export function App() {
     setActiveLineId(line.id);
     setSelectedNode("");
     setDrawerCollapsed(true);
+  };
+
+  const deleteBlock = (blockToDelete) => {
+    if (activePlan.blocks.length === 1) return;
+    if (blockToDelete.id === activeBlock.id) {
+      const currentIndex = activePlan.blocks.findIndex((block) => block.id === blockToDelete.id);
+      const nextBlock = activePlan.blocks[currentIndex + 1] ?? activePlan.blocks[currentIndex - 1];
+      setActiveBlockId(nextBlock.id);
+      setActiveLineId(nextBlock.lines[0].id);
+      setSelectedNode("");
+      setDrawerCollapsed(true);
+      setGoalPanelOpen(false);
+    }
+    setPlans((current) => current.map((plan) => plan.id === activePlan.id
+      ? { ...plan, blocks: plan.blocks.filter((block) => block.id !== blockToDelete.id) }
+      : plan));
   };
 
   const applyTargetSelection = ({ entry, recipe, minimum, mode }) => {
@@ -2272,11 +2321,20 @@ export function App() {
   };
 
   const promoteTarget = (product) => {
-    updateActiveLine((line) => ({
-      ...line,
-      targets: [...line.targets, { ...product, minimum: 60 }],
-      dirty: true,
+    const recipe = recipesForMaterial(resources.catalog, product.type, product.name)[0];
+    if (!recipe) return;
+    const suffix = `${Date.now()}`;
+    const line = createLineFromRecipe(recipe, suffix, product, 60);
+    line.title = localized(
+      `${translationFor(resources.translations["zh-CN"], product.type, product.name)}生产线`,
+      `${translationFor(resources.translations.en, product.type, product.name)} line`,
+    );
+    setPlans((current) => current.map((plan) => plan.id !== activePlan.id ? plan : {
+      ...plan,
+      blocks: plan.blocks.map((block) => block.id === activeBlock.id ? { ...block, lines: [...block.lines, line] } : block),
     }));
+    setActiveLineId(line.id);
+    setSelectedNode(recipe.name);
     setDialog(null);
   };
 
@@ -2345,9 +2403,8 @@ export function App() {
           <GameIcon type="item" name="blueprint" size={42} className="brand-mark" />
           <span><strong>Faculator</strong><small>PRODUCTION SYSTEMS</small></span>
         </div>
-        <PlanTabs plans={plans} activePlan={activePlan} locale={locale} onSelect={selectPlan} onAdd={addPlan} t={t} />
+        <PlanTabs plans={plans} activePlan={activePlan} locale={locale} onSelect={selectPlan} onAdd={addPlan} onClose={closePlan} t={t} />
         <div className="header-tools">
-          <span className="data-source"><i />{t("dataReady")}<small>{t("sourceLabel")}</small></span>
           <div className="locale-switch" aria-label="Language">
             <button className={locale === "zh-CN" ? "is-active" : ""} onClick={() => setLocale("zh-CN")}>中</button>
             <button className={locale === "en" ? "is-active" : ""} onClick={() => setLocale("en")}>EN</button>
@@ -2362,6 +2419,7 @@ export function App() {
           locale={locale}
           onSelectBlock={selectBlock}
           onAddBlock={addBlock}
+          onDeleteBlock={deleteBlock}
           t={t}
         />
 
@@ -2379,7 +2437,7 @@ export function App() {
                   </div>
                 </div>
                 <div className="line-header-actions">
-                  <span className="line-domain-caption">{activeBlock.lines.length} ROOT · {t("organizesOnly")}</span>
+                  <span className="line-domain-caption">{activeBlock.lines.length} LINE · {t("organizesOnly")}</span>
                   <button className={`goal-panel-toggle ${goalPanelOpen ? "is-active" : ""}`} type="button" onClick={() => setGoalPanelOpen((value) => !value)}>{t("goals")}</button>
                 </div>
               </div>
