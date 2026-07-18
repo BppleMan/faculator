@@ -14,6 +14,22 @@
       <sourceFolder url="file://$MODULE_DIR$/faculator-macros/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/faculator-x/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/faculator-recycle/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/app/faculator-app/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/data/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/faculator-core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/faculator-data/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/faculator-macros/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/faculator-migration/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/faculator-recycle/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/faculator-solver/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/faculator-x/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/macros/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/migration/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/recycle/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/solver/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/library/x/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
