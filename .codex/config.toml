@@ -1,0 +1,9 @@
+[mcp_servers.angular-cli]
+command = "pnpm"
+args = ["exec", "ng", "mcp"]
+cwd = "../ui/faculator-web"
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+enabled = true
+required = false
+default_tools_approval_mode = "writes"

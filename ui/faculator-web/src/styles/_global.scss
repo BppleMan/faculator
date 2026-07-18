@@ -1,0 +1,12 @@
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    font-family: var(--fac-typography-body-font-family);
+    font-size: var(--fac-typography-body-font-size);
+    line-height: var(--fac-typography-body-line-height);
+    color: var(--fac-color-text-primary);
+    background: var(--fac-color-surface-primary);
+}

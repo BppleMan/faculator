@@ -1,0 +1,11 @@
+interface:
+    display_name: "Build Faculator Web"
+    short_description: "Govern Faculator Angular development workflows"
+    default_prompt: "Use $build-faculator-web to create or evolve the Faculator Angular application under the repository engineering rules."
+
+dependencies:
+    tools:
+        - type: "mcp"
+          value: "angular-cli"
+          description: "Angular CLI workspace analysis, documentation, build, test, and development-server tools"
+          transport: "stdio"
