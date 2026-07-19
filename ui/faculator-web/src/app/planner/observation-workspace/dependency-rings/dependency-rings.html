@@ -1,0 +1,47 @@
+<div class="rings-view" data-testid="block-view-rings">
+    @for (entry of observations(); track entry.line.id; let lineIndex = $index) {
+        <section class="line-card" [class.is-active]="entry.line.id === activeLineId()">
+            @if (selectedRoot(entry); as root) {
+                @if (entry.result.roots.length > 1) {
+                    <nav class="root-tabs" [attr.aria-label]="locale() === 'zh-CN' ? '切换交付目标根节点' : 'Switch delivery target root'">
+                        @for (candidate of entry.result.roots; track candidate.id; let rootIndex = $index) {
+                            <button type="button" [class.is-active]="candidate.id === root.id" [attr.aria-pressed]="candidate.id === root.id" [attr.aria-label]="nameOf()(candidate.material.type, candidate.material.name)" (click)="selectRoot(entry.line.id, candidate.id)">
+                                <app-game-icon [type]="candidate.material.type" [name]="candidate.material.name" [size]="22" />
+                                <span>{{ (rootIndex + 1).toString().padStart(2, "0") }}</span>
+                            </button>
+                        }
+                    </nav>
+                }
+                <div class="disk-layout">
+                    <div class="disk-stage">
+                        <app-dependency-ring-canvas [root]="root" [processes]="entry.result.processes" [selectedProcessId]="selectedNode(root).processId" [nameOf]="nameOf()" (nodeSelected)="selectNode($event)" />
+                        <div class="target-core">
+                            <app-game-icon [type]="root.material.type" [name]="root.material.name" [size]="58" />
+                            <strong>{{ nameOf()(root.material.type, root.material.name) }}</strong>
+                            <em>{{ root.demand.toFixed(2) }} / min</em><small>TARGET ANCHOR</small>
+                        </div>
+                    </div>
+                    <aside class="inspector">
+                        <span class="eyebrow">实例检查器</span>
+                        @if (selectedNode(root); as node) {
+                            <div class="material"><app-game-icon [type]="node.material.type" [name]="node.material.name" [size]="48" /><span><strong>{{ nameOf()(node.material.type, node.material.name) }}</strong><small>解算实例 {{ node.nodePath }}</small></span></div>
+                            <dl><div><dt>分支需求</dt><dd>{{ node.demand.toFixed(2) }} / min</dd></div><div><dt>依赖层级</dt><dd>{{ node.nodePath.split(".").length - 1 }}</dd></div><div><dt>输入分支</dt><dd>{{ node.children.length }}</dd></div></dl>
+                            @if (selectedProcess(entry, node); as process) {
+                            <div class="recipe"><app-game-icon type="recipe" [name]="process.recipe.name" [size]="34" /><span><small>生产配方</small><strong>{{ nameOf()("recipe", process.recipe.name) }}</strong></span><button type="button" (click)="replacementRequested.emit(process)">更换配方</button></div>
+                            } @else {
+                                <div class="boundary">边界流 · 原始资源</div>
+                            }
+                        }
+                        <p>环面积表示各独立实例的上游占比；选择环段可检查对应生产实例。</p>
+                    </aside>
+                </div>
+            } @else {
+                <section class="ring-draft-panel">
+                    <app-game-icon type="item" name="blueprint-book" [size]="56" />
+                    <span><strong>{{ locale() === "zh-CN" ? "尚未选择生产目标" : "No production target" }}</strong><small>{{ locale() === "zh-CN" ? "选择目标后建立根配方节点。" : "Choose a target to build the root recipe node." }}</small></span>
+                    <button type="button" class="fac-button fac-button--primary" (click)="targetRequested.emit(entry.line.id)">{{ locale() === "zh-CN" ? "打开目标百科" : "Open target index" }}</button>
+                </section>
+            }
+        </section>
+    }
+</div>

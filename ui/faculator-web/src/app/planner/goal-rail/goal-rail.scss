@@ -1,0 +1,228 @@
+:host {
+    display: block;
+    flex: 0 0 304px;
+    flex-direction: column;
+    overflow: hidden auto;
+    min-width: 0;
+    padding: 18px 17px 88px;
+
+    header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 42px;
+    }
+
+    header span {
+        display: grid;
+        gap: 5px;
+    }
+
+    small {
+        font: 600 10px "DIN Alternate", sans-serif;
+        color: #e1a52f;
+    }
+
+    strong {
+        font: 700 20px "Avenir Next Condensed", "PingFang SC", sans-serif;
+        color: #f1e8d4;
+    }
+
+    header em {
+        display: grid;
+        box-sizing: border-box;
+        width: 36px;
+        height: 36px;
+        font: 700 13px "DIN Alternate", sans-serif;
+        font-style: normal;
+        color: #e7b84f;
+        padding: 0;
+        border: 1px solid #9c742c;
+        background: #2d281b;
+        place-items: center;
+    }
+
+    > p {
+        font: 400 11px "Avenir Next", "PingFang SC", sans-serif;
+        line-height: 1.2;
+        color: #89847a;
+        margin: 8px 0 10px;
+    }
+
+    header small {
+        font-size: 9px;
+    }
+
+    header strong {
+        font-size: 19px;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: calc(100% - 92px);
+        gap: 0;
+        padding: 28px 20px;
+        border: 2px solid #070808;
+        background-color: #0e1111;
+        background-image: linear-gradient(#586c7009 1px, transparent 1px), linear-gradient(90deg, #586c7009 1px, transparent 1px);
+        background-size: 22px 22px;
+        box-shadow: inset 0 0 0 2px #393b37, inset 0 10px 24px #000;
+    }
+
+    .empty-state strong {
+        font-size: 18px;
+        margin-top: 20px;
+    }
+
+    .empty-state small {
+        max-width: 230px;
+        font: 400 10px/1.55 "Avenir Next", "PingFang SC", sans-serif;
+        color: #77736c;
+        margin-top: 8px;
+    }
+
+    .empty-state button {
+        font-size: 11px;
+        width: 100%;
+        min-height: 46px;
+        margin-top: 24px;
+        border-width: 1px;
+    }
+
+    button {
+        font: 700 9px "Avenir Next", "PingFang SC", sans-serif;
+        color: #201500;
+        width: calc(100% - 2px);
+        min-height: 36px;
+        align-self: center;
+        border: 2px solid #6e4b0b;
+        background: linear-gradient(#efc461, #bd7d15);
+        box-shadow: inset 0 0 0 2px #f3d078;
+        cursor: pointer;
+    }
+
+    .promote-button {
+        color: #c4bba9;
+        border-color: #4b5a67;
+        background-color: #19232d;
+    }
+
+    .solve-button {
+        color: #221505;
+        border-color: #5c3909;
+        background-color: #e8a934;
+    }
+
+    .target-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    article {
+        display: grid;
+        grid-template-columns: 38px 1fr 10px;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid #555149;
+        background: #111411;
+    }
+
+    article span {
+        display: grid;
+    }
+
+    article > i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #8f3e2c;
+        box-shadow: 0 0 8px #8f3e2c;
+
+        &.is-pending {
+            background: #c68a21;
+            box-shadow: 0 0 8px #c68a21;
+        }
+
+        &.is-met {
+            background: #5f9b77;
+            box-shadow: 0 0 8px #5f9b77;
+        }
+    }
+
+    article label,
+    article div {
+        display: flex;
+        grid-column: 1 / -1;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    article input {
+        color: #f1e8d4;
+        width: 100%;
+        min-width: 0;
+        padding: 8px;
+        border: 1px solid #555149;
+        background: #090c0a;
+    }
+
+    article em {
+        font: 10px "DIN Alternate", sans-serif;
+        font-style: normal;
+        color: #9a9488;
+        white-space: nowrap;
+    }
+
+    article div button {
+        font-size: 7px;
+        color: #65645f;
+        width: auto;
+        height: 14px;
+        min-height: 14px;
+        padding: 2px 4px;
+        border: 0;
+        background-color: transparent;
+        box-shadow: none;
+    }
+
+    .promote-button,
+    .solve-button {
+        margin-top: 10px;
+    }
+
+    .promote-button {
+        color: #c4bba9;
+        border-color: #4b5a67;
+        background-color: #19232d;
+    }
+
+    .solve-button:disabled {
+        opacity: 0.62;
+        cursor: wait;
+    }
+
+    .solve-hint {
+        font: 10px/1.5 "Avenir Next", "PingFang SC", sans-serif;
+        color: #77736c;
+    }
+
+    &::after {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+        z-index: 7;
+        height: 56px;
+        border: 4px double #3b3b35;
+        background: url("/design-assets/ui/foundry-vent-panel.png") center / cover;
+        box-shadow: inset 0 0 10px #000000;
+        content: "";
+        pointer-events: none;
+    }
+}

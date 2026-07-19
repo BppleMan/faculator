@@ -1,0 +1,25 @@
+:host { display: block; position: absolute; z-index: 30; top: calc(100% + 5px); left: 50%; width: 218px; transform: translateX(-50%); }
+.recipe-module-picker { display: grid; grid-template-rows: 24px 28px 15px auto 22px; overflow: hidden; box-sizing: border-box; color: #e5e2d9; border: 2px solid #9a8252; border-top: 4px solid #e6b151; background: #2b2923 url("/design-assets/ui/factory-gunmetal-panel-v1.png") 0 0 / 320px 320px; box-shadow: 0 14px 34px #000000b8, inset 0 1px #fff5da38, inset 0 -2px #000000b3; }
+header, footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 3px 5px 3px 7px; border-bottom: 1px solid #4d565a; background: #11171bcc; }
+header span { display: grid; min-width: 0; }
+header strong { color: #ffc765; font-size: 6px; }
+header small { overflow: hidden; color: #9ca5a8; font-size: 5px; text-overflow: ellipsis; white-space: nowrap; }
+button { position: relative; display: grid; place-items: center; padding: 0; color: #c4bba9; border: 2px solid #7a7363; background-color: #171715; background-image: none !important; box-shadow: inset 0 1px #fff5da26, inset 0 -2px #000000b8, 0 1px #080807 !important; cursor: pointer; }
+button:hover, button.is-active { border-color: #f1b44c; background-color: #4b3c21; }
+button:disabled { opacity: .25; cursor: not-allowed; }
+header button { min-width: 34px; height: 19px; padding: 0 6px; color: #f5e8c8; border: 1px solid #80755e; background-color: #3a382f; background-image: url("/design-assets/ui/foundry-panel-texture.png") !important; background-size: 260px 260px !important; box-shadow: inset 0 1px #fff5d92e, inset 0 -2px #000000a3, 0 1px #000000cc !important; font-size: 5px; }
+header button:hover, footer button:hover { color: #fff7df; border-color: #e2b55e; background-color: #54472e; }
+nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 3px 4px; background: #0c1215; }
+nav button { grid-template-columns: 18px 1fr; color: #ded6c4; border: 2px solid #6e6758; background-color: #302e28; background-image: url("/design-assets/ui/factory-gunmetal-panel-v1.png") !important; background-size: 256px 256px !important; box-shadow: inset 0 1px #fff5da21, inset 0 -2px #000000a1 !important; font-size: 5px; }
+nav button.is-active { color: #fff3d5; border-color: #f1b44c; background-color: #493a21; box-shadow: inset 0 0 0 1px #ffdc882e, inset 0 -3px #6b4821 !important; }
+.quality-head, .module-row { display: grid; grid-template-columns: 20px repeat(5, 1fr); gap: 2px; padding: 0 4px; }
+.quality-head { align-items: center; border-block: 1px solid #303a3f; background: #101619; }
+.quality-head span { display: flex; align-items: center; justify-content: center; gap: 2px; }
+.quality-head em { color: #8f999d; font: 5px monospace; font-style: normal; }
+.module-matrix { display: grid; align-content: center; gap: 2px; padding: 3px 0; background: #0b1114; }
+.module-row { min-height: 28px; }
+.module-row > span { display: grid; place-items: center; color: #9aa4a8; font: 6px monospace; }
+.module-row button { min-width: 0; height: 28px; }
+.quality-badge { position: absolute; top: 1px; right: 1px; }
+footer { justify-content: flex-end; border-top: 1px solid #4d565a; border-bottom: 0; }
+footer button { grid-template-columns: 18px auto; min-width: 86px; height: 19px; gap: 3px; padding-inline: 6px; color: #f5e8c8; border: 1px solid #80755e; background-color: #3a382f; background-image: url("/design-assets/ui/foundry-panel-texture.png") !important; background-size: 260px 260px !important; box-shadow: inset 0 1px #fff5d92e, inset 0 -2px #000000a3, 0 1px #000000cc !important; font-size: 5px; }

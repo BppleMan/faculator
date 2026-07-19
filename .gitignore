@@ -26,3 +26,8 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# Workspace-local pnpm cache used by the development toolchain.
+.pnpm-store/
+
+# Local browser comparison artifacts.
+.playwright-cli/

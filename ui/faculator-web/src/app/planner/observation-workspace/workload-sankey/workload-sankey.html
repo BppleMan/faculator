@@ -1,0 +1,53 @@
+<div class="sankey-view" data-testid="block-view-sankey">
+    @for (entry of observations(); track entry.line.id; let lineIndex = $index) {
+        <section class="line-lane" [class.is-active]="entry.line.id === activeLineId()">
+            <header>
+                <button type="button" class="line-selector" [attr.aria-pressed]="entry.line.id === activeLineId()" (click)="lineSelected.emit(entry.line.id)">
+                    <span class="line-code">LINE {{ (lineIndex + 1).toString().padStart(2, "0") }}</span>
+                    <span class="line-icons">
+                        @if (entry.line.targets[0]; as target) {
+                            <app-game-icon [type]="target.type" [name]="target.name" [size]="28" />
+                        } @else {
+                            <app-game-icon type="item" name="blueprint-book" [size]="28" />
+                        }
+                    </span>
+                    <span class="line-copy">
+                        <strong>{{ entry.line.title.chinese }}</strong>
+                        @if (entry.line.targets[0]; as target) {
+                            <small>{{ nameOf()(target.type, target.name) }} · ≥ {{ target.minimum.toFixed(2) }} / min</small>
+                        } @else {
+                            <small>草稿生产线</small>
+                        }
+                    </span>
+                    <span class="line-state" [class.is-pending]="entry.line.dirty" [class.is-ready]="entry.line.targets.length > 0 && !entry.line.dirty"></span>
+                </button>
+            </header>
+            @if (entry.line.targets.length === 0) {
+                <section class="sankey-draft-panel">
+                    <app-game-icon type="item" name="blueprint-book" [size]="56" />
+                    <span><strong>{{ locale() === "zh-CN" ? "尚未选择生产目标" : "No production target" }}</strong><small>{{ locale() === "zh-CN" ? "选择目标后建立交付流和负荷守恒图。" : "Choose a target to build the delivery flow and workload graph." }}</small></span>
+                    <button type="button" class="fac-button fac-button--primary" (click)="targetRequested.emit(entry.line.id)">{{ locale() === "zh-CN" ? "打开目标百科" : "Open target index" }}</button>
+                </section>
+            } @else {
+                <div class="root-label">@if (entry.result.roots[0]; as root) {<app-game-icon [type]="root.material.type" [name]="root.material.name" [size]="28" /><span><small>交付流</small><strong>{{ nameOf()(root.material.type, root.material.name) }}</strong></span><em>≥ {{ root.demand.toFixed(2) }} / min</em>}</div>
+                <div class="method"><strong>总负荷 = 本级加工 + Σ 上游子树</strong><span><i></i>线性带宽：域内机器秒 / 分钟</span><span><i class="local"></i>琥珀流：本级加工</span><span><i class="boundary"></i>虚线：域外供入</span></div>
+                <div class="graph-layout">
+                <div #graphScroll class="graph-scroll">
+                    <div class="stage" [style.width.px]="layout(entry).width" [style.height.px]="layout(entry).height">
+                        @for (depth of layout(entry).depths; track depth) {<span class="depth" [style.left.px]="26 + depth * 220">D{{ depth }} · {{ depth === 0 ? "交付流" : "依赖层级" }}</span>}
+                        @for (link of layout(entry).links; track link.id) {<i class="flow-link" [class.is-rising]="link.rising" [class.is-green]="link.branch % 2 === 1" [style.left.px]="link.x" [style.top.px]="link.y" [style.width.px]="link.width" [style.height.px]="link.height"></i>}
+                        @for (node of layout(entry).nodes; track node.node.id) {
+                            <button type="button" class="node" [attr.aria-pressed]="selectedNodeId() === node.node.id" [class.is-target]="node.depth === 0" [class.is-boundary]="node.node.boundary" [class.is-selected]="selectedNodeId() === node.node.id" [style.left.px]="node.x" [style.top.px]="node.y" [style.height.px]="node.height" (click)="$event.stopPropagation(); selectNode(node.node)">
+                                <i [style.height.px]="node.barHeight">@for (segment of node.segments; track $index) {<b [class.is-local]="segment.local" [style.top.px]="segment.top" [style.height.px]="segment.height" [style.background]="segment.color"></b>}</i><span><strong>{{ nameOf()(node.node.material.type, node.node.material.name) }}</strong><small>{{ node.node.demand.toFixed(2) }} / min{{ node.node.boundary ? " · 外供" : "" }}</small></span>
+                            </button>
+                        }
+                    </div>
+                </div>
+                @if (selectedNode(entry); as node) {
+                    <aside><span class="eyebrow">守恒负荷实例</span><div class="material"><app-game-icon [type]="node.material.type" [name]="node.material.name" [size]="38" /><span><strong>{{ nameOf()(node.material.type, node.material.name) }}</strong><small>{{ node.nodePath }}</small></span></div><dl><div><dt>物料速率</dt><dd>{{ node.demand.toFixed(2) }} / min</dd></div><div><dt>本级负荷</dt><dd>{{ node.processId ? "域内加工" : "—" }}</dd></div><div><dt>守恒校验</dt><dd class="ok">已守恒</dd></div><div><dt>输入分支</dt><dd>{{ node.children.length }}</dd></div></dl>@if (selectedProcess(entry); as process) {<button type="button" class="recipe-action" (click)="replacementRequested.emit(process)"><app-game-icon type="recipe" [name]="process.recipe.name" [size]="28" /><span><small>生产配方</small><strong>{{ nameOf()("recipe", process.recipe.name) }}</strong></span><em>更换配方</em></button>}<p>{{ node.boundary ? "域外供入仅保留依赖引导，不计入域内机器负荷。" : "每个节点严格分解为本级加工与独立上游子树。" }}</p></aside>
+                }
+            </div>
+            }
+        </section>
+    }
+</div>

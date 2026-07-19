@@ -1,6 +1,187 @@
 html,
 body {
-    min-height: 100%;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+button {
+    touch-action: manipulation;
+    text-shadow: 0 1px 0 #000000;
+    transition: color 100ms ease, border-color 100ms ease, filter 100ms ease, transform 80ms ease, box-shadow 100ms ease;
+}
+
+button:not(:disabled):hover {
+    z-index: 1;
+    filter: brightness(1.14);
+}
+
+button:not(:disabled) {
+    cursor: pointer;
+}
+
+button:not(:disabled):active {
+    transform: translateY(1px);
+    filter: none;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+    z-index: 2;
+    outline: 2px solid #ffc75f;
+    outline-offset: 2px;
+}
+
+button:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+}
+
+[role="button"] {
+    cursor: pointer;
+}
+
+// Mutually exclusive controls share one recessed mechanical channel. This is
+// the Angular counterpart of ui/demo's Segmented primitive.
+.fac-segmented {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    gap: 3px;
+    padding: 4px 4px 1px;
+    border: 1px solid #090807;
+    border-radius: 4px;
+    background-color: #29251c;
+    background-image: linear-gradient(#423c2e, #29251c 55%, #1d1a13), url("/design-assets/ui/foundry-panel-texture.png");
+    background-blend-mode: normal, soft-light;
+    background-size: auto, 260px 260px;
+    box-shadow: inset 0 1px #e9d7aa4d, inset 0 -1px #000000a6, 0 2px 3px #00000099;
+}
+
+.fac-segmented::before {
+    position: absolute;
+    inset: 2px;
+    border: 1px solid #090807;
+    border-radius: 3px;
+    background: #060504;
+    box-shadow: inset 0 2px 4px #000000f2;
+    content: "";
+    pointer-events: none;
+}
+
+.fac-segmented > button {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 3px;
+    color: #d3cbbb;
+    border: 1px solid #090807 !important;
+    border-radius: 3px;
+    // Idle segments are deliberately a warm raised steel surface.  It must
+    // read as a different control state from the selected, recessed segment.
+    background-color: #3c3329 !important;
+    background-image: url("/design-assets/ui/foundry-panel-texture.png"), radial-gradient(ellipse 90% 70% at 50% 18%, #574b3c, #3c3329 55%, #261f19) !important;
+    background-blend-mode: soft-light, normal;
+    background-size: 260px 260px, auto !important;
+    box-shadow: inset 0 1px 1px #f2ead04a, inset 0 -2px 2px #00000080, 0 3px #070908, 0 4px 4px #000000cc !important;
+    text-shadow: 0 1px #000;
+    transform: none;
+    transition: color 90ms ease, background-color 90ms ease, box-shadow 90ms cubic-bezier(.3, .6, .3, 1), transform 90ms cubic-bezier(.3, .6, .3, 1), filter 90ms ease;
+}
+
+.fac-segmented > button:not(.is-active):not(:disabled):hover {
+    color: #eee2ca;
+    filter: brightness(1.12);
+}
+
+.fac-segmented > button.is-active {
+    z-index: 1;
+    color: #f0bc50;
+    border-color: #070706 !important;
+    background-color: #1c1a14 !important;
+    background-image: url("/design-assets/ui/foundry-panel-texture.png"), linear-gradient(#16140f, #1c1a14 60%, #211e17) !important;
+    background-size: 260px 260px, auto !important;
+    box-shadow: inset 0 0 0 1px #00000059, inset 0 4px 7px #00000099 !important;
+    text-shadow: 0 0 6px #d99b2d66;
+    transform: translateY(3px);
+}
+
+.fac-segmented > button:not(.is-active):not(:disabled):active {
+    box-shadow: inset 0 0 0 1px #00000059, inset 0 4px 7px #00000099 !important;
+    transform: translateY(3px);
+}
+
+.fac-segmented > button.is-active:not(:disabled):active {
+    filter: brightness(.92);
+    transform: translateY(3px) scale(.985);
+}
+
+.fac-segmented > button:focus-visible {
+    outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    button {
+        transition: none;
+    }
+}
+
+body button.fac-button {
+    color: #e9dfca;
+    border-radius: 0;
+    background-image: url("/design-assets/ui/foundry-panel-texture.png") !important;
+    background-size: 260px 260px !important;
+    box-shadow: inset 0 1px 0 #ffffff2e, inset 0 -3px 0 #000000ad, inset 0 0 0 2px #292b29, 0 0 0 1px #070808, 0 3px 6px #000000b3 !important;
+}
+
+body button.fac-button--primary {
+    color: #221505;
+    border-color: #5c3909;
+    background-color: #b06d15;
+    background-image: linear-gradient(#f6c054c7, #af6c15d6), url("/design-assets/ui/foundry-panel-texture.png") !important;
+    background-size: auto, 260px 260px !important;
+    box-shadow: inset 0 1px #ffffffb3, inset 0 -4px #5c2d0480, inset 0 0 0 2px #815519, 0 0 0 1px #ffc765, 0 4px 8px #000000 !important;
+    text-shadow: 0 1px 0 #ffffff38;
+}
+
+body button.fac-button--danger:not(:disabled):hover {
+    color: #f0cfc5;
+    border-color: #8b3e2b;
+    background-color: #86301f;
+    background-image: linear-gradient(#b0492fd9, #86301fe8 55%, #611f14f2), url("/design-assets/ui/foundry-panel-texture.png") !important;
+    background-size: auto, 260px 260px !important;
+}
+
+body button.fac-button:not(:disabled):active {
+    background-image: linear-gradient(#00000038, #00000014), url("/design-assets/ui/foundry-panel-texture.png") !important;
+    box-shadow: inset 0 2px 4px #000000bf, 0 0 0 1px #44453f !important;
+}
+
+body button.fac-icon-button {
+    display: inline-grid;
+    padding: 0;
+    place-items: center;
+}
+
+// The prototype's tactile controls are cut from the same rasterized cabinet surface.
+app-planner main :where(button:not(.plan-select):not(.plan-close):not(.plan-add):not(.block-select):not(.block-delete):not(.line-selector):not(.locale-switch button):not(.fac-segmented > button)) {
+    background-image: url("/design-assets/ui/foundry-panel-texture.png") !important;
+    background-size: 260px 260px !important;
+    box-shadow: inset 0 1px #ffffff2e, inset 0 -3px #000000ad, inset 0 0 0 2px #292b29, 0 0 0 1px #070808, 0 3px 6px #000000b3 !important;
+}
+
+app-planner main :is(.plan-select, .plan-close, .plan-add, .block-select, .block-delete, .line-selector) {
+    background-image: none !important;
+}
+
+app-planner main .line-selector {
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+app-planner main .plan-add {
+    background-image: url("/design-assets/ui/foundry-panel-texture.png") !important;
+    background-size: 320px 320px !important;
+    box-shadow: inset 0 0 0 2px #484943, inset 0 1px #ffffff1f !important;
 }
 
 body {
@@ -9,4 +190,23 @@ body {
     line-height: var(--fac-typography-body-line-height);
     color: var(--fac-color-text-primary);
     background: var(--fac-color-surface-primary);
+}
+
+// Structural cabinets use the same corner hardware as the reference shell.  The
+// bolts belong to the frame layer, so they stay independent from component data
+// and never intercept an interactive surface.
+app-planner main :is(.app-header, app-block-sidebar, .line-workspace, app-goal-rail, app-result-drawer, footer) {
+    position: relative;
+}
+
+app-planner main :is(.app-header, app-block-sidebar, .line-workspace, app-goal-rail, app-result-drawer, footer)::before {
+    position: absolute;
+    z-index: 8;
+    inset: 2px;
+    background-image: url("/design-assets/ui/foundry-bolt.png"), url("/design-assets/ui/foundry-bolt.png"), url("/design-assets/ui/foundry-bolt.png"), url("/design-assets/ui/foundry-bolt.png");
+    background-repeat: no-repeat;
+    background-size: 18px 18px;
+    background-position: left top, right top, left bottom, right bottom;
+    content: "";
+    pointer-events: none;
 }

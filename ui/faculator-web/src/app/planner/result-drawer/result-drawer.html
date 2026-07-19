@@ -1,0 +1,54 @@
+<nav role="tablist" aria-label="解算结果">
+    <button type="button" class="fac-button" [class.fac-button--primary]="tab() === ResultTab.Delivery" role="tab" [attr.aria-selected]="tab() === ResultTab.Delivery" [tabIndex]="tab() === ResultTab.Delivery ? 0 : -1" [class.is-active]="tab() === ResultTab.Delivery" (click)="tabChanged.emit(ResultTab.Delivery)" (keydown)="moveTab($event, ResultTab.Delivery)">{{ locale() === "zh-CN" ? "交付平衡" : "Delivery" }}</button>
+    <button type="button" class="fac-button" [class.fac-button--primary]="tab() === ResultTab.Machines" role="tab" [attr.aria-selected]="tab() === ResultTab.Machines" [tabIndex]="tab() === ResultTab.Machines ? 0 : -1" [class.is-active]="tab() === ResultTab.Machines" (click)="tabChanged.emit(ResultTab.Machines)" (keydown)="moveTab($event, ResultTab.Machines)">{{ locale() === "zh-CN" ? "机器换算" : "Machines" }}</button>
+    <button type="button" class="fac-button" [class.fac-button--primary]="tab() === ResultTab.Boundaries" role="tab" [attr.aria-selected]="tab() === ResultTab.Boundaries" [tabIndex]="tab() === ResultTab.Boundaries ? 0 : -1" [class.is-active]="tab() === ResultTab.Boundaries" (click)="tabChanged.emit(ResultTab.Boundaries)" (keydown)="moveTab($event, ResultTab.Boundaries)">{{ locale() === "zh-CN" ? "边界与外供" : "Boundaries" }}</button>
+    <button type="button" class="fac-button" [class.fac-button--primary]="tab() === ResultTab.Debug" role="tab" [attr.aria-selected]="tab() === ResultTab.Debug" [tabIndex]="tab() === ResultTab.Debug ? 0 : -1" [class.is-active]="tab() === ResultTab.Debug" (click)="tabChanged.emit(ResultTab.Debug)" (keydown)="moveTab($event, ResultTab.Debug)">{{ locale() === "zh-CN" ? "调试矩阵" : "Debug" }}</button>
+    <button type="button" class="collapse fac-button" [attr.aria-expanded]="!collapsed()" (click)="collapsedChanged.emit(!collapsed())">{{ collapsed() ? (locale() === "zh-CN" ? "展开结果" : "Expand") : (locale() === "zh-CN" ? "收起结果" : "Collapse") }}</button>
+</nav>
+@if (!collapsed()) {
+    <section class="drawer-body">
+        <main>
+            @if (tab() === ResultTab.Delivery) {
+                @for(balance of result().balances;track balance.material.key){<article><strong>{{nameOf()(balance.material.type,balance.material.name)}}</strong><span>{{formatRate(balance.output)}} / {{formatRate(balance.target)}}</span><em [class.ok]="balance.met">{{statusLabel(balance.met)}}</em></article>}
+            } @else if (tab() === ResultTab.Machines) {
+                @for(process of result().processes;track process.id){<article><strong>{{nameOf()("recipe",process.recipe.name)}}</strong><span>{{nameOf()("entity",process.machine?.name ?? '')}}</span><em>{{formatRate(process.exactMachines)}} → {{process.roundedMachines}}</em></article>}
+            } @else if (tab() === ResultTab.Boundaries) {
+                <div class="boundary-panel">
+                    <section>
+                        <span class="eyebrow">{{ locale() === "zh-CN" ? "域外输入" : "EXTERNAL INPUTS" }}</span>
+                        <div class="boundary-list">
+                            @for (material of result().inputs; track material.key) {
+                                <div class="boundary-row">
+                                    <app-game-icon [type]="material.type" [name]="material.name" [size]="30" />
+                                    <span><strong>{{ nameOf()(material.type, material.name) }}</strong><small>{{ locale() === "zh-CN" ? "边界供入" : "BOUNDARY INPUT" }}</small></span>
+                                    <b>{{ formatRate(material.amount) }} / min</b>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                    <section>
+                        <span class="eyebrow">{{ locale() === "zh-CN" ? "域外输出" : "EXTERNAL OUTPUTS" }}</span>
+                        <div class="boundary-list">
+                            @if (surpluses().length === 0) { <p>{{ locale() === "zh-CN" ? "没有可声明的余量产物。" : "No surplus output." }}</p> }
+                            @for (balance of surpluses(); track balance.material.key) {
+                                <div class="boundary-row">
+                                    <app-game-icon [type]="balance.material.type" [name]="balance.material.name" [size]="30" />
+                                    <span><strong>{{ nameOf()(balance.material.type, balance.material.name) }}</strong><small>{{ locale() === "zh-CN" ? "余量" : "SURPLUS" }}</small></span>
+                                    <b>{{ formatRate(balance.surplus) }} / min</b>
+                                    <button type="button" class="export-toggle fac-button" [class.is-declared]="isExported(balance.material.name)" [attr.aria-pressed]="isExported(balance.material.name)" (click)="exportToggled.emit(balance.material.name)">{{ isExported(balance.material.name) ? (locale() === "zh-CN" ? "已声明" : "EXPORTED") : (locale() === "zh-CN" ? "声明外供" : "DECLARE") }}</button>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                    <p class="boundary-note">{{ locale() === "zh-CN" ? "声明只改变当前 Production Line 的净边界契约，不合并独立实例。" : "Declaration changes only this line's boundary contract." }}</p>
+                </div>
+            } @else {
+                <div class="matrix">
+                    <header><strong>{{ locale() === "zh-CN" ? "物料" : "MATERIAL" }}</strong>@for(process of result().processes;track process.id){<small>{{nameOf()("recipe", process.recipe.name)}}</small>}</header>
+                    @for(row of result().matrix;track row.material.key){<span><strong>{{nameOf()(row.material.type,row.material.name)}}</strong>@for(value of row.coefficients;track $index){<code>{{ value > 0 ? "+" : "" }}{{formatRate(value)}}</code>}</span>}
+                </div>
+            }
+        </main>
+        <aside><small>{{ locale() === "zh-CN" ? "检查器" : "INSPECTOR" }}</small>@if(selectedProcess();as process){<strong>{{nameOf()("recipe",process.recipe.name)}}</strong><dl><dt>INSTANCE</dt><dd>{{process.choiceKey}}</dd><dt>CYCLES</dt><dd>{{formatRate(process.cyclesPerMinute)}} / min</dd><dt>SPEED</dt><dd>{{formatRate(process.effectiveSpeed)}}</dd><dt>PRODUCTIVITY</dt><dd>{{formatRate(process.productivityBonus*100)}}%</dd><dt>QUALITY</dt><dd>{{formatRate(process.qualityBonus*100)}}%</dd></dl>}@else{<p>{{locale()==='zh-CN'?'在画布中选择一个配方站查看实例数据。':'Select a station to inspect its instance.'}}</p>}</aside>
+    </section>
+}

@@ -1,0 +1,16 @@
+<nav aria-label="计划">
+    @for (plan of plans(); track plan.id) {
+        <span class="plan-tab" [class.is-active]="plan.id === activePlanId()" [class.is-dirty]="dirty(plan)">
+            <button type="button" class="plan-select" [attr.aria-current]="plan.id === activePlanId() ? 'page' : null" (click)="planSelected.emit(plan.id)">{{ name(plan) }}</button>
+            <button
+                type="button"
+                class="plan-close fac-button fac-button--danger fac-icon-button"
+                [disabled]="plans().length === 1"
+                [attr.aria-label]="'关闭计划：' + name(plan)"
+                (click)="planClosed.emit(plan.id)"
+            >×</button>
+            @if (dirty(plan)) { <i aria-label="待应用"></i> }
+        </span>
+    }
+    <button type="button" class="plan-add fac-button" (click)="planAdded.emit()">{{ locale() === "zh-CN" ? "新建计划" : "New plan" }}</button>
+</nav>

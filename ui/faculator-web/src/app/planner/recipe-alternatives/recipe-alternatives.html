@@ -1,0 +1,61 @@
+<div class="backdrop" role="presentation" (click)="closed.emit()">
+    <section role="dialog" aria-modal="true" aria-labelledby="recipe-dialog-title" (click)="$event.stopPropagation()">
+        <header class="modal-heading">
+            <div>
+                <span class="eyebrow">ProductionLine</span>
+                <h2 id="recipe-dialog-title">{{ replaceRecipeLabel() }} · {{ nameOf()(process().fulfills.type, process().fulfills.name) }}</h2>
+            </div>
+            <button type="button" (click)="closed.emit()">{{ cancelLabel() }}</button>
+        </header>
+
+        <div class="recipe-alternative-picker">
+            <div class="recipe-alternative-context">
+                <span class="recipe-alternative-material">
+                    <app-game-icon [type]="process().fulfills.type" [name]="process().fulfills.name" [size]="60" />
+                </span>
+                <div>
+                    <span class="eyebrow">{{ fulfillsDemandLabel() }}</span>
+                    <h3>{{ nameOf()(process().fulfills.type, process().fulfills.name) }}</h3>
+                    <p>{{ alternativeHintLabel() }}</p>
+                </div>
+                <span class="recipe-demand-lock">
+                    <small>{{ preserveDemandLabel() }}</small>
+                    <strong>{{ formatRate(process().fulfills.amount) }} / min</strong>
+                </span>
+            </div>
+
+            <div class="recipe-alternative-list">
+                @for (recipe of recipes(); track recipe.name) {
+                    @let current = recipe.name === process().recipe.name;
+                    <button
+                        type="button"
+                        [disabled]="current"
+                        [attr.aria-current]="current ? 'true' : null"
+                        [class.is-current]="current"
+                        (click)="selected.emit(recipe.name)"
+                    >
+                        <span class="alternative-recipe-icon">
+                            <app-game-icon type="recipe" [name]="recipe.name" [size]="50" />
+                        </span>
+                        <span class="alternative-recipe-copy">
+                            <strong>{{ nameOf()("recipe", recipe.name) }}</strong>
+                            <small>{{ recipe.category }} · {{ formatRate(recipe.energy) }} s · {{ formatRate(outputPerCycle(recipe)) }} / cycle</small>
+                        </span>
+                        <span class="alternative-recipe-io">
+                            <small>{{ inputsLabel() }}</small>
+                            <i>
+                                @for (ingredient of recipe.ingredients.slice(0, 6); track ingredient.key) {
+                                    <span [title]="nameOf()(ingredient.type, ingredient.name)">
+                                        <app-game-icon [type]="ingredient.type" [name]="ingredient.name" [size]="27" />
+                                        <b>{{ formatRate(ingredient.amount) }}</b>
+                                    </span>
+                                }
+                            </i>
+                        </span>
+                        <em>{{ current ? currentRecipeLabel() : useAlternativeLabel() }}</em>
+                    </button>
+                }
+            </div>
+        </div>
+    </section>
+</div>

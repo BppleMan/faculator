@@ -1,0 +1,22 @@
+<section class="recipe-module-picker" role="dialog" [attr.aria-label]="locale() === 'zh-CN' ? '插件槽选择器' : 'Module slot picker'">
+    <header>
+        <span><strong>{{ slotLabel() }} {{ slotIndex() + 1 }}</strong><small>{{ selection() ? nameOf()("item", selection()!.moduleName) + " · " + nameOf()("quality", selection()!.qualityName) : (locale() === "zh-CN" ? "不装插件" : "No module") }}</small></span>
+        <button type="button" (click)="closed.emit()">{{ locale() === "zh-CN" ? "关闭" : "Close" }}</button>
+    </header>
+    <nav [attr.aria-label]="locale() === 'zh-CN' ? '插件类别' : 'Module categories'">
+        @for (entry of categories; track entry) {
+            <button type="button" [class.is-active]="resolvedCategory() === entry" [disabled]="!availableCategories().includes(entry)" [attr.aria-pressed]="resolvedCategory() === entry" (click)="category.set(entry)">
+                <app-game-icon type="item" [name]="categoryIcon(entry)" [size]="17" /><span>{{ categoryLabel(entry) }}</span>
+            </button>
+        }
+    </nav>
+    <div class="quality-head" aria-hidden="true"><span></span>@for (quality of qualities(); track quality.name) {<span><app-game-icon type="quality" [name]="quality.name" [size]="11" /><em>{{ $index + 1 }}</em></span>}</div>
+    <div class="module-matrix">
+        @for (module of categoryModules(); track module.name) {
+            <div class="module-row"><span>{{ tierLabel($index) }}</span>@for (quality of qualities(); track quality.name) {
+                <button type="button" [class.is-active]="isActive(module, quality)" [attr.aria-pressed]="isActive(module, quality)" [attr.aria-label]="nameOf()('item', module.name) + ' · ' + ($index + 1) + ' 星品质'" (click)="chosen.emit({ moduleName: module.name, qualityName: quality.name }); closed.emit()"><app-game-icon type="item" [name]="module.name" [size]="18" /><app-game-icon class="quality-badge" type="quality" [name]="quality.name" [size]="9" /></button>
+            }</div>
+        }
+    </div>
+    <footer><button type="button" (click)="chosen.emit(null); closed.emit()"><app-game-icon type="item" name="empty-module-slot" [size]="14" /><span>{{ locale() === "zh-CN" ? "清空槽位" : "Clear slot" }}</span></button></footer>
+</section>

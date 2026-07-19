@@ -1,0 +1,43 @@
+<div class="backdrop" role="presentation" (mousedown)="closed.emit()">
+    <section role="dialog" aria-modal="true" aria-label="目标百科" (mousedown)="$event.stopPropagation()">
+        <header>
+            <span><small>PRODUCTIONLINE</small><strong>{{ locale() === "zh-CN" ? "目标百科" : "TARGET INDEX" }}</strong></span>
+            <button type="button" class="fac-button" (click)="closed.emit()">{{ locale() === "zh-CN" ? "取消" : "Cancel" }}</button>
+        </header>
+        <div class="encyclopedia">
+            <nav aria-label="分类">
+                <em>GROUPS</em>
+                @for (group of targetCatalog().groups; track group.name) {
+                    <button type="button" class="fac-button" [class.fac-button--primary]="group.name === activeGroup()?.name" [attr.aria-pressed]="group.name === activeGroup()?.name" [class.is-active]="group.name === activeGroup()?.name" [title]="name('item_group', group.name)" (click)="switchGroup(group.name)">
+                        <app-game-icon type="item_group" [name]="group.name" [size]="38" /><span>{{ name("item_group", group.name) }}</span><em>{{ groupCount(group.name) }}</em>
+                    </button>
+                }
+            </nav>
+            <main>
+                <div class="index-heading">
+                    <span><small>FACTOPEDIA / TARGET INDEX</small><strong>{{ locale() === "zh-CN" ? "按游戏 item group、subgroup 与 order 原序浏览；确认目标与速率后，系统自动展开 BOM。" : "Browse in game group, subgroup and order; confirm a target and rate to expand its BOM." }}</strong></span>
+                </div>
+                <label class="search-row"><span>{{ locale() === "zh-CN" ? "搜索物品、流体或配方" : "Search items, fluids or recipes" }}</span><input #searchInput type="search" [value]="query()" (input)="updateQuery($event)" [placeholder]="locale() === 'zh-CN' ? '搜索物品、流体或配方' : 'Search items, fluids or recipes'" /><em>{{ entries().length }} {{ locale() === "zh-CN" ? "项" : "items" }}</em></label>
+                <div class="subgroups">
+                    <button type="button" class="fac-button" [class.fac-button--primary]="!activeSubgroupName()" [attr.aria-pressed]="!activeSubgroupName()" [class.is-active]="!activeSubgroupName()" (click)="activeSubgroupName.set('')">{{ locale() === "zh-CN" ? "全部" : "ALL" }}</button>
+                    @for (subgroup of subgroups(); track subgroup.name) {
+                        <button type="button" class="fac-button" [class.fac-button--primary]="activeSubgroupName() === subgroup.name" [attr.aria-pressed]="activeSubgroupName() === subgroup.name" [class.is-active]="activeSubgroupName() === subgroup.name" (click)="activeSubgroupName.set(subgroup.name)">{{ name("item_subgroup", subgroup.name) }}</button>
+                    }
+                </div>
+                <div class="collection-heading"><span><strong>{{ activeGroup() ? name("item_group", activeGroup()!.name) : "" }}</strong><small>{{ locale() === "zh-CN" ? "按游戏原始顺序浏览" : "Original game ordering" }}</small></span><em>{{ activeSubgroupName() ? name("item_subgroup", activeSubgroupName()) : (locale() === "zh-CN" ? "全部" : "ALL") }}</em></div>
+                <div class="entry-grid">
+                    @for (entry of entries(); track entry.key) {
+                        <button type="button" class="fac-button" [class.fac-button--primary]="selectedEntry()?.key === entry.key" [attr.aria-pressed]="selectedEntry()?.key === entry.key" [class.is-selected]="selectedEntry()?.key === entry.key" [class.has-no-recipe]="entry.producerCount === 0" (click)="selectEntry(entry)" [title]="name(entry.type, entry.name)">
+                            <app-game-icon [type]="entry.type" [name]="entry.name" [size]="34" />
+                            <span>{{ name(entry.type, entry.name) }}</span><em>{{ entry.producerCount }}</em>
+                        </button>
+                    }
+                    @if (entries().length === 0) {
+                        <p class="entry-grid-empty">{{ locale() === "zh-CN" ? "当前分类没有匹配项目" : "No matching entries in this group" }}</p>
+                    }
+                </div>
+            </main>
+            <app-target-selection-detail [entry]="selectedEntry()" [recipes]="recipes()" [selectedRecipe]="selectedRecipe()" [minimum]="minimum()" [createLine]="createLine()" [locale]="locale()" [nameOf]="displayName" (minimumChanged)="minimum.set($event)" (confirmed)="confirm()" />
+        </div>
+    </section>
+</div>

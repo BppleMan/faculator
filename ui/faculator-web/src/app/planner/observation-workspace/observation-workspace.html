@@ -1,0 +1,50 @@
+<header [appPanelShell]="PanelShellVariant.Toolbar">
+    <div class="view-switcher fac-segmented" role="tablist" aria-label="Block 多 Line 观察视图">
+        <button type="button" [class.is-active]="view() === ObservationView.MaterialRail" role="tab" [attr.aria-label]="locale() === 'zh-CN' ? '物料轨道' : 'Material rail'" [attr.data-tooltip]="locale() === 'zh-CN' ? '物料轨道' : 'Material rail'" [attr.aria-selected]="view() === ObservationView.MaterialRail" [tabIndex]="view() === ObservationView.MaterialRail ? 0 : -1" (click)="selectView(ObservationView.MaterialRail)" (keydown)="moveView($event, ObservationView.MaterialRail)"><img src="/design-assets/ui/view-material-rail.svg" alt="" /></button>
+        <button type="button" [class.is-active]="view() === ObservationView.DependencyRings" role="tab" [attr.aria-label]="locale() === 'zh-CN' ? '依赖环' : 'Dependency rings'" [attr.data-tooltip]="locale() === 'zh-CN' ? '依赖环' : 'Dependency rings'" [attr.aria-selected]="view() === ObservationView.DependencyRings" [tabIndex]="view() === ObservationView.DependencyRings ? 0 : -1" (click)="selectView(ObservationView.DependencyRings)" (keydown)="moveView($event, ObservationView.DependencyRings)"><img src="/design-assets/ui/view-dependency-rings.svg" alt="" /></button>
+        <button type="button" [class.is-active]="view() === ObservationView.FinderColumns" role="tab" [attr.aria-label]="locale() === 'zh-CN' ? '分栏钻取' : 'Column drilldown'" [attr.data-tooltip]="locale() === 'zh-CN' ? '分栏钻取' : 'Column drilldown'" [attr.aria-selected]="view() === ObservationView.FinderColumns" [tabIndex]="view() === ObservationView.FinderColumns ? 0 : -1" (click)="selectView(ObservationView.FinderColumns)" (keydown)="moveView($event, ObservationView.FinderColumns)"><img src="/design-assets/ui/view-finder-columns.svg" alt="" /></button>
+        <button type="button" [class.is-active]="view() === ObservationView.WorkloadSankey" role="tab" [attr.aria-label]="locale() === 'zh-CN' ? '流量桑基' : 'Flow Sankey'" [attr.data-tooltip]="locale() === 'zh-CN' ? '流量桑基' : 'Flow Sankey'" [attr.aria-selected]="view() === ObservationView.WorkloadSankey" [tabIndex]="view() === ObservationView.WorkloadSankey ? 0 : -1" (click)="selectView(ObservationView.WorkloadSankey)" (keydown)="moveView($event, ObservationView.WorkloadSankey)"><img src="/design-assets/ui/view-flow-sankey.svg" alt="" /></button>
+    </div>
+    <button type="button" class="add-line fac-button" (click)="lineRequested.emit()">{{ locale() === "zh-CN" ? "新增生产线" : "New line" }}</button>
+</header>
+<section class="summary" [appPanelShell]="PanelShellVariant.Summary">
+    <span><small>{{ locale() === "zh-CN" ? "生产线" : "LINES" }}</small><strong>{{ observations().length }}</strong></span>
+    <span><small>{{ locale() === "zh-CN" ? "目标" : "TARGETS" }}</small><strong>{{ targetCount() }}</strong></span>
+    <span><small>{{ locale() === "zh-CN" ? "独立实例" : "INSTANCES" }}</small><strong>{{ instanceCount() }}</strong></span>
+    <span><small>{{ locale() === "zh-CN" ? "依赖层级" : "DEPTH" }}</small><strong>{{ maximumDepth() }}</strong></span>
+</section>
+<div #stage class="stage">
+    @if (allLinesAreDrafts()) {
+        <section class="empty-state">
+            <app-game-icon type="item" name="blueprint-book" [size]="72" />
+            <span>
+                <strong>{{ locale() === "zh-CN" ? "尚未选择生产目标" : "No production target" }}</strong>
+                <small>{{ locale() === "zh-CN" ? "这个 Production Line 目前只是草稿。选择目标后，才会建立 root 配方节点。" : "Choose a target to create the root recipe node." }}</small>
+            </span>
+            <button type="button" class="fac-button fac-button--primary" (click)="targetRequested.emit(activeLine().id)">{{ locale() === "zh-CN" ? "打开目标百科" : "Open target index" }}</button>
+        </section>
+    } @else if (view() === ObservationView.MaterialRail) {
+        <app-material-rail
+            [observations]="observations()"
+            [catalog]="catalog()"
+            [activeLineId]="activeLine().id"
+            [locale]="locale()"
+            [selectedProcessId]="selectedProcessId()"
+            [nameOf]="nameOf()"
+            (lineSelected)="lineSelected.emit($event)"
+            (targetProcessSelected)="targetProcessSelected.emit($event)"
+            (targetRequested)="chooseTarget($event)"
+            (processSelected)="processSelected.emit($event)"
+            (replacementRequested)="replacementRequested.emit($event)"
+            (configurationChanged)="configurationChanged.emit($event)"
+        />
+    } @else if (view() === ObservationView.DependencyRings) {
+        <app-dependency-rings [observations]="observations()" [activeLineId]="activeLine().id" [locale]="locale()" [nameOf]="nameOf()" (lineSelected)="lineSelected.emit($event)" (targetRequested)="chooseTarget($event)" (processSelected)="processSelected.emit($event)" (replacementRequested)="replacementRequested.emit($event)" />
+    } @else if (view() === ObservationView.FinderColumns) {
+        @if (observations().find(entry => entry.line.id === activeLine().id); as activeObservation) {
+            <app-finder-columns [observation]="activeObservation" [observations]="observations()" [activeLineId]="activeLine().id" [locale]="locale()" [nameOf]="nameOf()" (lineSelected)="lineSelected.emit($event)" (targetRequested)="chooseTarget($event)" (processSelected)="processSelected.emit($event)" (replacementRequested)="replacementRequested.emit($event)" />
+        }
+    } @else if (view() === ObservationView.WorkloadSankey) {
+        <app-workload-sankey [observations]="observations()" [activeLineId]="activeLine().id" [locale]="locale()" [nameOf]="nameOf()" (lineSelected)="lineSelected.emit($event)" (targetRequested)="chooseTarget($event)" (processSelected)="processSelected.emit($event)" (replacementRequested)="replacementRequested.emit($event)" />
+    }
+</div>

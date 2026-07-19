@@ -1,0 +1,123 @@
+@if (store.loadState() === LoadState.Ready && store.snapshot(); as snapshot) {
+    @if (store.activePlan(); as plan) {
+        @if (store.activeBlock(); as block) {
+            @if (store.activeLine(); as line) {
+                @if (store.activeResult(); as result) {
+                    <main class="app-shell">
+                        <header class="app-header" [appPanelShell]="PanelShellVariant.Cabinet">
+                            <div class="brand" [appPanelShell]="PanelShellVariant.Brand">
+                                <span class="brand-icon"><app-game-icon type="item" name="blueprint" [size]="42" /></span>
+                                <span><strong>Faculator</strong><small>PRODUCTION SYSTEMS</small></span>
+                            </div>
+                            <app-plan-tabs
+                                [plans]="snapshot.plans"
+                                [activePlanId]="snapshot.activePlanId"
+                                [locale]="store.locale()"
+                                (planSelected)="store.selectPlan($event)"
+                                (planAdded)="store.addPlan()"
+                                (planClosed)="store.closePlan($event)"
+                            />
+                            <div class="locale-switch fac-segmented" role="group" aria-label="Language">
+                                <button type="button" [class.is-active]="store.locale() === Locale.Chinese" [attr.aria-pressed]="store.locale() === Locale.Chinese" (click)="store.setLocale(Locale.Chinese)">中</button>
+                                <button type="button" [class.is-active]="store.locale() === Locale.English" [attr.aria-pressed]="store.locale() === Locale.English" (click)="store.setLocale(Locale.English)">EN</button>
+                            </div>
+                        </header>
+                        <section class="workspace">
+                            <app-block-sidebar
+                                [appPanelShell]="PanelShellVariant.Cabinet"
+                                [plan]="plan"
+                                [activeBlockId]="block.id"
+                                [locale]="store.locale()"
+                                (blockSelected)="store.selectBlock($event)"
+                                (blockAdded)="store.addBlock()"
+                                (blockDeleted)="store.deleteBlock($event)"
+                            />
+                            <section class="line-workspace" [appPanelShell]="PanelShellVariant.Cabinet">
+                                <section class="upper-workspace">
+                                    <section class="main-line-column">
+                                        <app-workspace-header [appPanelShell]="PanelShellVariant.Header" [plan]="plan" [block]="block" [locale]="store.locale()" />
+                                        <app-observation-workspace
+                                            [observations]="store.observations()"
+                                            [catalog]="store.catalog()!"
+                                            [activeLine]="line"
+                                            [locale]="store.locale()"
+                                            [view]="store.observationView()"
+                                            [nameOf]="store.displayName"
+                                            [selectedProcessId]="store.selectedProcessId()"
+                                            (viewChanged)="store.setObservationView($event)"
+                                        (targetRequested)="store.openTargetDialogForLine($event)"
+                                        (lineRequested)="store.openTargetDialog(true)"
+                                        (lineSelected)="store.selectLine($event)"
+                                        (targetProcessSelected)="store.selectLineAndProcess($event.lineId, $event.processId)"
+                                        (processSelected)="store.selectedProcessId.set($event)"
+                                            (replacementRequested)="store.openRecipeAlternatives($event)"
+                                            (configurationChanged)="store.updateProcessConfiguration($event.process, $event.configuration)"
+                                        />
+                                    </section>
+                                    <app-goal-rail
+                                        [appPanelShell]="PanelShellVariant.Cabinet"
+                                        [line]="line"
+                                        [result]="result"
+                                        [locale]="store.locale()"
+                                        [nameOf]="store.displayName"
+                                        [solving]="store.solvingLineId() === line.id"
+                                        (targetRequested)="store.openTargetDialog(false)"
+                                        (targetRateChanged)="store.updateTargetRate($event.index, $event.minimum)"
+                                        (targetRemoved)="store.removeTarget($event)"
+                                        (promoteRequested)="store.promoteDialogOpen.set(true)"
+                                        (solveRequested)="store.applyTargets()"
+                                    />
+                                </section>
+                                <app-result-drawer
+                                    [appPanelShell]="PanelShellVariant.Cabinet"
+                                    [line]="line"
+                                    [result]="result"
+                                    [locale]="store.locale()"
+                                    [tab]="store.resultTab()"
+                                    [collapsed]="store.resultDrawerCollapsed()"
+                                    [selectedProcessId]="store.selectedProcessId()"
+                                    [nameOf]="store.displayName"
+                                    (tabChanged)="store.setResultTab($event)"
+                                    (collapsedChanged)="store.resultDrawerCollapsed.set($event)"
+                                    (exportToggled)="store.toggleExport($event)"
+                                />
+                            </section>
+                        </section>
+                        <footer [appPanelShell]="PanelShellVariant.Cabinet">
+                            <span><i [class.is-pending]="line.dirty" [class.is-ready]="!line.dirty && line.targets.length > 0"></i>{{ line.dirty ? store.pendingStatusLabel() : store.calculationStatusLabel(result.status) }}</span>
+                            <span><small>{{ store.locale() === Locale.Chinese ? "解算模式" : "MODE" }}</small><strong>{{ result.objective }}</strong></span>
+                            <span><small>{{ store.locale() === Locale.Chinese ? "过程变量" : "PROCESSES" }}</small><strong>{{ result.processes.length }}</strong></span>
+                            <span><small>{{ store.locale() === Locale.Chinese ? "取整机器" : "MACHINES" }}</small><strong>{{ store.roundedMachineCount() }}</strong></span>
+                            <span class="version"><small>{{ store.locale() === Locale.Chinese ? "数据版本" : "DATA" }}</small><strong>Factorio {{ store.catalog()?.factorioVersion }} · exporter {{ store.catalog()?.exporterVersion }}</strong></span>
+                        </footer>
+                        @if (store.targetDialogOpen() && store.targetCatalog() && store.catalog(); as catalog) {
+                            <app-target-encyclopedia
+                                [targetCatalog]="store.targetCatalog()!"
+                                [gameCatalog]="catalog"
+                                [locale]="store.locale()"
+                                [createLine]="store.targetDialogCreatesLine()"
+                                (confirmed)="store.applyTarget($event)"
+                                (closed)="store.closeTargetDialog()"
+                            />
+                        }
+                        @if (store.recipeDialogProcess(); as process) {
+                            <app-recipe-alternatives [process]="process" [recipes]="store.recipeOptions()" [locale]="store.locale()" [nameOf]="store.displayName" (selected)="store.replaceRecipe($event)" (closed)="store.recipeDialogProcess.set(null)" />
+                        }
+                        @if (store.promoteDialogOpen()) {
+                            <app-promote-output [outputs]="store.promotionOutputs()" [targets]="line.targets" [locale]="store.locale()" [nameOf]="store.displayName" (selected)="store.promoteOutput($event)" (closed)="store.promoteDialogOpen.set(false)" />
+                        }
+                    </main>
+                }
+            }
+        }
+    }
+} @else {
+    <main class="loading-screen">
+        <app-game-icon type="item" name="blueprint" [size]="54" />
+        <h1>Faculator</h1>
+        <p>{{ store.loadState() === LoadState.Failed ? store.error() : "正在装载 Factorio 游戏数据与翻译…" }}</p>
+        @if (store.loadState() === LoadState.Failed) {
+            <button type="button" class="fac-button fac-button--primary" (click)="store.initialize()">重新加载</button>
+        }
+    </main>
+}

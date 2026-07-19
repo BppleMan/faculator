@@ -1,0 +1,35 @@
+<!-- @dsCard group="Components" viewport="700x320" subtitle="Tabs / Breadcrumb / SideNav · 琥珀激活态" name="导航 Navigation" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:14px 16px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const { Button, IconButton, Input, NumberField, Select, Checkbox, Radio, RadioGroup, Switch, Segmented, Badge, Tag, Alert, ProgressBar, Tooltip, Dialog, Gauge, StatCard, DataTable, ChartFrame, Tabs, Breadcrumb, SideNav, Panel } = NS;
+
+function App(){
+  const [tab, setTab] = React.useState('io');
+  const [k, setK] = React.useState('b1');
+  return (
+  <div style={{display:'flex',gap:16}}>
+    <SideNav activeKey={k} onSelect={setK} width={190} style={{border:'1px solid var(--line-2)'}} sections={[
+      {title:'生产块 BLOCKS', items:[
+        {key:'b1',label:'绿色科技包',meta:'90/min'},
+        {key:'b2',label:'处理器单元',meta:'30/min'},
+        {key:'b3',label:'引擎组件',meta:'45/min'}]},
+      {title:'系统', items:[{key:'s1',label:'全局设置'}]}]} />
+    <div style={{flex:1,display:'flex',flexDirection:'column',gap:14}}>
+      <Breadcrumb onNavigate={()=>{}} items={[{label:'总装线'},{label:'电路板'},{label:'铜线'}]} />
+      <Tabs value={tab} onChange={setTab} items={[
+        {value:'io',label:'输入输出',count:6},{value:'mach',label:'机器',count:12},{value:'pow',label:'功耗'}]} />
+      <div style={{fontSize:12,color:'var(--text-3)',padding:'2px 4px'}}>
+        {tab==='io' ? '输入:铜板 240/min · 输出:铜线 720/min' : tab==='mach' ? '二级组装机 × 12 台,利用率 94%' : '总功耗 8.6 MW · 峰值 10.2 MW'}
+      </div>
+    </div>
+  </div>
+); }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

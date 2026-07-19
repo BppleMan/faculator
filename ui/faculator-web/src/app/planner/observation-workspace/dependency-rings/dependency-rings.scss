@@ -1,0 +1,40 @@
+:host {
+    display: block;
+    min-height: 100%;
+
+    .rings-view { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); align-content: start; gap: 12px; min-width: 560px; padding: 12px; color: #dcd3c2; }
+    .line-card { position: relative; min-width: 0; border: 1px solid #2e3b46; background: #101820; box-shadow: 0 12px 30px #0000002e; }
+    .line-card.is-active { border-color: #755831; box-shadow: inset 3px 0 #e8a934, 0 12px 30px #00000038; }
+    .root-tabs { display: flex; position: absolute; z-index: 2; top: 12px; left: 12px; gap: 4px; padding: 4px; border: 1px solid #403d35; background: #10120fec; box-shadow: 0 4px 12px #0000008c; }
+    .root-tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 3px; width: 42px; height: 34px; border: 1px solid #4a4942; color: #a59e91; background: #171916; cursor: pointer; }
+    .root-tabs button.is-active { border-color: #c88d29; color: #f3d487; background: #2b2518; box-shadow: inset 0 -2px #e1a331; }
+    .root-tabs button span { font: 700 8px "DIN Alternate", sans-serif; }
+    .disk-layout { display: grid; grid-template-columns: minmax(360px, 1fr) 220px; align-items: stretch; min-height: 486px; }
+    .disk-stage { display: grid; position: relative; overflow: hidden; min-width: 0; background: #0d151c; place-items: center; }
+    app-dependency-ring-canvas { width: min(460px, 100%); height: auto; aspect-ratio: 1; }
+    .target-core { display: flex; position: absolute; top: 50%; left: 50%; align-items: center; justify-content: center; flex-direction: column; text-align: center; width: 132px; height: 132px; border: 1px solid #5dd09a; border-radius: 50%; background: #101d1a; box-shadow: 0 0 0 6px #0d151c, 0 12px 28px #0000005c; pointer-events: none; transform: translate(-50%, -50%); }
+    .target-core strong, .target-core em, .target-core small { display: block; }
+    .target-core strong { overflow: hidden; font-size: 9px; max-width: 112px; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; }
+    .target-core em { color: #64c875; font: 8px monospace; margin-top: 3px; }
+    .target-core small { color: #819087; font-size: 6px; margin-top: 3px; }
+    .inspector { min-width: 0; padding: 14px 12px; border-left: 1px solid #2b3843; background-color: #292721; background-image: url("/design-assets/ui/factory-gunmetal-panel-v1.png"); background-size: 256px 256px; box-shadow: inset 0 1px #fff5da1c, inset 0 -2px #0000009e; }
+    .eyebrow { color: #d69b2d; font: 9px monospace; }
+    .material { display: flex; align-items: center; gap: 9px; margin-top: 12px; padding-bottom: 12px; border-bottom: 1px solid #2c3943; }
+    .recipe { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; padding: 8px; border: 1px solid #3a4853; background: #101820; }
+    .recipe button { grid-column: 1 / -1; height: 28px; border: 2px solid #76572f; color: #e8a934; background-color: #211e19; font-size: 7px; }
+    .material span strong, .material span small, .recipe span strong, .recipe span small { display: block; }
+    .material span { display: flex; min-width: 0; flex-direction: column; }
+    .material strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .material small, .recipe small { color: #819087; font: 6px monospace; margin-top: 4px; }
+    dl { margin: 10px 0; }
+    dl div { display: flex; align-items: center; justify-content: space-between; min-height: 28px; border-bottom: 1px solid #26333d; }
+    dt { color: #849187; font-size: 7px; }
+    dd { color: #dcd3c2; font: 8px monospace; margin: 0; }
+    .boundary { color: #849187; padding: 10px; border: 1px dashed #4b5964; background: #101820; font-size: 8px; }
+    .inspector p { color: #64c875; font-size: 7px; line-height: 1.55; margin: 12px 0 0; }
+    .ring-draft-panel { display: grid; min-height: 486px; padding: 40px; background: #0d151c; place-items: center; text-align: center; }
+    .ring-draft-panel span { display: flex; max-width: 250px; flex-direction: column; gap: 7px; }
+    .ring-draft-panel strong { color: #eee2ca; font-size: 15px; }
+    .ring-draft-panel small { color: #849187; font: 9px/1.5 monospace; }
+    .ring-draft-panel button { min-width: 150px; min-height: 38px; }
+}

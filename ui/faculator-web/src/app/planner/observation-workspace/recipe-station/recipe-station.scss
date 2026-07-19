@@ -1,0 +1,35 @@
+:host { display: block; width: 360px; height: 140px; }
+.process-core { display: grid; position: relative; grid-template-rows: 36px 27px 25px 27px 22px; min-width: 0; background: linear-gradient(#ffffff05 1px,transparent 1px), linear-gradient(90deg,#ffffff04 1px,transparent 1px), linear-gradient(145deg,#1d262b,#0e1519 70%); background-size: 14px 14px,14px 14px,auto; }
+.process-core > header { border-bottom: 1px solid #4b555a; background: linear-gradient(120deg, #3b3323, #151c20 72%); }
+.recipe-title { display: grid; grid-template-columns: 26px minmax(0,1fr); align-items: center; font-size: 16px; width: 100%; height: 100%; gap: 5px; padding: 4px 6px; color: #c4bba9; border: 0; background: transparent; text-align: left; }
+.recipe-title:hover { background-color: #644b1f73; box-shadow: inset 3px 0 #f1b44c; }
+.recipe-icon { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid #697176; background: radial-gradient(circle at 38% 30%,#3d4548,#151a1d 67%); }
+.recipe-title > span:last-child { display: flex; min-width: 0; flex-direction: column; }
+.recipe-title small { overflow: hidden; color: #e8a934; font: 4px monospace; text-overflow: ellipsis; white-space: nowrap; }
+.recipe-title strong { margin-top: 2px; overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.recipe-title em { margin-top: 2px; color: #9bdaba; font: 6px monospace; font-style: normal; }
+.machine-bay { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 5px; padding: 3px 5px; border-bottom: 1px solid #3b454a; background: #080d1061; }
+.machine-bay > span { color: #8c969a; font-size: 5px; white-space: nowrap; }
+.machine-options { display: flex; gap: 3px; overflow-x: auto; }
+.machine-options button, .module-slot { display: grid; position: relative; flex: 0 0 auto; place-items: center; padding: 1px; color: #9ba3a7; border: 2px solid #7a7363; background-color: #171715; background-image: none !important; box-shadow: inset 0 1px #fff5da26, inset 0 -2px #000000b8, 0 1px 0 #080807 !important; cursor: pointer; }
+.machine-options button { width: 20px; height: 20px; }
+.machine-options button:hover, .machine-options button.is-active, .module-slot:hover { border-color: #ffc75f; }
+.machine-options button.is-active { border-color: #f1b44c; background-color: #4b3c21; box-shadow: 0 0 0 1px #f1b44c59, inset 0 1px #fff5da33, inset 0 -2px #000000ad !important; }
+.machine-bay em { color: #e8a934; font: 5px monospace; font-style: normal; white-space: nowrap; }
+.machine-bay em strong { font-size: 8px; }
+.module-bay { display: flex; align-items: center; gap: 3px; padding: 4px 5px; border-bottom: 1px solid #3b454a; background: linear-gradient(90deg,#d493241a,transparent 34%),#080d1075; }
+.module-slot { color: #7a8589; width: 18px; height: 18px; background-image: url("/design-assets/ui/foundry-panel-texture.png") !important; background-size: 260px 260px !important; box-shadow: inset 0 1px #ffffff2e, inset 0 -3px #000000ad, inset 0 0 0 2px #292b29, 0 0 0 1px #070808, 0 3px 6px #000000b3 !important; }
+.module-slot.is-filled { border-color: #e8a934; }
+.module-slot > span { position: absolute; right: 1px; bottom: 0; font: 4px monospace; }
+.quality-badge { position: absolute; top: 0; right: 0; }
+.beacon-bay { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 5px; border-bottom: 1px solid #3b454a; background: #080d107a; }
+.beacon-count, .beacon-slots { display: flex; align-items: center; gap: 3px; }
+.stepper { display: grid; grid-template-columns: 14px 24px 14px; height: 16px; border: 1px solid #4a555a; background: #090f12; }
+.stepper button { display: grid; width: 14px; height: 14px; place-items: center; padding: 0; color: #ead9b4; border: 0; background-color: transparent; font: 9px monospace; cursor: pointer; }
+.stepper button:disabled { color: #596267; cursor: default; }
+.stepper input { width: 24px; height: 14px; padding: 0 2px; color: #f0b659; border: 0; border-inline: 1px solid #3e494e; background: #0a1013; font: 6px monospace; text-align: center; appearance: textfield; }
+.metrics { display: grid; grid-template-columns: 1.2fr .93fr .93fr .94fr; background: linear-gradient(#161e22,#0b1114); }
+.metrics > span { display: flex; min-width: 0; flex-direction: column; justify-content: center; padding: 2px 3px; overflow: hidden; border-right: 1px solid #333d42; }
+.metrics small { overflow: hidden; color: #748087; font-size: 4px; text-overflow: ellipsis; white-space: nowrap; }
+.metrics strong { margin-top: 1px; color: #95d6b7; font: 6px monospace; }
+.metrics em { color: #e8a934; font: 5px monospace; font-style: normal; }

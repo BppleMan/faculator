@@ -1,0 +1,78 @@
+<div class="finder-shell" data-testid="block-view-finder">
+    <nav class="pathbar" aria-label="当前依赖路径">
+        <span>{{ lineTitle(observation()) }}</span>
+        @for (node of pathNodes(); track node.id) {
+            <strong>{{ nameOf()(node.material.type, node.material.name) }}</strong>
+        }
+    </nav>
+
+    <div class="columns">
+        <section class="column is-line">
+            <header><span>01</span><strong>生产线</strong><em>{{ lineEntries().length }}</em></header>
+            <div class="column-list">
+                @for (entry of lineEntries(); track entry.line.id; let lineIndex = $index) {
+                    <button type="button" class="line-card" [class.is-selected]="entry.line.id === activeLineId()" [attr.aria-pressed]="entry.line.id === activeLineId()" (click)="lineSelected.emit(entry.line.id)">
+                        <span class="line-code">LINE {{ columnNumber(lineIndex + 1) }}</span>
+                        <span class="line-icon">@if (entry.line.targets[0]; as target) {<app-game-icon [type]="target.type" [name]="target.name" [size]="28" />}</span>
+                        <span class="line-copy"><strong>{{ lineTitle(entry) }}</strong><small>@if (entry.line.targets[0]; as target) { {{ nameOf()(target.type, target.name) }} · ≥ {{ formatRate(target.minimum) }} / min }</small></span>
+                        <i [class.is-pending]="entry.line.dirty" [class.is-ready]="!entry.line.dirty && entry.line.targets.length > 0"></i>
+                    </button>
+                }
+            </div>
+        </section>
+
+        @if (root(); as rootNode) {
+            <section class="column">
+                <header><span>02</span><strong>根节点</strong><em>1</em></header>
+                <div class="column-list">
+                    <button type="button" class="material-row is-selected" aria-pressed="true" (click)="choose(rootNode, 0)">
+                        <app-game-icon [type]="rootNode.material.type" [name]="rootNode.material.name" [size]="30" />
+                        <span><strong>{{ nameOf()(rootNode.material.type, rootNode.material.name) }}</strong><small>{{ formatRate(rootNode.demand) }} / min · {{ instanceCode(rootNode) }}</small></span>
+                        <em>{{ inputLabel(rootNode) }}</em>
+                        @if (processFor(rootNode); as process) {<app-game-icon class="row-recipe" type="recipe" [name]="process.recipe.name" [size]="20" />}
+                    </button>
+                </div>
+            </section>
+        } @else {
+            <section class="column is-draft">
+                <header><span>02</span><strong>{{ locale() === "zh-CN" ? "目标节点" : "Target node" }}</strong><em>0</em></header>
+                <div class="draft-target">
+                    <app-game-icon type="item" name="blueprint-book" [size]="46" />
+                    <strong>{{ locale() === "zh-CN" ? "尚未选择生产目标" : "No production target" }}</strong>
+                    <button type="button" class="fac-button fac-button--primary" (click)="targetRequested.emit(observation().line.id)">{{ locale() === "zh-CN" ? "打开目标百科" : "Open target index" }}</button>
+                </div>
+            </section>
+        }
+
+        @for (column of dependencyColumns(); track column.parent.id; let index = $index) {
+            <section class="column">
+                <header><span>{{ columnNumber(index + 3) }}</span><strong>{{ nameOf()(column.parent.material.type, column.parent.material.name) }} · 输入</strong><em>{{ column.items.length }}</em></header>
+                <div class="column-list">
+                    @for (node of column.items; track node.id) {
+                        <button type="button" class="material-row" [attr.aria-pressed]="path()[column.level]?.id === node.id" [class.is-selected]="path()[column.level]?.id === node.id" (click)="choose(node, column.level)">
+                            <app-game-icon [type]="node.material.type" [name]="node.material.name" [size]="30" />
+                            <span><strong>{{ nameOf()(node.material.type, node.material.name) }}</strong><small>{{ formatRate(node.demand) }} / min · {{ instanceCode(node) }}</small></span>
+                            <em>{{ inputLabel(node) }}</em>
+                            @if (processFor(node); as process) {<app-game-icon class="row-recipe" type="recipe" [name]="process.recipe.name" [size]="20" />}
+                        </button>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (selectedNode(); as node) {
+            <aside class="preview">
+                <header><span>{{ columnNumber(dependencyColumns().length + 4) }}</span><strong>实例检查器</strong></header>
+                <app-game-icon [type]="node.material.type" [name]="node.material.name" [size]="72" />
+                <small>INSTANCE {{ instanceCode(node) }}</small>
+                <h3>{{ nameOf()(node.material.type, node.material.name) }}</h3>
+                <strong>{{ formatRate(node.demand) }} / min</strong>
+                <dl><div><dt>输入分支</dt><dd>{{ node.children.length }}</dd></div><div><dt>边界供入</dt><dd>{{ node.boundary ? "原始资源" : "—" }}</dd></div></dl>
+                @if (selectedProcess(); as process) {
+                    <button type="button" class="replace-recipe" (click)="replacementRequested.emit(process)"><app-game-icon type="recipe" [name]="process.recipe.name" [size]="26" /><span><small>生产配方</small><strong>{{ nameOf()("recipe", process.recipe.name) }}</strong></span><em>更换配方</em></button>
+                }
+                <p>同名物料的不同实例保持独立，不在观察视图中合并。</p>
+            </aside>
+        }
+    </div>
+</div>

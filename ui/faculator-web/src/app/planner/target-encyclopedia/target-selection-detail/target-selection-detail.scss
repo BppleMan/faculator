@@ -1,0 +1,287 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+    min-height: 0;
+    padding: 14px;
+    background: #211f1b;
+    box-shadow: inset 1px 0 #454640;
+
+    .selected-heading {
+        display: grid;
+        flex: 0 0 104px;
+        grid-template-columns: 82px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        padding: 10px 13px;
+        border-bottom: 1px solid #060707;
+        background: #3a372e;
+        box-shadow: inset 0 0 0 1px #343632;
+
+        .selected-icon {
+            display: grid;
+            width: 78px;
+            height: 78px;
+            border: 1px solid #696254;
+            background: #292721 url("/design-assets/ui/factory-gunmetal-panel-v1.png") center / 256px 256px;
+            box-shadow: inset 0 0 0 4px #182129;
+            place-items: center;
+        }
+
+        > div {
+            display: flex;
+            overflow: hidden;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        small {
+            font: 700 8px "DIN Alternate", sans-serif;
+            letter-spacing: 0.14em;
+            color: #e8a934;
+        }
+
+        strong {
+            overflow: hidden;
+            font: 700 16px/1.25 "Avenir Next Condensed", "PingFang SC", sans-serif;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #eee2ca;
+            margin: 6px 0 0;
+        }
+
+        code {
+            overflow: hidden;
+            font: 8px monospace;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #827e75;
+            margin: 6px 0 0;
+        }
+    }
+
+    dl {
+        display: grid;
+        flex: 0 0 auto;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        margin: 0;
+        border-bottom: 1px solid #060707;
+        background: #37434d;
+        box-shadow: inset 0 0 0 1px #343632;
+
+        > div {
+            overflow: hidden;
+            min-width: 0;
+            padding: 7px 9px;
+            background: #111313;
+        }
+
+        dt {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: #827e75;
+        }
+
+        dd {
+            overflow: hidden;
+            font: 9px monospace;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #c4bba9;
+            margin: 4px 0 0;
+        }
+    }
+
+    .recipe-section {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 126px;
+        padding: 9px 10px 0;
+        background: #111313;
+        box-shadow: inset 0 0 0 1px #343632;
+    }
+
+    .recipe-heading {
+        display: flex;
+        flex: 0 0 22px;
+        align-items: flex-start;
+        justify-content: space-between;
+        font-size: 7px;
+        font-weight: 800;
+        color: #c4bba9;
+
+        em {
+            font-style: normal;
+            font-weight: 500;
+            color: #827e75;
+        }
+    }
+
+    .recipe-list {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        overflow-y: auto;
+        min-height: 0;
+        gap: 5px;
+        padding: 0 1px 8px 0;
+
+        > p {
+            font-size: 8px;
+            line-height: 1.5;
+            text-align: center;
+            color: #827e75;
+            margin: 0;
+            padding: 16px 10px;
+            border: 1px dashed #46525c;
+        }
+    }
+
+    .default-recipe {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) auto;
+        align-items: center;
+        min-height: 58px;
+        gap: 8px;
+        padding: 7px 8px;
+        border: 1px solid #e8a934;
+        border-left-width: 3px;
+        color: #eee2ca;
+        background: #252119;
+
+        > span {
+            display: flex;
+            overflow: hidden;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        strong {
+            overflow: hidden;
+            font-size: 9px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        small {
+            font-size: 9px;
+            color: #827e75;
+            margin: 4px 0 0;
+        }
+
+        em {
+            font: 850 5px monospace;
+            font-style: normal;
+            color: #e8a934;
+            padding: 3px 5px;
+            border: 1px solid #705532;
+            background: #17140f;
+        }
+    }
+
+    .recipe-hint {
+        display: block;
+        font-size: 7px;
+        line-height: 1.5;
+        color: #827e75;
+        padding: 8px 7px;
+        border-left: 2px solid #55636e;
+        background: #111922;
+    }
+
+    .confirmation {
+        flex: 0 0 132px;
+        padding: 10px 11px;
+        background: #111313;
+        box-shadow: inset 0 0 0 1px #343632, 0 -10px 24px #0000002e;
+
+        label > span {
+            display: block;
+            font-size: 7px;
+            font-weight: 800;
+            color: #827e75;
+        }
+
+        label > div {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            height: 34px;
+            margin: 5px 0 0;
+            border: 1px solid #46525c;
+            background: #090c0d;
+            box-shadow: inset 0 3px 7px #000000, inset 0 0 0 1px #303431;
+        }
+
+        input {
+            min-width: 0;
+            font: 800 12px monospace;
+            color: #eee2ca;
+            height: 32px;
+            padding: 0 9px;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        label em {
+            font-size: 7px;
+            font-style: normal;
+            color: #827e75;
+            padding: 0 8px 0 0;
+        }
+
+        .confirm {
+            width: 100%;
+            height: 35px;
+            min-height: 35px;
+            font-size: 8px;
+            font-weight: 850;
+            color: #221505;
+            margin: 8px 0 0;
+            border: 1px solid #5c3909;
+            background: linear-gradient(#f6c054c7, #af6c15d6), url("/design-assets/ui/foundry-panel-texture.png") center / 260px 260px;
+            box-shadow: inset 0 1px #ffffffb3, inset 0 -4px #5c2d0480, inset 0 0 0 2px #815519, 0 0 0 1px #ffc765, 0 4px 8px #000000;
+        }
+
+        > small {
+            display: block;
+            font-size: 6px;
+            text-align: center;
+            color: #827e75;
+            margin: 5px 0 0;
+        }
+    }
+
+    .detail-empty {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 28px;
+
+        span {
+            font-size: 8px;
+            letter-spacing: 0.14em;
+            color: #e8a934;
+        }
+
+        strong {
+            font-size: 16px;
+            color: #eee2ca;
+        }
+
+        p {
+            font-size: 9px;
+            line-height: 1.55;
+            color: #827e75;
+        }
+    }
+}

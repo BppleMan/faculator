@@ -1,0 +1,78 @@
+:host {
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+
+    .finder-shell { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 0; height: 100%; color: #d8d0bf; background: #090e0d; }
+    .pathbar { display: flex; overflow-x: auto; flex: 0 0 38px; align-items: center; gap: 4px; min-height: 38px; padding: 0 10px; border-bottom: 1px solid #6d6556; color: #d4cbbb; background: #24221d; scrollbar-width: none; }
+    .pathbar span, .pathbar strong { flex: 0 0 auto; font-size: 7px; font-weight: 600; padding: 5px 8px; border: 1px solid #34424d; color: #9da7af; background: #101820; }
+    .pathbar strong::before { color: #e8a934; content: "/"; margin-right: 7px; }
+    .columns { display: flex; overflow: auto; flex: 1 1 auto; align-items: stretch; min-height: 0; }
+    .column { display: flex; flex: 0 0 232px; flex-direction: column; width: 232px; min-height: 0; border-right: 1px solid #686253; background-color: #292822; background-image: url("/design-assets/ui/factory-gunmetal-panel-v1.png"); background-size: 320px 320px; box-shadow: inset 0 1px #fff5d71f, inset 0 -2px #000000a8; }
+    .column.is-line { flex-basis: 260px; width: 260px; }
+    header { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; min-height: 38px; gap: 6px; padding: 0 8px; border-bottom: 1px solid #2e3b46; background: #18222b; }
+    header span, header em { color: #e8a934; font: 7px monospace; }
+    header strong { overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    button { font: inherit; }
+    .column-list { overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: 7px; scrollbar-color: #b38a45 #191816; }
+    .line-card { display: grid; position: relative; grid-template-columns: auto auto minmax(0, 1fr) 7px; align-items: center; width: 100%; min-height: 58px; gap: 7px; margin-bottom: 5px; padding: 7px; color: #ddd4c2; border: 2px solid #686253; background-color: #292822; background-image: url("/design-assets/ui/factory-gunmetal-panel-v1.png"); background-size: 320px 320px; box-shadow: inset 0 1px #fff5d71f, inset 0 -2px #000000a8; text-align: left; }
+    .line-card.is-selected { color: #eee2ca; border-color: #e2b358; border-left-color: #f1b44c; background-color: #433720; background-image: linear-gradient(#2b281f, #191917) !important; box-shadow: inset 0 0 0 1px #ffd37052, inset 0 -3px #5b3d1d, 0 1px #000000 !important; }
+    .line-code { color: #e8a934; font: 7px monospace; }
+    .line-icon { display: grid; width: 32px; height: 32px; place-items: center; }
+    .line-copy { display: flex; overflow: hidden; min-width: 0; flex-direction: column; }
+    .line-copy strong, .line-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .line-copy strong { font-size: 9px; }
+    .line-copy small { color: #9da7af; font: 6px monospace; margin-top: 4px; }
+    .line-card > i { width: 7px; height: 7px; border-radius: 50%; background: #84909a; }
+    .line-card > i.is-ready { background: #5f9b77; box-shadow: 0 0 7px #5f9b77; }
+    .line-card > i.is-pending { background: #d49324; box-shadow: 0 0 7px #d49324; }
+    .material-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        position: relative;
+        width: 100%;
+        min-height: 53px;
+        gap: 8px;
+        margin-bottom: 4px;
+        padding: 7px;
+        color: #bdb5a5;
+        border: 2px solid transparent;
+        background-color: #292721;
+        background-image: url("/design-assets/ui/factory-gunmetal-panel-v1.png");
+        background-size: 256px 256px;
+        box-shadow: inset 0 1px #fff5da1c, inset 0 -2px #0000009e;
+        text-align: left;
+        font-size: 9px;
+    }
+    .material-row:hover, .material-row.is-selected { color: #eee2ca; border-color: #856136; background-color: #8f650c; background-image: none; box-shadow: inset 0 0 0 1px #ffdb8733, 0 1px #000; }
+    .material-row span { min-width: 0; }
+    .material-row span strong, .material-row span small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .material-row span strong { font-size: 9px; line-height: 1.15; }
+    .material-row span small { margin-top: 4px; color: #9da7af; font: 6px/1.2 monospace; }
+    .material-row em { color: #c9d0d5; font: 6px/1.2 monospace; font-style: normal; white-space: nowrap; }
+    .row-recipe { position: absolute; bottom: 3px; left: 30px; width: 20px; height: 20px; border: 1px solid #34424d; background: #0e161d; }
+    .preview { overflow-y: auto; flex: 0 0 258px; align-self: stretch; width: 258px; min-height: 0; padding: 0; border-left: 1px solid #686253; background-color: #292822; background-image: url("/design-assets/ui/factory-gunmetal-panel-v1.png"); background-size: 320px 320px; box-shadow: inset 0 1px #fff5d71f, inset 0 -2px #000000a8; text-align: center; }
+    .preview header { margin: 0; }
+    .preview > app-game-icon { display: block; width: 72px; margin: 22px auto 0; }
+    .preview > small, .preview h3, .preview > strong { display: block; text-align: center; }
+    .preview > small { color: #b1843b; font: 7px monospace; margin-top: 12px; }
+    .preview h3 { margin: 7px 0 0; font-size: 14px; }
+    .preview > strong { color: #64c875; font: 11px monospace; margin-top: 6px; }
+    dl { margin: 10px 16px; }
+    dl div { display: flex; align-items: center; justify-content: space-between; min-height: 28px; border-bottom: 1px solid #26333d; }
+    dt { color: #819087; font-size: 7px; }
+    dd { margin: 0; font: 8px monospace; }
+    .replace-recipe { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; width: calc(100% - 32px); min-height: 48px; gap: 8px; margin: 0 16px; padding: 7px; border: 2px solid #76572f; color: #eee2ca; background-color: #211e19; text-align: left; }
+    .replace-recipe span { display: flex; min-width: 0; flex-direction: column; }
+    .replace-recipe small { color: #827e75; font-size: 6px; }
+    .replace-recipe strong { margin-top: 3px; overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .replace-recipe em { color: #e8a934; font-size: 6px; font-style: normal; }
+    .preview p { color: #64c875; font-size: 7px; line-height: 1.55; margin: 14px 16px 0; text-align: left; }
+    .draft-target { display: grid; min-height: 210px; gap: 13px; padding: 24px 14px; place-items: center; text-align: center; }
+    .draft-target strong { color: #e6ddca; font-size: 10px; }
+    .draft-target button { min-height: 34px; font-size: 8px; }
+}

@@ -1,0 +1,23 @@
+<div class="backdrop" (click)="closed.emit()">
+    <section role="dialog" aria-modal="true" aria-labelledby="promote-output-title" (click)="$event.stopPropagation()">
+        <header>
+            <span><small>PRODUCTIONLINE</small><strong id="promote-output-title">{{ locale() === "zh-CN" ? "从现有产物新建 Production Line" : "Create a Production Line from an output" }}</strong></span>
+            <button type="button" class="fac-button" (click)="closed.emit()">{{ locale() === "zh-CN" ? "取消" : "Cancel" }}</button>
+        </header>
+        <p>{{ locale() === "zh-CN" ? "每个交付目标对应一个 Production Line。这里只能从当前工艺图已经能够产出的物料中创建新的生产线。" : "Each delivery target owns one Production Line. A new line can only start from a material already produced by this graph." }}</p>
+        <div>
+            @for (material of outputs(); track material.key) {
+                <button type="button" class="fac-button" [disabled]="isLocked(material)" (click)="selected.emit(material)">
+                    <app-game-icon [type]="material.type" [name]="material.name" [size]="40" />
+                    <span><strong>{{ nameOf()(material.type, material.name) }}</strong><small>{{ isLocked(material) ? (locale() === "zh-CN" ? "已是目标" : "ALREADY A TARGET") : (locale() === "zh-CN" ? "新建 Production Line" : "CREATE PRODUCTION LINE") }}</small></span>
+                    <em>{{ isLocked(material) ? "LOCKED" : "+ GOAL" }}</em>
+                </button>
+            } @empty {
+                <p class="empty">{{ locale() === "zh-CN" ? "当前没有可用于新建 Production Line 的其它产物。" : "No other output is available for a new Production Line." }}</p>
+            }
+            @if (outputs().length > 0 && availableCount() === 0) {
+                <p class="empty">{{ locale() === "zh-CN" ? "当前没有可用于新建 Production Line 的其它产物。" : "No other output is available for a new Production Line." }}</p>
+            }
+        </div>
+    </section>
+</div>

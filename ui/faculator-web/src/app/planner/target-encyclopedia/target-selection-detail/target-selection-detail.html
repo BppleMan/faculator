@@ -1,0 +1,24 @@
+@if (entry(); as selectedEntry) {
+    <div class="selected-heading">
+        <span class="selected-icon"><app-game-icon [type]="selectedEntry.type" [name]="selectedEntry.name" [size]="68" /></span>
+        <div><small>{{ selectedEntry.type === "item" ? (locale() === "zh-CN" ? "物品" : "ITEM") : (locale() === "zh-CN" ? "流体" : "FLUID") }}</small><strong>{{ nameOf()(selectedEntry.type, selectedEntry.name) }}</strong><code>{{ selectedEntry.name }}</code></div>
+    </div>
+    <dl><div><dt>{{ locale() === "zh-CN" ? "分类" : "GROUP" }}</dt><dd>{{ nameOf()("item_group", selectedEntry.group) }}</dd></div><div><dt>{{ locale() === "zh-CN" ? "子分类" : "SUBGROUP" }}</dt><dd>{{ nameOf()("item_subgroup", selectedEntry.subgroup) }}</dd></div><div><dt>ORDER</dt><dd>{{ selectedEntry.order }}</dd></div><div><dt>{{ locale() === "zh-CN" ? "堆叠上限" : "STACK SIZE" }}</dt><dd>{{ selectedEntry.stackSize ?? "—" }}</dd></div></dl>
+    <div class="recipe-section">
+        <div class="recipe-heading"><span>{{ locale() === "zh-CN" ? "系统默认展开配方" : "DEFAULT EXPANSION RECIPE" }}</span><em>{{ recipes().length }} {{ locale() === "zh-CN" ? "配方" : "recipes" }}</em></div>
+        <div class="recipe-list">
+            @if (selectedRecipe(); as recipe) {
+                <div class="default-recipe"><app-game-icon type="recipe" [name]="recipe.name" [size]="34" /><span><strong>{{ nameOf()("recipe", recipe.name) }}</strong><small>{{ recipe.category }} · {{ recipe.energy }} s</small></span><em>DEFAULT</em></div>
+            }
+            @if (recipes().length === 0) {<p>{{ locale() === "zh-CN" ? "game-data 中没有可用生产配方" : "No producing recipe is available in game-data" }}</p>}
+            @if (recipes().length > 0) {<small class="recipe-hint">{{ locale() === "zh-CN" ? "创建后可在每个 BOM 节点替换为同产物配方" : "After creation, each BOM node can independently replace its producer recipe." }}</small>}
+        </div>
+    </div>
+    <div class="confirmation">
+        <label><span>{{ locale() === "zh-CN" ? "目标速率" : "Target rate" }}</span><div><input type="number" min="0.01" step="10" [value]="minimum()" (input)="updateMinimum($event)" /><em>{{ locale() === "zh-CN" ? "/ 分钟" : "/ min" }}</em></div></label>
+        <button type="button" class="confirm fac-button fac-button--primary" [disabled]="!selectedRecipe() || minimum() <= 0" (click)="confirmed.emit()">{{ createLine() ? (locale() === "zh-CN" ? "创建 Production Line" : "Create line") : (locale() === "zh-CN" ? "设为当前 Line 目标" : "Apply target") }}</button>
+        <small>{{ locale() === "zh-CN" ? "确认后才会写入当前 ProductionLine" : "The current ProductionLine changes only after confirmation." }}</small>
+    </div>
+} @else {
+    <div class="detail-empty"><app-game-icon type="item" name="blueprint-book" [size]="62" /><span>TARGET / RECIPE / RATE</span><strong>{{ locale() === "zh-CN" ? "从左侧百科选择一个目标" : "Select a target" }}</strong><p>{{ locale() === "zh-CN" ? "确认后才会写入当前 ProductionLine" : "The current ProductionLine changes only after confirmation." }}</p></div>
+}

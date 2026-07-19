@@ -1,0 +1,36 @@
+<!-- @dsCard group="Components" viewport="700x210" subtitle="Checkbox / Radio / Switch / Segmented · 机械拨闸" name="开关与选择 Toggles" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:14px 16px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const { Button, IconButton, Input, NumberField, Select, Checkbox, Radio, RadioGroup, Switch, Segmented, Badge, Tag, Alert, ProgressBar, Tooltip, Dialog, Gauge, StatCard, DataTable, ChartFrame, Tabs, Breadcrumb, SideNav, Panel } = NS;
+
+function App(){
+  const [c1, setC1] = React.useState(true);
+  const [c2, setC2] = React.useState(false);
+  const [r, setR] = React.useState('center');
+  const [s1, setS1] = React.useState(true);
+  const [s2, setS2] = React.useState(false);
+  const [view, setView] = React.useState('nodes');
+  return (
+  <div style={{display:'flex',flexDirection:'column',gap:14}}>
+    <div style={{display:'flex',gap:22,alignItems:'center',flexWrap:'wrap'}}>
+      <Checkbox checked={c1} onChange={setC1} label="包含副产物" />
+      <Checkbox checked={c2} onChange={setC2} label="合并同类节点" />
+      <Checkbox checked disabled label="禁用已选" />
+      <RadioGroup value={r} onChange={setR} options={[{value:'center',label:'居中平衡'},{value:'raw',label:'对齐原料'}]} />
+    </div>
+    <div style={{display:'flex',gap:22,alignItems:'center',flexWrap:'wrap'}}>
+      <Switch checked={s1} onChange={setS1} label="自动重算" />
+      <Switch checked={s2} onChange={setS2} label="显示功耗" />
+      <Segmented value={view} onChange={setView} options={[{value:'nodes',label:'节点图'},{value:'tree',label:'层级树'},{value:'col',label:'分栏'},{value:'sankey',label:'桑基图'}]} />
+    </div>
+  </div>
+); }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

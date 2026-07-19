@@ -1,0 +1,13 @@
+app-recipe-station {
+    article { display: grid; grid-template-columns: 89px minmax(0, 1fr) 89px; width: 100%; height: 100%; overflow: visible; color: #eee4ce; border: 1px solid #58605d; border-top: 2px solid #d49324; background: linear-gradient(160deg, #20292e, #11181c 48%, #090f12); box-shadow: 0 9px 20px #0007, inset 0 1px #ffffff13; }
+    article.is-selected { z-index: 30; box-shadow: 0 0 0 1px #52a8ff, 0 10px 24px #0008, 0 0 20px #43a0ff29; }
+    .port-column { display: grid; align-items: center; min-width: 0; overflow: hidden; background: linear-gradient(90deg, #ffffff06, transparent 46%, #0003), #0c1317; }
+    .port-column.is-output { border-right: 1px solid #4b555a; }
+    .port-column.is-input { border-left: 1px solid #4b555a; }
+    .port-list { display: flex; flex-direction: column; justify-content: center; max-height: 100%; gap: 2px; padding: 4px; overflow-y: auto; }
+    .material-port { display: flex; align-items: center; height: 22px; min-height: 22px; gap: 3px; padding: 2px 3px; overflow: hidden; color: #7ddab0; border: 1px solid #2d383d; border-left: 2px solid #52c88e; background: linear-gradient(#1a2429, #10171b); }
+    .is-input .material-port { color: #78cce0; border-left-width: 1px; border-right: 2px solid #5bbfd4; }
+    .material-port > span { display: flex; min-width: 0; flex-direction: column; }
+    .material-port strong, .material-port small { overflow: hidden; font-size: 6px; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
+    .material-port small { margin-top: 2px; color: currentColor; font: 5px monospace; }
+}

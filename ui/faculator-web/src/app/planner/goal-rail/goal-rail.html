@@ -1,0 +1,28 @@
+<header>
+    <span><small>PRODUCTIONLINE</small><strong>{{ locale() === "zh-CN" ? "交付目标" : "DELIVERY TARGET" }}</strong></span>
+    <em>{{ line().targets.length }}</em>
+</header>
+<p>{{ locale() === "zh-CN" ? "净边界产出约束" : "Net boundary constraint" }}</p>
+@if (line().targets.length === 0) {
+    <section class="empty-state">
+        <app-game-icon type="item" name="blueprint-book" [size]="72" />
+        <strong>{{ locale() === "zh-CN" ? "尚未选择生产目标" : "No production target" }}</strong>
+        <small>{{ locale() === "zh-CN" ? "这个 Production Line 目前只是草稿。选择目标后，才会建立 root 配方节点。" : "Choose a target to build the root recipe node." }}</small>
+        <button type="button" class="fac-button fac-button--primary" (click)="targetRequested.emit()">{{ locale() === "zh-CN" ? "打开目标百科" : "Open target index" }}</button>
+    </section>
+} @else {
+    <section class="target-list">
+        @for (target of line().targets; track target.key; let targetIndex = $index) {
+            <article [class.is-met]="!line().dirty && result().balances[targetIndex]?.met">
+                <app-game-icon [type]="target.type" [name]="target.name" [size]="36" />
+                <span><strong>{{ nameOf()(target.type, target.name) }}</strong><small>{{ locale() === "zh-CN" ? "最低产出" : "MINIMUM" }}</small></span>
+                <i [class.is-pending]="line().dirty" [class.is-met]="!line().dirty && result().balances[targetIndex]?.met"></i>
+                <label><input type="number" min="0" step="10" [value]="target.minimum" (input)="updateRate(targetIndex, $event)" /><em>/ min</em></label>
+                <div><small>{{ locale() === "zh-CN" ? "净产出" : "NET OUTPUT" }}</small><strong>{{ line().dirty ? "—" : formatRate(result().balances[targetIndex]?.output ?? 0) }}</strong><button type="button" class="fac-button fac-button--danger" [disabled]="line().targets.length === 1" (click)="targetRemoved.emit(targetIndex)">{{ locale() === "zh-CN" ? "移除" : "REMOVE" }}</button></div>
+            </article>
+        }
+    </section>
+    <button type="button" class="promote-button fac-button" (click)="promoteRequested.emit()">{{ locale() === "zh-CN" ? "从现有产物新建生产线" : "Promote existing output" }}</button>
+    <button type="button" class="solve-button fac-button fac-button--primary" [disabled]="isSolving()" (click)="requestSolve()"><i></i>{{ isSolving() ? (locale() === "zh-CN" ? "正在配平…" : "Balancing…") : (locale() === "zh-CN" ? "应用约束并解算" : "Apply constraints & solve") }}</button>
+    <p class="solve-hint">{{ locale() === "zh-CN" ? "目标修改仅成为待应用约束；解算结果在应用后更新。" : "Target edits remain pending until constraints are applied." }}</p>
+}

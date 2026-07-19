@@ -1,0 +1,72 @@
+:host {
+    display: block;
+    min-height: 100%;
+
+    height: 100%;
+
+    .sankey-view { display: grid; overflow: auto; grid-auto-rows: minmax(520px, 1fr); height: 100%; gap: 16px; min-width: 900px; padding: 14px; color: #dcd3c2; }
+    .line-lane { display: flex; overflow: hidden; min-height: 0; flex-direction: column; border: 1px solid #39423b; background: #0b110f; }
+    .line-lane.is-active { border-color: #9e742c; }
+    .line-lane > header { min-height: 58px; padding: 5px; border-bottom: 1px solid #384039; background: #171c19; }
+    .line-selector { display: grid; position: relative; grid-template-columns: auto auto minmax(0, 1fr) 7px; align-items: center; width: 100%; min-height: 48px; gap: 7px; padding: 7px; color: #ddd4c2; border: 2px solid #686253; background-color: #292822; background-image: url("/design-assets/ui/factory-gunmetal-panel-v1.png"); background-size: 320px 320px; box-shadow: inset 0 1px #fff5d71f, inset 0 -2px #000000a8; text-align: left; }
+    .line-lane.is-active .line-selector { color: #eee2ca; border-color: #e2b358; border-left-color: #f1b44c; background-color: #433720; background-image: linear-gradient(#2b281f, #191917) !important; box-shadow: inset 0 0 0 1px #ffd37052, inset 0 -3px #5b3d1d, 0 1px #000000 !important; }
+    .line-code { color: #e8a934; font: 7px monospace; }
+    .line-icons { display: grid; width: 32px; height: 32px; place-items: center; }
+    .line-copy { display: flex; overflow: hidden; min-width: 0; flex-direction: column; }
+    .line-copy strong, .line-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .line-copy strong { font-size: 9px; }
+    .line-copy small { margin-top: 4px; color: #9da7af; font: 6px monospace; }
+    .line-state { width: 7px; height: 7px; border-radius: 50%; background: #84909a; }
+    .line-state.is-ready { background: #5f9b77; box-shadow: 0 0 7px #5f9b77; }
+    .line-state.is-pending { background: #d49324; box-shadow: 0 0 7px #d49324; }
+    .root-label { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #303831; }
+    .root-label span { display: grid; }
+    .root-label small { color: #849188; font: 8px monospace; }
+    .root-label em { margin-left: auto; color: #e0a334; font: 10px monospace; }
+    .method { display: flex; align-items: center; gap: 18px; overflow: hidden; padding: 9px 14px; border-bottom: 1px solid #313a33; background: #111814; white-space: nowrap; font: 9px monospace; }
+    .method strong { color: #e2aa47; }
+    .method span { color: #849188; }
+    .method i { display: inline-block; width: 16px; height: 5px; margin-right: 5px; background: #5c8172; }
+    .method i.local { background: #d99a42; }
+    .method i.boundary { height: 0; border-top: 1px dashed #8b948d; background: transparent; }
+    .graph-layout { display: grid; overflow: hidden; min-height: 0; flex: 1 1 auto; grid-template-columns: minmax(0, 1fr) auto; }
+    .graph-scroll { overflow: auto; min-width: 0; min-height: 0; background: #07100d; }
+    .stage { position: relative; background-image: linear-gradient(#1a241f55 1px, transparent 1px), linear-gradient(90deg, #1a241f55 1px, transparent 1px); background-size: 40px 40px; }
+    .depth { position: absolute; top: 10px; color: #718079; font: 8px monospace; }
+    .flow-link { position: absolute; z-index: 0; background: linear-gradient(90deg, #2caabdcc, #2caabd99); clip-path: polygon(0 35%, 100% 0, 100% 100%, 0 65%); }
+    .flow-link.is-rising { clip-path: polygon(0 0, 100% 35%, 100% 65%, 0 100%); }
+    .flow-link.is-green { background: linear-gradient(90deg, #31b968cc, #31b96899); }
+    .node { display: grid; position: absolute; grid-template-columns: 10px minmax(0, 1fr); align-items: center; width: 154px; gap: 7px; padding: 0; color: #d8cfbd; border: 0; background: transparent; text-align: left; }
+    .node > i { display: block; position: relative; overflow: hidden; width: 10px; margin: 0; border-radius: 2px; outline: 1px solid #88a89b; background-color: #191b1a; background-image: linear-gradient(#222422, #151717); box-shadow: inset 0 0 0 1px #ffdb8733, 0 1px #000000; }
+    .node > i > b { display: block; position: absolute; left: 0; width: 100%; margin: 0; }
+    .node > i > b.is-local { box-shadow: inset 0 0 0 1px #ffd28338; }
+    .node.is-target > i { outline-color: #a8f1cf; }
+    .node.is-boundary > i { border: 1px dashed #8b998f; outline: 0; background: transparent; box-shadow: none; }
+    .node span { min-width: 0; padding: 3px 5px; background: transparent; }
+    .node:hover > i, .node.is-selected > i { outline-color: #d9f7ff; box-shadow: inset 0 0 0 1px #ffdb8733, 0 1px #000000; }
+    .node.is-target:hover > i, .node.is-target.is-selected > i { outline-color: #a8f1cf; }
+    .node:hover span, .node.is-selected span { background-color: #17232c; box-shadow: 0 0 0 1px #5ca8ff73; }
+    .node span strong, .node span small { display: block; }
+    .node span strong { overflow: hidden; font: 700 8px "Avenir Next", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+    .node span small { overflow: hidden; color: #9fb6ac; font: 700 6px monospace; text-overflow: ellipsis; white-space: nowrap; }
+    aside { width: 278px; padding: 16px; border-left: 1px solid #404840; background: #121814; }
+    .eyebrow { color: #d79e34; font: 9px monospace; }
+    .material { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 10px; border: 1px solid #39423b; background: #0a100e; }
+    .material span strong, .material span small { display: block; }
+    .material small { color: #7f8c84; font: 8px monospace; }
+    dl { border-block: 1px solid #394139; }
+    dl div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2e352f; font: 9px monospace; }
+    dt { color: #839087; }
+    dd.ok { color: #62c18f; }
+    .recipe-action { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; width: 100%; min-height: 46px; gap: 8px; padding: 7px; border: 2px solid #76572f; color: #eee2ca; background-color: #211e19; text-align: left; }
+    .recipe-action > span { display: flex; min-width: 0; flex-direction: column; }
+    .recipe-action small { color: #827e75; font-size: 6px; }
+    .recipe-action strong { margin-top: 3px; overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .recipe-action em { color: #e8a934; font-size: 6px; font-style: normal; }
+    aside p { color: #7e8981; font: 9px/1.5 monospace; }
+    .sankey-draft-panel { display: grid; min-height: 420px; gap: 14px; padding: 40px; background: #07100d; place-items: center; text-align: center; }
+    .sankey-draft-panel span { display: flex; max-width: 280px; flex-direction: column; gap: 8px; }
+    .sankey-draft-panel strong { color: #e6ddca; font-size: 15px; }
+    .sankey-draft-panel small { color: #849188; font: 9px/1.5 monospace; }
+    .sankey-draft-panel button { min-width: 150px; min-height: 38px; }
+}

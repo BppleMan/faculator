@@ -1,0 +1,8 @@
+<div>
+    <small>{{ plan().name.value(locale()) }} / ProductionBlock / {{ block().id }}</small>
+    <span>
+        <h1>{{ block().name.value(locale()) }}</h1>
+        <em>{{ locale() === "zh-CN" ? "Block 组织画布" : "Block canvas" }}</em>
+    </span>
+</div>
+<strong>{{ block().lines.length }} LINE · {{ locale() === "zh-CN" ? "组织容器 · Production Line 独立解算" : "organization only · independent lines" }}</strong>

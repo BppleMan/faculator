@@ -1,0 +1,27 @@
+<!-- @dsCard group="Components" viewport="700x190" subtitle="Tooltip / Dialog · 切角钢板浮层" name="浮层 Overlays" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:14px 16px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const { Button, IconButton, Input, NumberField, Select, Checkbox, Radio, RadioGroup, Switch, Segmented, Badge, Tag, Alert, ProgressBar, Tooltip, Dialog, Gauge, StatCard, DataTable, ChartFrame, Tabs, Breadcrumb, SideNav, Panel } = NS;
+
+function App(){
+  const [open, setOpen] = React.useState(false);
+  return (
+  <div style={{display:'flex',gap:20,alignItems:'center'}}>
+    <Tooltip content="按当前配方重算机器数"><Button variant="secondary">悬停看提示</Button></Tooltip>
+    <Tooltip content="第 3 级 · 12 台组装机" placement="bottom"><Badge tone="ok">悬停 · 下方</Badge></Tooltip>
+    <Button variant="danger" onClick={()=>setOpen(true)}>打开危险弹窗</Button>
+    <Dialog open={open} onClose={()=>setOpen(false)} title="清空产线" subtitle="PURGE LINE" danger
+      footer={<React.Fragment><Button variant="ghost" onClick={()=>setOpen(false)}>取消</Button><Button variant="danger" onClick={()=>setOpen(false)}>确认清空</Button></React.Fragment>}>
+      该操作将移除当前产线的全部 24 个节点,不可撤销。
+    </Dialog>
+  </div>
+); }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

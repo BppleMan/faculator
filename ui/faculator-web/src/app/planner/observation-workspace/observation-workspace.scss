@@ -1,0 +1,184 @@
+:host {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+
+    header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 66px;
+        padding: 7px;
+        border-bottom: 1px solid #565249;
+    }
+
+    header .view-switcher {
+        width: max-content;
+        height: 50px;
+        gap: 2px;
+        padding: 3px;
+        border: 2px solid #080909;
+        border-radius: 0;
+        background: #090a09;
+        box-shadow: inset 0 0 0 1px #4d4e48, inset 0 3px 6px #000;
+    }
+
+    header .view-switcher::before {
+        content: none;
+    }
+
+    header .view-switcher button {
+        display: grid;
+        box-sizing: border-box;
+        place-items: center;
+        width: 50px;
+        font: 700 16px "Avenir Next", "PingFang SC", sans-serif;
+        min-width: 50px;
+        height: 42px;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+        transform: none;
+    }
+
+    header .view-switcher button.is-active {
+        color: #211505;
+        background-color: #b06d15 !important;
+        background-image: linear-gradient(#f6c054c7, #af6c15d6), url("/design-assets/ui/foundry-panel-texture.png") !important;
+        background-size: auto, 260px 260px !important;
+        box-shadow: inset 0 3px 5px #6f3f1099, inset 0 0 0 2px #815519, 0 0 0 1px #ffc765 !important;
+    }
+
+    header .view-switcher button:not(.is-active) img {
+        opacity: .76;
+        filter: grayscale(.18);
+    }
+
+    header .view-switcher button.is-active img {
+        opacity: 1;
+        filter: drop-shadow(0 0 4px #d99b2d5c);
+    }
+
+    header .view-switcher button img {
+        display: block;
+        width: 25px;
+        height: 25px;
+        transition: opacity 150ms cubic-bezier(.2, .75, .25, 1), filter 150ms cubic-bezier(.2, .75, .25, 1), transform 150ms cubic-bezier(.2, .75, .25, 1);
+    }
+
+    header .view-switcher button[data-tooltip] {
+        position: relative;
+
+        &::after {
+            position: absolute;
+            z-index: 20;
+            top: calc(100% + 9px);
+            left: 50%;
+            opacity: 0;
+            color: #ede2ca;
+            padding: 5px 8px;
+            border: 1px solid #655a46;
+            background: #0b0d0b;
+            box-shadow: 0 3px 8px #000000cc;
+            content: attr(data-tooltip);
+            font: 700 10px "Avenir Next", "PingFang SC", sans-serif;
+            pointer-events: none;
+            transform: translate(-50%, -3px);
+            transition: opacity 120ms ease 220ms, transform 120ms ease 220ms;
+            white-space: nowrap;
+        }
+
+        &:hover::after,
+        &:focus-visible::after {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    }
+
+    .add-line {
+        font-size: 14px;
+        min-width: 136px;
+        height: 48px;
+        padding: 0 10px;
+        border: 1px solid #80755e;
+        color: #f5e8c8;
+        background-color: #3a382f;
+    }
+
+    .summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        min-height: 42px;
+        border-bottom: 4px solid #070808;
+    }
+
+    .summary span {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 0 12px;
+        border-right: 1px solid #383a34;
+    }
+
+    .summary small {
+        font: 500 12px "Avenir Next", "PingFang SC", sans-serif;
+        color: #8d887f;
+    }
+
+    .summary strong {
+        font: 700 16px "DIN Alternate", sans-serif;
+        color: #f0b13a;
+    }
+
+    .stage {
+        // Accepted visual invariant: keep the observation canvas at this exact dark grid foundation.
+        display: grid;
+        flex: 1 1 auto;
+        overflow: auto;
+        min-height: 0;
+        margin: 6px;
+        border: 2px solid #070808;
+        background-color: #080c0d;
+        background-image: linear-gradient(#6c808209 1px, transparent 1px), linear-gradient(90deg, #6c808209 1px, transparent 1px);
+        background-size: 24px 24px;
+        box-shadow: inset 0 0 0 2px #3e403c, inset 0 10px 26px #000;
+        place-items: start stretch;
+    }
+
+    .empty-state {
+        display: flex;
+        align-items: center;
+        align-self: center;
+        justify-self: center;
+        width: min(640px, 90%);
+        gap: 16px;
+    }
+
+    .empty-state > span {
+        display: grid;
+        flex: 1 1 auto;
+        gap: 7px;
+    }
+
+    .empty-state strong {
+        font: 700 22px "Avenir Next Condensed", "PingFang SC", sans-serif;
+        color: #f1e6d0;
+    }
+
+    .empty-state small {
+        max-width: 360px;
+        font: 400 13px/1.55 "Avenir Next", "PingFang SC", sans-serif;
+        color: #827d74;
+    }
+
+    .empty-state > button {
+        font-size: 14px;
+        min-width: 176px;
+        height: 42px;
+        padding: 0 13px;
+        border-width: 2px;
+    }
+}

@@ -1,0 +1,39 @@
+:host {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 88px;
+    padding: 14px 20px;
+
+    div {
+        display: grid;
+        gap: 6px;
+    }
+
+    small {
+        font: 500 9px "DIN Alternate", sans-serif;
+        color: #77746e;
+    }
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    h1 {
+        font: 700 24px "Avenir Next Condensed", "PingFang SC", sans-serif;
+        color: #f6ecd5;
+        margin: 0;
+    }
+
+    em,
+    > strong {
+        font: 700 9px "DIN Alternate", "PingFang SC", sans-serif;
+        font-style: normal;
+        color: #e3b956;
+        padding: 8px 11px;
+        border: 1px solid #9a7328;
+        background: #2c2719;
+    }
+}

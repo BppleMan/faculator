@@ -1,0 +1,237 @@
+:host {
+    display: block;
+    flex: 0 0 64px;
+    overflow: hidden;
+    min-height: 64px;
+
+    &.is-expanded {
+        flex-basis: 294px;
+        min-height: 294px;
+    }
+
+    nav {
+        display: flex;
+        align-items: center;
+        height: 58px;
+        gap: 4px;
+        padding: 7px 26px;
+    }
+
+    button {
+        font: 600 10px "Avenir Next", "PingFang SC", sans-serif;
+        color: #817d75;
+        min-width: 140px;
+        height: 44px;
+        padding: 0 14px;
+        border: 2px solid #070808;
+        background-color: #222422;
+        background: linear-gradient(#242620, #10120f);
+        background-color: #222422;
+        box-shadow: inset 0 0 0 2px #070907;
+        cursor: pointer;
+
+        &.is-active {
+            color: #211505;
+            border-color: #070808;
+            background-color: #222422;
+            background-image: linear-gradient(#f6c054c2, #af6c15d1), url("/design-assets/ui/foundry-panel-texture.png") !important;
+            background-size: auto, 260px 260px !important;
+            box-shadow: inset 0 1px #ffffffa3, inset 0 -4px #5c2d0480, inset 0 0 0 2px #815519, 0 0 0 1px #ffc765 !important;
+        }
+    }
+
+    .collapse {
+        min-width: 96px;
+        margin: 0 0 0 auto;
+    }
+
+    .drawer-body {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        color: #dcd0ba;
+        height: 230px;
+        padding: 0;
+        border-top: 1px solid #35433b;
+        background: #0a120f;
+
+        main {
+            display: grid;
+            align-content: start;
+            overflow: auto;
+            gap: 6px;
+            padding: 12px;
+        }
+
+        article {
+            display: grid;
+            grid-template-columns: 1fr 180px 140px;
+            font: 10px monospace;
+            padding: 8px 11px;
+            border: 1px solid #28352e;
+            background: #111a16;
+
+            em {
+                text-align: right;
+                color: #d29856;
+
+                &.ok {
+                    color: #7fb290;
+                }
+            }
+        }
+
+        aside {
+            overflow: auto;
+            padding: 15px;
+            border-left: 1px solid #35433b;
+
+            > small {
+                font: 9px monospace;
+                color: #7e9186;
+            }
+
+            > strong {
+                display: block;
+                font: 18px Georgia, serif;
+                margin: 8px 0;
+            }
+        }
+
+        dl {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            font: 9px monospace;
+        }
+
+        dt {
+            color: #788b80;
+        }
+
+        dd {
+            overflow-wrap: anywhere;
+            color: #d9cbb4;
+            margin: 0;
+        }
+    }
+
+    .matrix {
+        display: grid;
+        overflow: auto;
+        font: 9px monospace;
+
+        header,
+        span {
+            display: grid;
+            grid-template-columns: 170px repeat(20, 110px);
+            min-width: max-content;
+        }
+
+        strong,
+        small,
+        code {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 6px;
+            border: 1px solid #29362f;
+        }
+    }
+
+    .boundary-panel {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-content: start;
+        gap: 10px;
+
+        > section {
+            min-width: 0;
+        }
+
+        .eyebrow {
+            display: block;
+            margin-bottom: 7px;
+            color: #d8a03a;
+            font: 700 8px "DIN Alternate", monospace;
+            letter-spacing: .1em;
+        }
+
+        .boundary-list {
+            display: grid;
+            gap: 5px;
+        }
+
+        .boundary-list > p {
+            margin: 0;
+            padding: 12px;
+            color: #777d77;
+            border: 1px solid #28352e;
+            font-size: 9px;
+        }
+
+        .boundary-row {
+            display: grid;
+            grid-template-columns: 32px minmax(0, 1fr) auto;
+            align-items: center;
+            min-height: 48px;
+            gap: 8px;
+            padding: 7px 8px;
+            border: 1px solid #28352e;
+            background: #111a16;
+            box-shadow: inset 0 1px #ffffff0a;
+        }
+
+        .boundary-row > span {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+
+            strong {
+                overflow: hidden;
+                font-size: 9px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            small {
+                margin-top: 3px;
+                color: #748078;
+                font: 6px monospace;
+            }
+        }
+
+        .boundary-row > b {
+            color: #d29856;
+            font: 7px monospace;
+            white-space: nowrap;
+        }
+
+        .export-toggle {
+            grid-column: 1 / -1;
+            width: 100%;
+            min-width: 0;
+            height: 26px;
+            min-height: 26px;
+            padding: 0 8px;
+            color: #bdb5a5;
+            font-size: 7px;
+
+            &.is-declared {
+                color: #211505;
+                border-color: #6d4a0b;
+                background-color: #c98b27;
+                background-image: linear-gradient(#f6c054b8, #af6c15d1), url("/design-assets/ui/foundry-panel-texture.png") !important;
+                background-size: auto, 260px 260px !important;
+                box-shadow: inset 0 1px #ffffffa6, inset 0 -3px #5c2d0480, inset 0 0 0 2px #7f5318, 0 0 0 1px #ffc765 !important;
+            }
+        }
+
+        .boundary-note {
+            grid-column: 1 / -1;
+            margin: 0;
+            padding: 7px 9px;
+            color: #7e9186;
+            border-left: 3px solid #b1843b;
+            background: #111814;
+            font-size: 7px;
+        }
+    }
+}

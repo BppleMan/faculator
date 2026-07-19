@@ -1,0 +1,31 @@
+<!-- @dsCard group="Components" viewport="700x210" subtitle="Input / NumberField / Select · 凹槽面聚焦琥珀辉光" name="输入 Inputs" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:14px 16px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const { Button, IconButton, Input, NumberField, Select, Checkbox, Radio, RadioGroup, Switch, Segmented, Badge, Tag, Alert, ProgressBar, Tooltip, Dialog, Gauge, StatCard, DataTable, ChartFrame, Tabs, Breadcrumb, SideNav, Panel } = NS;
+
+function App(){
+  const [rate, setRate] = React.useState(60);
+  const [recipe, setRecipe] = React.useState('cir');
+  return (
+  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16,alignItems:'start'}}>
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      <Input label="产线名称" placeholder="如:绿色科技包" defaultValue="总装线 A" />
+      <Input label="传送带速率" mono suffix="/min" defaultValue="900" />
+    </div>
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      <NumberField label="目标产率" value={rate} onChange={setRate} step={10} min={0} unit="/min" />
+      <Input error label="名称" defaultValue="重复的产线名" />
+    </div>
+    <Select label="产出配方" value={recipe} onChange={setRecipe} options={[
+      {value:'cir',label:'电路板'},{value:'cpu',label:'处理器单元'},{value:'eng',label:'引擎组件'},{value:'sci',label:'科技包 · 绿色'}]} />
+  </div>
+); }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

@@ -1,0 +1,33 @@
+<!-- @dsCard group="Components" viewport="700x250" subtitle="Panel · 铆钉钢板 + 琥珀题标线" name="容器 Surfaces" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:14px 16px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const { Button, IconButton, Input, NumberField, Select, Checkbox, Radio, RadioGroup, Switch, Segmented, Badge, Tag, Alert, ProgressBar, Tooltip, Dialog, Gauge, StatCard, DataTable, ChartFrame, Tabs, Breadcrumb, SideNav, Panel } = NS;
+
+function App(){
+  const [auto, setAuto] = React.useState(true);
+  return (
+  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+    <Panel title="模块槽位" tag="MODULES" toolbar={<IconButton size="sm" variant="ghost" title="设置">⚙</IconButton>}>
+      <div style={{display:'flex',flexDirection:'column',gap:10}}>
+        <ProgressBar label="已装配" value={3} max={4} segments={4} tone="info" />
+        <Switch checked={auto} onChange={setAuto} label="自动装配增产模块" />
+      </div>
+    </Panel>
+    <Panel title="产线概要" tag="SUMMARY" chamfer rivets={false}>
+      <div style={{display:'flex',flexDirection:'column',gap:8,fontSize:12,color:'var(--text-2)'}}>
+        <div style={{display:'flex',justifyContent:'space-between'}}><span>目标产率</span><span style={{fontFamily:'var(--font-mono)',color:'var(--amber)',fontWeight:700}}>60 /min</span></div>
+        <div style={{display:'flex',justifyContent:'space-between'}}><span>机器总数</span><span style={{fontFamily:'var(--font-mono)',fontWeight:700}}>86 台</span></div>
+        <div style={{display:'flex',justifyContent:'space-between'}}><span>状态</span><Badge tone="ok" blink>运行中</Badge></div>
+      </div>
+    </Panel>
+  </div>
+); }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

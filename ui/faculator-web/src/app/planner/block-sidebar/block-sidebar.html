@@ -1,0 +1,30 @@
+<header [appPanelShell]="PanelShellVariant.Brand">
+    <span>
+        <small>{{ locale() === "zh-CN" ? "计划" : "PLAN" }}</small>
+        <strong>{{ plan().name.value(locale()) }}</strong>
+    </span>
+    <button type="button" class="fac-button" (click)="blockAdded.emit()">{{ locale() === "zh-CN" ? "新增 Block" : "New Block" }}</button>
+</header>
+<div class="block-list">
+    @for (block of plan().blocks; track block.id; let index = $index) {
+        <article [class.is-active]="block.id === activeBlockId()">
+            <button type="button" class="block-select" [attr.aria-current]="block.id === activeBlockId() ? 'true' : null" (click)="blockSelected.emit(block.id)">
+                <span class="block-icon"><app-game-icon type="item" name="blueprint-book" [size]="30" /></span>
+                <span class="block-copy">
+                    <small>BLOCK {{ blockNumber(index) }}</small>
+                    <strong>{{ block.name.value(locale()) }}</strong>
+                    <em>{{ block.lines.length }} {{ locale() === "zh-CN" ? "条生产线" : "lines" }}</em>
+                </span>
+                <i [class]="status(block)"></i>
+            </button>
+            <button
+                type="button"
+                class="block-delete fac-button fac-button--danger fac-icon-button"
+                [disabled]="plan().blocks.length === 1"
+                [attr.aria-label]="'删除 Block：' + block.name.value(locale())"
+                (click)="blockDeleted.emit(block.id)"
+            >×</button>
+        </article>
+    }
+</div>
+<div class="vent" aria-hidden="true"></div>

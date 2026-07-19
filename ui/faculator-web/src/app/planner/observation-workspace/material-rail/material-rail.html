@@ -1,0 +1,36 @@
+<div class="rail-canvas" data-testid="block-view-rail" aria-label="物料轨道" [style.width.px]="layout().width" [style.height.px]="layout().height">
+    @for (tile of layout().tiles; track tile.gridX + ':' + tile.gridY) {
+        <app-transport-tile class="rail-tile" [style.left.px]="tile.gridX * 40" [style.top.px]="tile.gridY * 40" [ownerId]="tile.ownerId" transportType="belt" [gridX]="tile.gridX" [gridY]="tile.gridY" [mask]="tile.mask" />
+    }
+    @for (targetView of layout().targets; track targetView.root?.id ?? targetView.observation.line.id) {
+        @if (targetView.root; as root) {
+            <button #targetCard type="button" class="target-card" [style.left.px]="targetView.x" [style.top.px]="targetView.y" [class.is-active]="targetView.observation.line.id === activeLineId()" (click)="selectTarget(targetView)">
+                <span class="target-icon"><app-game-icon [type]="root.material.type" [name]="root.material.name" [size]="40" /></span>
+                <span><small>{{ locale() === "zh-CN" ? "用户目标 · 物品节点" : "User target · item node" }}</small><strong>{{ targetName(root) }}</strong><em>≥ {{ root.demand }} / min</em></span>
+            </button>
+        } @else {
+            <button #targetCard type="button" class="rail-draft-card" [style.left.px]="targetView.x" [style.top.px]="targetView.y" [class.is-active]="targetView.observation.line.id === activeLineId()" (click)="targetRequested.emit(targetView.observation.line.id)">
+                <app-game-icon type="item" name="blueprint-book" [size]="40" />
+                <span><small>PRODUCTION LINE · DRAFT</small><strong>{{ locale() === "zh-CN" ? "尚未选择生产目标" : "No production target" }}</strong><em>{{ locale() === "zh-CN" ? "打开目标百科" : "Open target index" }}</em></span>
+            </button>
+        }
+    }
+    @for (output of layout().byproducts; track output.process.id + ':' + output.material.key) {
+        <button type="button" class="byproduct-card" [style.left.px]="output.x" [style.top.px]="output.y" (click)="selectByproduct(output)">
+            <span class="target-icon"><app-game-icon [type]="output.material.type" [name]="output.material.name" [size]="38" /></span>
+            <span><small>{{ locale() === "zh-CN" ? "副产物输出" : "Byproduct output" }}</small><strong>{{ nameOf()(output.material.type, output.material.name) }}</strong><em>+ {{ formatRate(output.rate) }} / min</em><b>{{ locale() === "zh-CN" ? "由配方供给" : "Supplied by" }} · {{ nameOf()("recipe", output.process.recipe.name) }}</b></span>
+        </button>
+    }
+    @for (card of layout().cards; track card.process.id) {
+        <app-recipe-station class="rail-card" [style.left.px]="card.x" [style.top.px]="card.y"
+                [process]="card.process"
+                [catalog]="catalog()"
+                [locale]="locale()"
+                [nameOf]="nameOf()"
+                [selected]="card.process.id === selectedProcessId()"
+                (processSelected)="processSelected.emit($event)"
+                (replacementRequested)="replacementRequested.emit($event)"
+                (configurationChanged)="configurationChanged.emit($event)"
+            />
+    }
+</div>
