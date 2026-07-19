@@ -1,0 +1,348 @@
+<!-- @dsCard group="Explorations" viewport="720x520" subtitle="IC 插卡页签 · M 镂空唇缝 / N 软盘软驱 / O 内存槽 T 型卡" name="TabBar · IC 插卡" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:14px 16px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const W = 132;
+const CARD_COLORS = ['#C08A2E','#6FBF5E','#7BA3B8','#C25445','#A88BC0','#C9A05A'];
+let seq = 3;
+const START = [{id:1,label:'基地规划'},{id:2,label:'新建计划'}];
+const PANEL = {fontSize:12,color:'var(--text-2)',padding:'9px 12px',background:'var(--tex-noise), linear-gradient(180deg, #2A2620, #1E1C16)',border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 0 rgba(233,215,170,0.1), 0 2px 4px rgba(0,0,0,0.5)'};
+
+const AC = { ctx: null };
+function sound(kind){
+  try {
+    if (!AC.ctx) AC.ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const ctx = AC.ctx; if (ctx.state==='suspended') ctx.resume();
+    const t = ctx.currentTime;
+    // 柔和摩擦声:短噪声经带通 + 缓入缓出包络(避免削顶炸音)
+    const len = 0.13, buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*len), ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++){ const p=i/d.length; d[i] = (Math.random()*2-1) * Math.sin(Math.PI*p) * 0.6; }
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=0.8;
+    bp.frequency.setValueAtTime(1100, t);
+    bp.frequency.exponentialRampToValueAtTime(520, t+len);
+    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600;
+    const g1 = ctx.createGain();
+    g1.gain.setValueAtTime(0.0001, t);
+    g1.gain.linearRampToValueAtTime(0.05, t+0.02);
+    g1.gain.exponentialRampToValueAtTime(0.0001, t+len);
+    src.connect(bp); bp.connect(lp); lp.connect(g1); g1.connect(ctx.destination); src.start(t);
+    // 到位轻响:低频短音,缓入缓出
+    const o = ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(150, t+0.05); o.frequency.exponentialRampToValueAtTime(70, t+0.16);
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.0001, t+0.05);
+    g2.gain.linearRampToValueAtTime(0.09, t+0.08);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t+0.2);
+    o.connect(g2); g2.connect(ctx.destination); o.start(t+0.05); o.stop(t+0.22);
+  } catch(e){}
+}
+function CloseBtn({onClick, active}){
+  return <span onClick={(e)=>{e.stopPropagation();onClick();}} style={{
+    width:14,height:14,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:11,lineHeight:1,cursor:'pointer',borderRadius:2,color:active?'var(--text-3)':'var(--text-4)',
+    background:'#0A0908',border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 2px rgba(0,0,0,0.8)',
+  }}
+  onMouseEnter={e=>{e.currentTarget.style.color='var(--danger)'}}
+  onMouseLeave={e=>{e.currentTarget.style.color=active?'var(--text-3)':'var(--text-4)'}}>×</span>;
+}
+function AddBtn({onClick}){
+  return <span onClick={onClick} style={{
+    width:22,height:22,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:14,fontWeight:700,cursor:'pointer',borderRadius:2,color:'var(--text-2)',
+    background:'var(--tex-noise), radial-gradient(ellipse 90% 70% at 50% 18%, #2E2A22, #1E1C16 60%, #16140F)',
+    border:'1px solid var(--line-0)',
+    boxShadow:'inset 0 1px 1px rgba(233,215,170,0.15), 0 1px 0 #050403, 0 2px 2px rgba(0,0,0,0.7)',userSelect:'none',
+  }}>+</span>;
+}
+
+function Demo({name,note,children}){
+  return <div style={{display:'flex',flexDirection:'column',gap:6}}>
+    <div style={{display:'flex',gap:10,alignItems:'baseline'}}><span style={{fontSize:12,fontWeight:700,color:'var(--amber)'}}>{name}</span><span className="lbl">{note}</span></div>
+    {children}
+  </div>;
+}
+function useTabs(){
+  const [tabs,setTabs] = React.useState(START);
+  const [cur,setCur] = React.useState(1);
+  const [inserted,setInserted] = React.useState(1);
+  const pick = (id) => { if (id===cur) return; setCur(id); setInserted(id); sound('swap'); };
+  const add = () => { seq++; const t={id:seq,label:'计划 '+String(seq).padStart(2,'0')}; setTabs(ts=>[...ts,t]); pick(seq); };
+  const close = (id) => setTabs(ts=>{
+    const nx = ts.filter(t=>t.id!==id);
+    if (id===cur && nx.length) { const p = nx[Math.max(0, ts.findIndex(t=>t.id===id)-1)].id; setCur(p); setInserted(p); }
+    return nx;
+  });
+  React.useEffect(()=>{ if (inserted!=null && !tabs.find(t=>t.id===inserted)) setInserted(cur); }, [tabs]);
+  return {tabs,cur,inserted,pick,add,close};
+}
+
+// M · IC 插卡式(镂空唇缝 + 彩色卡)
+function BarM(){
+  const {tabs,cur,inserted,pick,add,close} = useTabs();
+  const RAIL_H = 52, SLOT_H = 44, CARD_H = 40, INSERT = 20, STEP = W+10;
+  const SLIT_T = 4, SLIT_H = 5; // 唇缝位置尺寸不变,仅镂空
+  const plate = 'var(--tex-noise), linear-gradient(180deg, #353026, #26221A 20%, #1D1A13)';
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:RAIL_H+SLOT_H}}>
+      {/* 悬挂横杆 */}
+      <div style={{position:'absolute',top:0,left:0,right:0,height:6,background:'linear-gradient(180deg,#4A4335,#24211A)',border:'1px solid var(--line-0)',borderRadius:2,boxShadow:'inset 0 1px 0 rgba(233,215,170,0.3)'}}></div>
+
+      {/* 缝底暗腔(z1,卡后面):空槽时缝里是黑 */}
+      {tabs.map((t,i)=>(
+        <div key={'slit'+t.id} style={{position:'absolute',zIndex:1,left:8+i*STEP,width:W,top:RAIL_H+SLIT_T,height:SLIT_H,
+          background:'#020201',boxShadow:'inset 0 1px 2px rgba(0,0,0,1)'}}></div>
+      ))}
+
+      {/* 卡片(z2):直上直下,插入 2/3;穿过唇缝时缝内可见卡色 */}
+      {tabs.map((t,i)=>{ const a=t.id===cur, ins=t.id===inserted;
+        const col = CARD_COLORS[(t.id-1)%CARD_COLORS.length];
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{
+          position:'absolute',zIndex:2,left:8+i*STEP,top:8,width:W,height:CARD_H,
+          padding:'3px 9px 0',cursor:'pointer',userSelect:'none',
+          display:'flex',alignItems:'flex-start',borderRadius:'3px 3px 4px 4px',
+          transform:ins?'translateY('+INSERT+'px)':'translateY(0)',
+          transition:'transform 240ms cubic-bezier(0.45, 0.05, 0.55, 1)',
+          background:'var(--tex-noise), linear-gradient(180deg, color-mix(in oklab, '+col+' 26%, #221F18), color-mix(in oklab, '+col+' 14%, #191712))',
+          border:'1px solid var(--line-0)',
+          boxShadow:'inset 0 2px 0 '+col+', inset 0 3px 1px rgba(0,0,0,0.4), inset 0 -2px 3px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.7)',
+        }}>
+          <span style={{display:'flex',alignItems:'center',gap:7,width:'100%',height:20,marginTop:3}}>
+            <span style={{width:10,height:8,flexShrink:0,borderRadius:1,
+              background:'linear-gradient(135deg,#DCA943,#8F681E)',
+              boxShadow:'inset 0 0 0 0.5px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,235,170,0.5)'}}></span>
+            <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12,fontWeight:700,letterSpacing:'0.06em',
+              color:a?'var(--text-1)':'var(--text-2)'}}>{t.label}</span>
+            <CloseBtn active={a} onClick={()=>close(t.id)}/>
+          </span>
+        </div>;})}
+
+      {/* 卡槽横梁(z3):三段拼合,唇缝位置真镂空 —— 上唇条 / 列间填块 / 下身盖板 */}
+      <div style={{position:'absolute',zIndex:3,pointerEvents:'none',top:RAIL_H,left:0,right:0,height:SLIT_T,
+        background:plate,boxShadow:'inset 0 1px 0 rgba(233,215,170,0.25)'}}></div>
+      {/* 列间与两端填块(缝行内非缝区域) */}
+      <div style={{position:'absolute',zIndex:3,pointerEvents:'none',top:RAIL_H+SLIT_T,left:0,width:8,height:SLIT_H,background:plate}}></div>
+      {tabs.map((t,i)=>(
+        <div key={'fill'+t.id} style={{position:'absolute',zIndex:3,pointerEvents:'none',top:RAIL_H+SLIT_T,left:8+i*STEP+W,width:i===tabs.length-1?'auto':STEP-W,right:i===tabs.length-1?0:'auto',height:SLIT_H,background:plate}}></div>
+      ))}
+      {/* 下身盖板:遮住没入的卡身,带槽位灯 */}
+      <div style={{position:'absolute',zIndex:3,pointerEvents:'none',top:RAIL_H+SLIT_T+SLIT_H,left:0,right:0,height:SLOT_H-SLIT_T-SLIT_H,
+        background:plate,boxShadow:'inset 0 -2px 3px rgba(0,0,0,0.5)'}}>
+        {tabs.map((t,i)=>{ const a=t.id===inserted;
+          const col = CARD_COLORS[(t.id-1)%CARD_COLORS.length];
+          return <div key={t.id} style={{position:'absolute',left:8+i*STEP,width:W,top:6,display:'flex',alignItems:'center',gap:5}}>
+            <span className={a?'fx-lamp-blink':''} style={{width:5,height:5,borderRadius:'50%',flexShrink:0,
+              background:a?col:'#242118',
+              boxShadow:a?'0 0 5px '+col:'inset 0 1px 1px rgba(0,0,0,0.8)',transition:'background 150ms, box-shadow 150ms'}}></span>
+            <span className="lbl" style={{fontSize:8,color:a?'var(--text-2)':'var(--text-4)',transition:'color 150ms'}}>{a?'已接入 ACTIVE':'空槽 —'}</span>
+          </div>;})}
+      </div>
+      {/* 槽梁外框(z4):只画边框圆角与外影 */}
+      <div style={{position:'absolute',zIndex:4,pointerEvents:'none',top:RAIL_H,left:0,right:0,height:SLOT_H,
+        border:'1px solid var(--line-0)',borderRadius:3,boxShadow:'0 2px 4px rgba(0,0,0,0.6)'}}></div>
+
+      <span style={{position:'absolute',top:12,left:8+tabs.length*STEP,zIndex:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'无打开的计划'}</div>
+  </div>;
+}
+
+// N · Mini 软盘 + 毛玻璃软驱:卡是迷你软盘,卡槽是毛玻璃软驱;插入更深,软驱显式显示已插入的盘
+function BarN(){
+  const {tabs,cur,inserted,pick,add,close} = useTabs();
+  const RAIL_H = 46, DRIVE_H = 52, DISK_H = 46, INSERT = 40, GAP = 12, STEP = W+GAP;
+  const MOUTH_T = 5, MOUTH_H = 4;
+  // 迷你软盘:金属滑盖(顶) + 彩色盘体 + 标签
+  const Floppy = (t, a) => {
+    const col = CARD_COLORS[(t.id-1)%CARD_COLORS.length];
+    return <div onClick={()=>pick(t.id)} style={{
+      width:'100%',height:DISK_H,cursor:'pointer',userSelect:'none',position:'relative',
+      borderRadius:'2px 2px 3px 3px',
+      background:'var(--tex-noise), linear-gradient(180deg, color-mix(in oklab, '+col+' 30%, #23201A), color-mix(in oklab, '+col+' 16%, #17150F))',
+      border:'1px solid var(--line-0)',
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,0.12), inset -1px 0 0 rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.7)'}}>
+      {/* 金属滑盖(插入端,朝下) */}
+      <div style={{position:'absolute',left:'26%',right:'12%',bottom:3,height:12,borderRadius:1,
+        background:'linear-gradient(180deg, #C9CDD2, #878C92 55%, #5C6067)',
+        border:'1px solid rgba(0,0,0,0.6)',boxShadow:'inset 0 1px 0 rgba(255,255,255,0.6)'}}>
+        <div style={{position:'absolute',left:4,top:3,bottom:3,width:5,background:'#3A3E44',borderRadius:1,boxShadow:'inset 0 0 2px rgba(0,0,0,0.9)'}}></div>
+      </div>
+      {/* 左下角斜切防插反 */}
+      <div style={{position:'absolute',left:0,bottom:0,width:0,height:0,borderLeft:'7px solid var(--bg-1)',borderTop:'7px solid transparent'}}></div>
+      {/* 标签 */}
+      <div style={{position:'absolute',left:5,right:5,top:5,height:22,borderRadius:1,
+        background:'linear-gradient(180deg, #EFE7D4, #DDD3BC)',border:'1px solid rgba(0,0,0,0.35)',
+        boxShadow:'inset 0 1px 0 rgba(255,255,255,0.7)',display:'flex',alignItems:'center',gap:5,padding:'0 5px'}}>
+        <span style={{width:7,height:7,flexShrink:0,borderRadius:1,background:col,boxShadow:'inset 0 0 0 0.5px rgba(0,0,0,0.4)'}}></span>
+        <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:11,fontWeight:700,letterSpacing:'0.02em',color:'#2A241A'}}>{t.label}</span>
+        <CloseBtn active={a} onClick={()=>close(t.id)}/>
+      </div>
+    </div>;
+  };
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:RAIL_H+DRIVE_H}}>
+      {/* 悬挂横杆 */}
+      <div style={{position:'absolute',top:0,left:0,right:0,height:6,background:'linear-gradient(180deg,#4A4335,#24211A)',border:'1px solid var(--line-0)',borderRadius:2,boxShadow:'inset 0 1px 0 rgba(233,215,170,0.3)'}}></div>
+
+      {/* 每列一个独立软驱(z1,盘后面) */}
+      {tabs.map((t,i)=>{ const a=t.id===inserted;
+        const col = CARD_COLORS[(t.id-1)%CARD_COLORS.length];
+        return <div key={'drive'+t.id} style={{position:'absolute',zIndex:1,left:8+i*STEP,width:W,top:RAIL_H,height:DRIVE_H,
+          borderRadius:3,background:'var(--tex-noise), linear-gradient(180deg, #302B22, #1C1913)',
+          border:'1px solid var(--line-0)',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.22), 0 0 9px '+col+'66, 0 2px 4px rgba(0,0,0,0.6)':'inset 0 1px 0 rgba(233,215,170,0.14), inset 0 -2px 3px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.6)',
+          transition:'box-shadow 240ms'}}>
+          {/* 插盘口暗腔 */}
+          <div style={{position:'absolute',left:10,right:10,top:MOUTH_T,height:MOUTH_H,borderRadius:2,background:'#020201',boxShadow:'inset 0 1px 2px rgba(0,0,0,1)'}}></div>
+        </div>;})}
+
+      {/* 软盘(z2):直上直下深插进软驱 */}
+      {tabs.map((t,i)=>{ const a=t.id===cur, ins=t.id===inserted;
+        return <div key={t.id} style={{
+          position:'absolute',zIndex:2,left:8+i*STEP,top:6,width:W,
+          transform:ins?'translateY('+INSERT+'px)':'translateY(0)',
+          transition:'transform 240ms cubic-bezier(0.45, 0.05, 0.55, 1)'}}>
+          {Floppy(t, a)}
+        </div>;})}
+
+      {/* 毛玻璃前面板(z4):高透磨砂,盖住没入盘身,软驱显式显示已插入的盘(标签透出) */}
+      {tabs.map((t,i)=>{ const a=t.id===inserted;
+        const col = CARD_COLORS[(t.id-1)%CARD_COLORS.length];
+        return <div key={'glass'+t.id} style={{position:'absolute',zIndex:4,pointerEvents:'none',
+          left:8+i*STEP+1,width:W-2,top:RAIL_H+MOUTH_T+MOUTH_H,height:DRIVE_H-MOUTH_T-MOUTH_H-2,borderRadius:'0 0 2px 2px',overflow:'hidden',
+          background:'linear-gradient(180deg, rgba(220,228,232,0.10), rgba(160,172,180,0.04) 55%, rgba(24,28,32,0.10))',
+          borderTop:'1px solid rgba(0,0,0,0.5)',
+          boxShadow:a?'inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 12px '+col:'inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.4)',
+          backdropFilter:'blur(0.6px)',WebkitBackdropFilter:'blur(0.6px)',transition:'box-shadow 240ms'}}>
+          {/* 卡色背光从底部透上来 */}
+          <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 130% 100% at 50% 130%, '+col+', transparent 66%)',opacity:a?0.42:0,transition:'opacity 240ms'}}></div>
+          {/* 斜向高光 */}
+          <div style={{position:'absolute',inset:0,background:'linear-gradient(118deg, rgba(255,255,255,0.14) 0 15%, transparent 36%)'}}></div>
+          {/* 软驱铭牌:显式显示当前插入盘名 + 读取灯 */}
+          <div style={{position:'absolute',left:8,right:8,bottom:5,display:'flex',alignItems:'center',gap:5}}>
+            <span className={a?'fx-lamp-blink':''} style={{width:5,height:5,borderRadius:'50%',flexShrink:0,
+              background:a?col:'#242118',boxShadow:a?'0 0 5px '+col:'inset 0 1px 1px rgba(0,0,0,0.8)',transition:'background 150ms, box-shadow 150ms'}}></span>
+            <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:'var(--font-mono)',fontSize:9,fontWeight:700,letterSpacing:'0.04em',
+              color:a?'#F0E6CE':'var(--text-4)',textShadow:a?'0 0 5px '+col:'none',transition:'color 150ms'}}>{a?t.label:'空驱 —'}</span>
+          </div>
+        </div>;})}
+
+      <span style={{position:'absolute',top:12,left:8+tabs.length*STEP,zIndex:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'无打开的计划'}</div>
+  </div>;
+}
+
+// O · 内存槽 T 型卡(精修拟物版):凹形槽两侧 DIMM 卡榫,卡为上宽中中下窄(金手指),合为长方形
+function BarO(){
+  const {tabs,cur,inserted,pick,add,close} = useTabs();
+  const RAIL_H = 46, GAPO = 14, STEP = W+GAPO;
+  const CARD_TOP = 8;
+  const TOP_H = 24, FING_H = 18;                   // 卡帽高 / 金手指连接边高
+  const FINGW = 96;                                 // 金手指宽(略窄于卡帽,居中)
+  const INSERT = 10;                               // 抽拔行程:分离时卡略微抬起
+  const yFloor = CARD_TOP + INSERT + TOP_H;        // 槽上沿 = 卡插到底时卡帽下沿
+  const SLOT_BOTTOM = yFloor + Math.round(FING_H*1.5) + 4;  // 槽高 = 金手指的 1.5 倍(体现插入没入)
+  const steel = 'var(--tex-noise), linear-gradient(180deg, #3B362B, #2A251C 40%, #1B1811)';
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:SLOT_BOTTOM+4}}>
+      {/* 悬挂横杆 */}
+      <div style={{position:'absolute',top:0,left:0,right:0,height:6,background:'linear-gradient(180deg,#4A4335,#24211A)',border:'1px solid var(--line-0)',borderRadius:2,boxShadow:'inset 0 1px 0 rgba(233,215,170,0.3)'}}></div>
+
+      {/* 卡槽(z3,单块全宽):遮住没入的金手指,两端锁销伸缩 */}
+      {tabs.map((t,i)=>{ const a=t.id===inserted;
+        const col = CARD_COLORS[(t.id-1)%CARD_COLORS.length];
+        const x = 8+i*STEP;
+        return <div key={'slot'+t.id}>
+          {/* 槽体:整块,顶沿高光 + 内陷阴影 + 端头螺丝 + 读取铭牌 */}
+          <div style={{position:'absolute',zIndex:3,left:x,width:W,top:yFloor,height:SLOT_BOTTOM-yFloor,
+            background:steel,border:'1px solid var(--line-0)',borderRadius:'0 0 3px 3px',
+            boxShadow:(a?'0 0 9px '+col+'55, ':'')+'inset 0 2px 5px rgba(0,0,0,0.6)'}}>
+            <div style={{position:'absolute',top:0,left:6,right:6,height:2,background:'linear-gradient(180deg, rgba(233,215,170,0.4), transparent)'}}></div>
+            {/* 插槽口:金手指没入的暗腔 */}
+            <div style={{position:'absolute',top:3,left:12,right:12,height:4,background:'#040302',borderRadius:2,boxShadow:'inset 0 1px 2px rgba(0,0,0,1)'}}></div>
+            <span className="fx-screw" style={{position:'absolute',bottom:5,left:5}}></span>
+            <span className="fx-screw" style={{position:'absolute',bottom:5,right:5}}></span>
+            <div style={{position:'absolute',left:16,right:16,top:'50%',marginTop:-4,display:'flex',alignItems:'center',gap:6}}>
+              <span className={a?'fx-lamp-blink':''} style={{width:5,height:5,borderRadius:'50%',flexShrink:0,
+                background:a?col:'#242118',boxShadow:a?'0 0 6px '+col:'inset 0 1px 1px rgba(0,0,0,0.9)',transition:'background 150ms, box-shadow 150ms'}}></span>
+              <span style={{flex:1,textAlign:'center',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:'var(--font-mono)',fontSize:8,fontWeight:700,letterSpacing:'0.12em',
+                color:a?'#EFE0BE':'var(--text-4)',textShadow:a?'0 0 5px '+col:'none',transition:'color 150ms'}}>{a?'LOCKED':'— OPEN'}</span>
+            </div>
+          </div>
+          {/* 两端 DIMM 拨杆:锁紧时竖直扣住卡帽两角,松开时向外翻开 */}
+          {[['left'],['right']].map(([dir],k)=>{
+            const base = dir==='left' ? {left:x-4} : {left:x+W-4};
+            const hookSide = dir==='left' ? {right:-3} : {left:-3};
+            return <div key={k} style={{position:'absolute',zIndex:5,top:yFloor-15,width:8,height:19,
+              transformOrigin:'bottom center',
+              transform:'rotate('+(a?0:(dir==='left'?-36:36))+'deg)',
+              transition:'transform 240ms cubic-bezier(0.3,0.9,0.3,1)',...base}}>
+              <div style={{position:'absolute',inset:0,borderRadius:2,
+                background:'linear-gradient(180deg,#E6C566,#B4892A 55%,#7A5B1D)',border:'1px solid var(--line-0)',
+                boxShadow:'inset 0 1px 0 rgba(255,244,190,0.6), 0 1px 2px rgba(0,0,0,0.6)'+(a?', 0 0 5px '+col:'')}}></div>
+              {/* 钩爪 */}
+              <div style={{position:'absolute',top:-2,width:5,height:6,borderRadius:1,...hookSide,
+                background:'linear-gradient(180deg,#E6C566,#9A741F)',border:'1px solid var(--line-0)',
+                boxShadow:a?'0 0 4px '+col:'none'}}></div>
+            </div>;
+          })}
+        </div>;})}
+
+      {/* 卡(z2):卡帽 + 金手指连接边(无中段),直上直下插入 */}
+      {tabs.map((t,i)=>{ const a=t.id===cur, ins=t.id===inserted;
+        const col = CARD_COLORS[(t.id-1)%CARD_COLORS.length];
+        const x = 8+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{
+          position:'absolute',zIndex:2,left:x,top:CARD_TOP,width:W,cursor:'pointer',userSelect:'none',
+          filter:a?'none':'saturate(0.85) brightness(0.96)',
+          transform:ins?'translateY('+INSERT+'px)':'translateY(0)',
+          transition:'transform 240ms cubic-bezier(0.45, 0.05, 0.55, 1), filter 200ms'}}>
+          {/* 卡帽(宽):彩色卡帽 + 左脊 + 压印标签 */}
+          <div style={{position:'relative',width:W,height:TOP_H,borderRadius:'4px 4px 0 0',
+            background:'var(--tex-noise), linear-gradient(180deg, color-mix(in oklab, '+col+' 30%, #262219), color-mix(in oklab, '+col+' 16%, #17140E))',
+            border:'1px solid var(--line-0)',
+            boxShadow:'inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -2px 3px rgba(0,0,0,0.4), 0 2px 5px rgba(0,0,0,0.7)',
+            display:'flex',alignItems:'center',gap:6,padding:'0 8px 0 9px'}}>
+            <span style={{position:'absolute',left:0,top:2,bottom:2,width:3,borderRadius:'2px 0 0 2px',background:col,boxShadow:'0 0 5px '+col+'88'}}></span>
+            <span style={{width:9,height:9,flexShrink:0,borderRadius:1,background:'linear-gradient(135deg,#EFE7D4,#C9BC9E)',boxShadow:'inset 0 0 0 1px '+col+', inset 0 1px 1px rgba(255,255,255,0.7)'}}></span>
+            <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12,fontWeight:700,letterSpacing:'0.04em',
+              color:a?'var(--text-1)':'var(--text-2)',textShadow:'0 1px 0 rgba(0,0,0,0.5)'}}>{t.label}</span>
+            <CloseBtn active={a} onClick={()=>close(t.id)}/>
+          </div>
+          {/* 金手指:亮金接触排 + 顶部隔离带 + 单侧防呆键槽 */}
+          <div style={{position:'relative',width:FINGW,height:FING_H,margin:'0 auto',
+            background:'linear-gradient(180deg, #E9CB6C, #C99C34 46%, #9A7420)',
+            borderLeft:'1px solid var(--line-0)',borderRight:'1px solid var(--line-0)',borderBottom:'1px solid var(--line-0)',
+            borderRadius:'0 0 2px 2px',overflow:'hidden',
+            boxShadow:'inset 0 1px 0 rgba(255,247,208,0.65), inset 0 -3px 4px rgba(0,0,0,0.4)'}}>
+            {/* 接触片竖分割 */}
+            <div style={{position:'absolute',inset:0,background:'repeating-linear-gradient(90deg, rgba(58,40,8,0.5) 0 1px, transparent 1px 7px)'}}></div>
+            {/* 顶部隔离带(卡帽与手指之间) */}
+            <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:'#2A2318',boxShadow:'inset 0 -1px 1px rgba(0,0,0,0.6)'}}></div>
+            {/* 防呆键槽:偏置缺口 */}
+            <div style={{position:'absolute',bottom:0,left:'60%',width:7,height:'56%',background:'#0C0B09',borderRadius:'2px 2px 0 0',boxShadow:'inset 0 0 2px rgba(0,0,0,0.95)'}}></div>
+          </div>
+        </div>;})}
+
+      <span style={{position:'absolute',top:12,left:8+tabs.length*STEP,zIndex:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'无打开的计划'}</div>
+  </div>;
+}
+
+function App(){
+  return <div style={{display:'flex',flexDirection:'column',gap:18}}>
+    <Demo name="M · 镂空唇缝" note="整条槽梁,卡穿镂空唇缝"><BarM/></Demo>
+    <Demo name="N · 软盘软驱" note="1:1 独立软驱,迷你软盘深插,毛玻璃显示当前盘"><BarN/></Demo>
+    <Demo name="O · 内存槽 T 型卡" note="凹形槽 + 卡手指插入,两侧卡扣锁紧,合为长方形"><BarO/></Demo>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

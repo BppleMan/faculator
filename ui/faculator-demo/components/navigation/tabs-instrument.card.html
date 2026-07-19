@@ -1,0 +1,158 @@
+<!-- @dsCard group="Explorations" viewport="720x460" subtitle="精密仪器 · A 游标尺滑移 / B 翻牌落位" name="TabBar · 仪器" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>
+body{margin:0;background:var(--tex-page);padding:16px 18px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}
+.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}
+@keyframes flapIn{0%{transform:rotateX(-92deg);opacity:0}55%{transform:rotateX(14deg);opacity:1}100%{transform:rotateX(0)}}
+@keyframes flashIn{0%{opacity:0}30%{opacity:0.5}100%{opacity:0}}
+</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const AM = '#DCA943', AM2 = '#EBC66B';
+const PLATE = 'var(--tex-noise), linear-gradient(180deg, #2E2A22, #211D16 55%, #171410)';
+const KEY   = 'var(--tex-noise), linear-gradient(180deg, #2A261E, #1C1913)';
+const TICKS = 'repeating-linear-gradient(90deg, rgba(233,215,170,0.18) 0 1px, transparent 1px 11px)';
+const PANEL = {fontSize:12,color:'var(--text-2)',padding:'10px 13px',background:'var(--tex-noise), linear-gradient(180deg, #262219, #1B1811)',border:'1px solid var(--line-0)',borderRadius:3,boxShadow:'inset 0 1px 0 rgba(233,215,170,0.08), inset 0 -1px 0 rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.5)'};
+let seq = 3;
+const START = [{id:1,label:'基地规划'},{id:2,label:'新建计划'},{id:3,label:'资源调度'}];
+
+const AC = { ctx: null };
+function sound(kind){
+  try {
+    if (!AC.ctx) AC.ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const ctx = AC.ctx; if (ctx.state==='suspended') ctx.resume();
+    const t = ctx.currentTime;
+    if (kind==='flap'){
+      const o=ctx.createOscillator(); o.type='triangle';
+      o.frequency.setValueAtTime(520,t); o.frequency.exponentialRampToValueAtTime(150,t+0.05);
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.05,t+0.005); g.gain.exponentialRampToValueAtTime(0.0001,t+0.08);
+      o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.09);
+    } else {
+      const len=0.07, buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*len),ctx.sampleRate), d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++){const p=i/d.length; d[i]=(Math.random()*2-1)*Math.pow(1-p,1.8)*0.4;}
+      const s=ctx.createBufferSource(); s.buffer=buf;
+      const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.4; bp.frequency.value=3200;
+      const g=ctx.createGain(); g.gain.setValueAtTime(0.025,t); g.gain.exponentialRampToValueAtTime(0.0001,t+len);
+      s.connect(bp); bp.connect(g); g.connect(ctx.destination); s.start(t);
+    }
+  } catch(e){}
+}
+function useTabs(snd){
+  const [tabs,setTabs] = React.useState(START);
+  const [cur,setCur] = React.useState(1);
+  const pick = (id) => { if (id===cur) return; setCur(id); sound(snd); };
+  const add = () => { seq++; const t={id:seq,label:'计划 '+String(seq).padStart(2,'0')}; setTabs(ts=>[...ts,t]); setCur(seq); sound(snd); };
+  const close = (id) => setTabs(ts=>{ const nx=ts.filter(t=>t.id!==id);
+    if (id===cur && nx.length) setCur(nx[Math.max(0, ts.findIndex(t=>t.id===id)-1)].id); return nx; });
+  return {tabs,cur,pick,add,close};
+}
+function CloseX({onClick, color}){
+  return <span onClick={(e)=>{e.stopPropagation();onClick();}} style={{
+    width:15,height:15,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:12,lineHeight:1,cursor:'pointer',color:color||'var(--text-4)',transition:'color 140ms'}}
+    onMouseEnter={e=>{e.currentTarget.style.color='var(--danger)'}}
+    onMouseLeave={e=>{e.currentTarget.style.color=color||'var(--text-4)'}}>&#215;</span>;
+}
+function AddBtn({onClick}){
+  return <span onClick={onClick} style={{
+    width:26,height:26,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:15,cursor:'pointer',borderRadius:3,color:'var(--text-3)',
+    background:KEY,border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 0 rgba(233,215,170,0.14), inset 0 -1px 0 rgba(0,0,0,0.5)',userSelect:'none',transition:'color 140ms'}}
+    onMouseEnter={e=>{e.currentTarget.style.color=AM}} onMouseLeave={e=>{e.currentTarget.style.color='var(--text-3)'}}>+</span>;
+}
+function Demo({name,note,children}){
+  return <div style={{display:'flex',flexDirection:'column',gap:10}}>
+    <div style={{display:'flex',gap:10,alignItems:'baseline'}}><span style={{fontSize:12,fontWeight:700,color:'var(--amber)'}}>{name}</span><span className="lbl">{note}</span></div>
+    {children}
+  </div>;
+}
+
+/* A · 游标尺 — 铣削标尺上刻标签,黄铜游标窗顺滑滑移到位 */
+function BarA(){
+  const {tabs,cur,pick,add,close} = useTabs('tick');
+  const W=118, PAD=9, STEP=W, HS=58;
+  const idx = Math.max(0, tabs.findIndex(t=>t.id===cur));
+  const barW = PAD*2 + tabs.length*STEP + 34;
+  return <div style={{display:'flex',flexDirection:'column',gap:11}}>
+    <div style={{position:'relative',width:barW,height:HS,background:PLATE,border:'1px solid var(--line-0)',borderRadius:5,
+      boxShadow:'inset 0 1px 0 rgba(233,215,170,0.16), inset 0 -2px 5px rgba(0,0,0,0.55), 0 3px 6px rgba(0,0,0,0.5)'}}>
+      {/* 上沿刻度 */}
+      <div style={{position:'absolute',top:7,left:PAD,width:tabs.length*STEP,height:7,background:TICKS,opacity:0.7}}></div>
+      <div style={{position:'absolute',top:7,left:PAD,width:tabs.length*STEP,height:11,background:'repeating-linear-gradient(90deg, rgba(233,215,170,0.28) 0 1px, transparent 1px '+(STEP/2)+'px)'}}></div>
+      {/* 刻字标签 */}
+      {tabs.map((t,i)=>{ const a=t.id===cur;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',top:20,left:PAD+i*STEP,width:W,height:34,cursor:'pointer',userSelect:'none',
+          display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <span style={{fontSize:12.5,fontWeight:700,letterSpacing:'0.03em',whiteSpace:'nowrap',
+            color:a?'#F6E7BC':'#5A5243',textShadow:a?'0 0 10px '+AM+'aa, 0 1px 0 rgba(0,0,0,0.6)':'0 1px 0 rgba(233,215,170,0.1)',transition:'color 260ms, text-shadow 260ms'}}>{t.label}</span>
+        </div>;})}
+      {/* 黄铜游标窗 */}
+      <div style={{position:'absolute',top:3,height:HS-6,width:W,left:PAD+idx*STEP,pointerEvents:'none',
+        transition:'left 480ms cubic-bezier(0.5, 1.24, 0.46, 1)'}}>
+        <div style={{position:'absolute',inset:0,borderRadius:3,
+          background:'linear-gradient(180deg, rgba(235,198,107,0.16), rgba(220,169,67,0.05) 45%, rgba(235,198,107,0.13))',
+          borderLeft:'1px solid rgba(190,150,70,0.6)',borderRight:'1px solid rgba(190,150,70,0.6)',
+          boxShadow:'0 0 0 1px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.45), inset 0 0 10px rgba(235,198,107,0.1)'}}></div>
+        {/* 上下黄铜导轨 */}
+        <div style={{position:'absolute',top:0,left:-1,right:-1,height:3,borderRadius:1,background:'linear-gradient(180deg,#E6C879,#9A7A2E)',boxShadow:'0 1px 2px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,240,190,0.6)'}}></div>
+        <div style={{position:'absolute',bottom:0,left:-1,right:-1,height:3,borderRadius:1,background:'linear-gradient(180deg,#9A7A2E,#6A4F1C)',boxShadow:'0 -1px 2px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,240,190,0.4)'}}></div>
+        {/* 发丝准线 */}
+        <div style={{position:'absolute',top:3,bottom:3,left:'50%',width:1,marginLeft:-0.5,background:AM2,boxShadow:'0 0 6px '+AM+', 0 0 2px '+AM}}></div>
+        {/* 游标微刻度(仪器细节) */}
+        <div style={{position:'absolute',left:8,right:8,bottom:4,height:4,background:'repeating-linear-gradient(90deg, rgba(235,198,107,0.5) 0 1px, transparent 1px 6px)'}}></div>
+      </div>
+      {/* 当前项关闭 */}
+      <div style={{position:'absolute',top:5,left:PAD+idx*STEP+W-16,transition:'left 480ms cubic-bezier(0.5, 1.24, 0.46, 1)'}}>
+        <CloseX color={'rgba(220,169,67,0.7)'} onClick={()=>close(cur)}/>
+      </div>
+      <span style={{position:'absolute',top:'50%',marginTop:-13,left:PAD+tabs.length*STEP+2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={PANEL}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* B · 翻牌 — 选中标签像 split-flap 翻落到位,中缝铰链,琥珀点亮 */
+function BarB(){
+  const {tabs,cur,pick,add,close} = useTabs('flap');
+  const W=122;
+  return <div style={{display:'flex',flexDirection:'column',gap:11}}>
+    <div style={{display:'flex',alignItems:'center',gap:7,perspective:'420px'}}>
+      {tabs.map((t)=>{ const a=t.id===cur;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'relative',width:W,height:46,flexShrink:0,cursor:'pointer',userSelect:'none',borderRadius:4,overflow:'hidden',
+          background:a?'var(--tex-noise), linear-gradient(180deg,#322C1E,#201B12)':KEY,border:'1px solid var(--line-0)',transition:'box-shadow 220ms',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.24), inset 0 -1px 0 rgba(0,0,0,0.5), 0 0 0 1px '+AM+'3a, 0 3px 6px rgba(0,0,0,0.55)'
+                     :'inset 0 1px 0 rgba(233,215,170,0.1), inset 0 -1px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.5)'}}>
+          {/* 翻牌内容(按激活态重挂载以触发翻落) */}
+          <div key={a?'on-'+cur:'off'} style={{position:'absolute',inset:0,display:'flex',alignItems:'center',gap:4,padding:'0 6px 0 12px',
+            transformOrigin:'center top',animation:a?'flapIn 380ms cubic-bezier(0.3,0.8,0.2,1) both':'none'}}>
+            <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:13,fontWeight:700,letterSpacing:'0.02em',
+              color:a?'#F2E1B4':'var(--text-3)',textShadow:a?'0 0 9px '+AM+'88, 0 1px 0 rgba(0,0,0,0.6)':'0 1px 0 rgba(0,0,0,0.5)'}}>{t.label}</span>
+            <CloseX color={a?'rgba(220,169,67,0.7)':'var(--text-4)'} onClick={()=>close(t.id)}/>
+          </div>
+          {/* 中缝铰链 */}
+          <div style={{position:'absolute',left:0,right:0,top:'50%',height:1,marginTop:-0.5,background:'rgba(0,0,0,0.55)',boxShadow:'0 1px 0 rgba(233,215,170,0.1)',pointerEvents:'none'}}></div>
+          {/* 铰链轴钉 */}
+          <div style={{position:'absolute',left:-2,top:'50%',width:4,height:4,marginTop:-2,borderRadius:'50%',background:'#0A0908',border:'1px solid var(--line-0)',pointerEvents:'none'}}></div>
+          <div style={{position:'absolute',right:-2,top:'50%',width:4,height:4,marginTop:-2,borderRadius:'50%',background:'#0A0908',border:'1px solid var(--line-0)',pointerEvents:'none'}}></div>
+          {/* 落位微闪 */}
+          {a && <div key={'fl-'+cur} style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 80% 60% at 50% 40%, '+AM+', transparent 70%)',pointerEvents:'none',animation:'flashIn 420ms ease-out both'}}></div>}
+        </div>;})}
+      <AddBtn onClick={add}/>
+    </div>
+    <div style={PANEL}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+function App(){
+  return <div style={{display:'flex',flexDirection:'column',gap:24}}>
+    <Demo name="A · 游标尺" note="铣削标尺刻字,黄铜游标窗顺滑滑移到位(点不同标签看滑移)"><BarA/></Demo>
+    <Demo name="B · 翻牌" note="选中标签像车站翻牌翻落到位,中缝铰链,琥珀点亮"><BarB/></Demo>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

@@ -23,10 +23,12 @@ function App(){
       {title:'系统', items:[{key:'s1',label:'全局设置'}]}]} />
     <div style={{flex:1,display:'flex',flexDirection:'column',gap:14}}>
       <Breadcrumb onNavigate={()=>{}} items={[{label:'总装线'},{label:'电路板'},{label:'铜线'}]} />
-      <Tabs value={tab} onChange={setTab} items={[
-        {value:'io',label:'输入输出',count:6},{value:'mach',label:'机器',count:12},{value:'pow',label:'功耗'}]} />
-      <div style={{fontSize:12,color:'var(--text-3)',padding:'2px 4px'}}>
-        {tab==='io' ? '输入:铜板 240/min · 输出:铜线 720/min' : tab==='mach' ? '二级组装机 × 12 台,利用率 94%' : '总功耗 8.6 MW · 峰值 10.2 MW'}
+      <div>
+        <Tabs value={tab} onChange={setTab} items={[
+          {value:'io',label:'输入输出',count:6},{value:'mach',label:'机器',count:12},{value:'pow',label:'功耗'}]} />
+        <div style={{fontSize:12,color:'var(--text-2)',padding:'10px 12px',background:'var(--tex-noise), linear-gradient(180deg, #2A2620, #1E1C16)',border:'1px solid var(--line-0)',borderRadius:'0 0 4px 4px',boxShadow:'inset 1px 0 0 rgba(233,215,170,0.08), inset -1px 0 0 rgba(0,0,0,0.4), inset 0 -1px 0 rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.5)'}}>
+          {tab==='io' ? '输入:铜板 240/min · 输出:铜线 720/min' : tab==='mach' ? '二级组装机 × 12 台,利用率 94%' : '总功耗 8.6 MW · 峰值 10.2 MW'}
+        </div>
       </div>
     </div>
   </div>

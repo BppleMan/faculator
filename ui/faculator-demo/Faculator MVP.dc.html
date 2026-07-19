@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-track{background:#06101A;}
+  ::-webkit-scrollbar-thumb{background:#1A3248;border-radius:4px;}
+  ::-webkit-scrollbar-thumb:hover{background:#27425C;}
+</style>
+</helmet>
+<div style="display:flex;flex-direction:column;height:100vh;width:100vw;overflow:hidden;background:#06101A;font-family:'Rajdhani',sans-serif;color:#C4D8E8;">
+
+  <!-- 顶栏 -->
+  <div style="flex-shrink:0;display:flex;align-items:center;gap:14px;padding:10px 18px;background:#0A1726;border-bottom:1px solid #1A3248;">
+    <div style="display:flex;align-items:center;gap:9px;">
+      <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#F59E0B,#B45309);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#1A0F03;">F</div>
+      <div style="font-size:17px;font-weight:700;letter-spacing:0.12em;color:#EAF4FC;">FACULATOR</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;color:#F59E0B;background:rgba(245,158,11,0.14);border:1px solid rgba(245,158,11,0.4);border-radius:4px;padding:2px 6px;">MVP</div>
+    </div>
+    <div style="width:1px;height:18px;background:#1A3248;"></div>
+    <div style="display:flex;align-items:center;gap:8px;background:#0F1E30;border:1px solid #1E3A52;border-radius:7px;padding:5px 12px;">
+      <div style="width:7px;height:7px;border-radius:2px;background:#F59E0B;"></div>
+      <div style="font-size:12.5px;font-weight:700;color:#EAF4FC;">{{ planName }}</div>
+      <div style="font-size:9px;color:#3A5870;letter-spacing:0.06em;">PLAN · {{ blockCount }} BLOCK</div>
+    </div>
+    <div style="font-size:9.5px;color:#3A5870;">{{ planStatus }}</div>
+    <div style="flex:1;"></div>
+    <div style="display:flex;background:#0A1828;border:1px solid #1E3A52;border-radius:7px;padding:3px;gap:2px;">
+      <div onClick="{{ setGraph }}" style="padding:5px 13px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.05em;background:{{ graphBg }};color:{{ graphCol }};">节点图</div>
+      <div onClick="{{ setNormal }}" style="padding:5px 13px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.05em;background:{{ normalBg }};color:{{ normalCol }};">普通视图</div>
+      <div onClick="{{ setDebug }}" style="padding:5px 13px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.05em;background:{{ debugBg }};color:{{ debugCol }};">调试面板</div>
+    </div>
+    <div style="font-size:10px;color:#223650;font-weight:600;letter-spacing:0.06em;white-space:nowrap;">v2.0 · 太空时代</div>
+  </div>
+
+  <!-- 主体 -->
+  <div style="display:flex;flex:1;overflow:hidden;">
+    <div style="width:252px;flex-shrink:0;background:#050C15;border-right:1px solid #1A3248;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="flex-shrink:0;padding:11px 14px;border-bottom:1px solid #1A3248;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:12px;font-weight:700;letter-spacing:0.1em;color:#9AB8D0;">生产块</span>
+        <span style="font-size:9px;font-weight:600;letter-spacing:0.1em;color:#2A4860;">BLOCKS</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:10px;">{{ sidebar }}</div>
+      <div style="flex-shrink:0;padding:9px 13px;border-top:1px solid #1A3248;font-size:9px;color:#2A4860;line-height:1.5;">
+        Block 之间默认隔离 · 不自动合并矩阵 · 不自动绑定外供
+      </div>
+    </div>
+    <div style="flex:1;overflow:auto;position:relative;">{{ mainView }}</div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    planName: '科研基地',
+    activeBlock: 'red',
+    view: 'graph',
+    sunk: {},
+  };
+
+  ITEM={
+    ore_cu:{name:'铜矿@1',c:'#F97316'}, ore_fe:{name:'铁矿@1',c:'#8B7355'},
+    plate_cu:{name:'铜板@1',c:'#FB923C'}, plate_fe:{name:'铁板@1',c:'#94A3B8'},
+    gear:{name:'铁齿轮@1',c:'#A8B5C8'}, red:{name:'自动化红瓶@1',c:'#EF4444'},
+    crude:{name:'原油',c:'#64748B'}, water:{name:'水',c:'#38BDF8'},
+    heavy:{name:'重油',c:'#EA580C'}, light:{name:'轻油',c:'#FBBF24'}, petgas:{name:'石油气',c:'#7DD3FC'},
+  };
+  P={
+    mine_cu:{name:'采铜矿', machine:'电力采矿机', time:2,   speed:1,    pw:90,  io:{ore_cu:1}},
+    mine_fe:{name:'采铁矿', machine:'电力采矿机', time:2,   speed:1,    pw:90,  io:{ore_fe:1}},
+    smelt_cu:{name:'冶铜板',machine:'电炉',       time:3.2, speed:2,    pw:180, io:{ore_cu:-1,plate_cu:1}},
+    smelt_fe:{name:'冶铁板',machine:'电炉',       time:3.2, speed:2,    pw:180, io:{ore_fe:-1,plate_fe:1}},
+    make_gear:{name:'造齿轮',machine:'组装机3',   time:0.5, speed:1.25, pw:375, io:{plate_fe:-2,gear:1}},
+    make_red:{name:'造红瓶', machine:'组装机3',   time:5,   speed:1.25, pw:375, io:{plate_cu:-1,gear:-1,red:1}},
+    adv_oil:{name:'高级原油加工',machine:'炼油厂', time:5,  speed:1,    pw:420, io:{crude:-100,water:-50,heavy:25,light:45,petgas:55}},
+    crack_h:{name:'重油裂解', machine:'化工厂',   time:2,   speed:1,    pw:210, io:{heavy:-40,water:-30,light:30}},
+    crack_l:{name:'轻油裂解', machine:'化工厂',   time:2,   speed:1,    pw:210, io:{light:-30,water:-30,petgas:20}},
+  };
+  BLOCKS=[
+    {id:'red', name:'红瓶生产', procs:['mine_cu','mine_fe','smelt_cu','smelt_fe','make_gear','make_red'],
+     targets:{red:60}, clamps:[], raws:[], root:'red', acyclic:true,
+     note:'白板红瓶@1 60/min · 固定拓扑唯一解'},
+    {id:'oil', name:'原油配平', procs:['adv_oil','crack_h','crack_l'],
+     targets:{petgas:90}, clamps:['heavy','light'], raws:['crude','water'], root:'petgas', acyclic:false,
+     note:'全裂化清零重油/轻油 · 多产物 LP 配平'},
+  ];
+
+  // 两阶段(Big-M)单纯形：minimize cost·x s.t. cons, x>=0
+  lpSolve(varIds, cost, cons){
+    const M=1e7;
+    const rows=cons.map(con=>{
+      let coef=Object.assign({},con.coef), op=con.op, rhs=con.rhs;
+      if(rhs<0){ const nc={}; Object.keys(coef).forEach(k=>nc[k]=-coef[k]); coef=nc; rhs=-rhs; op=op==='<='?'>=':op==='>='?'<=':'='; }
+      return {coef,op,rhs};
+    });
+    const cols=varIds.slice(); const obj={}; varIds.forEach(v=>obj[v]=cost[v]||0);
+    const basis=[];
+    rows.forEach((r,i)=>{
+      if(r.op==='<='){ const s='__s'+i; cols.push(s); r.coef[s]=1; obj[s]=0; basis[i]=s; }
+      else if(r.op==='>='){ const s='__s'+i; cols.push(s); r.coef[s]=-1; obj[s]=0; const a='__a'+i; cols.push(a); r.coef[a]=1; obj[a]=M; basis[i]=a; }
+      else { const a='__a'+i; cols.push(a); r.coef[a]=1; obj[a]=M; basis[i]=a; }
+    });
+    const N=cols.length, m=rows.length;
+    const A=rows.map(r=>cols.map(c=>r.coef[c]||0));
+    const b=rows.map(r=>r.rhs);
+    const c=cols.map(col=>obj[col]||0);
+    const colIdx={}; cols.forEach((cc,i)=>colIdx[cc]=i);
+    for(let iter=0;iter<2000;iter++){
+      const cB=basis.map(bi=>c[colIdx[bi]]);
+      let enter=-1, best=1e-7;
+      for(let j=0;j<N;j++){
+        let z=0; for(let i=0;i<m;i++) z+=cB[i]*A[i][j];
+        const zc=z-c[j];
+        if(zc>best){ best=zc; enter=j; }
+      }
+      if(enter<0) break;
+      let leave=-1, minR=Infinity;
+      for(let i=0;i<m;i++){ if(A[i][enter]>1e-9){ const r=b[i]/A[i][enter]; if(r<minR-1e-12){ minR=r; leave=i; } } }
+      if(leave<0) return {status:'unbounded',values:{},obj:0};
+      const piv=A[leave][enter];
+      for(let j=0;j<N;j++) A[leave][j]/=piv; b[leave]/=piv;
+      for(let i=0;i<m;i++){ if(i!==leave){ const f=A[i][enter]; if(Math.abs(f)>1e-12){ for(let j=0;j<N;j++) A[i][j]-=f*A[leave][j]; b[i]-=f*b[leave]; } } }
+      basis[leave]=cols[enter];
+    }
+    const val={}; cols.forEach(cc=>val[cc]=0);
+    basis.forEach((bi,i)=>{ val[bi]=b[i]; });
+    let infeasible=false;
+    cols.forEach(cc=>{ if(cc[0]==='_'&&cc[2]==='a'&&val[cc]>1e-6) infeasible=true; });
+    const values={}; varIds.forEach(v=>values[v]=Math.max(0,val[v]||0));
+    let z=0; varIds.forEach(v=>z+=(cost[v]||0)*values[v]);
+    return {status: infeasible?'infeasible':'optimal', values, obj:z};
+  }
+
+  buildModel(block){
+    const procs=block.procs;
+    const items=[]; const seen={};
+    procs.forEach(p=>Object.keys(this.P[p].io).forEach(it=>{ if(!seen[it]){ seen[it]=1; items.push(it); } }));
+    const rank=it=> block.targets[it]!=null?0 : block.clamps.includes(it)?1 : block.raws.includes(it)?3 : 2;
+    items.sort((a,b)=>rank(a)-rank(b));
+    const cons=[]; const meta={};
+    items.forEach(it=>{
+      const coef={}; procs.forEach(p=>{ const v=this.P[p].io[it]; if(v) coef[p]=v; });
+      let kind,op,rhs;
+      if(block.raws.includes(it)){ kind='raw'; }
+      else if(block.targets[it]!=null){ kind='target'; op='>='; rhs=block.targets[it]; }
+      else if(block.clamps.includes(it)){ kind='clamp'; op='='; rhs=0; }
+      else { kind='inter'; op='>='; rhs=0; }
+      meta[it]={kind,op,rhs,coef};
+      if(kind!=='raw') cons.push({item:it,coef,op,rhs});
+    });
+    const objective={}; procs.forEach(p=>objective[p]=1);
+    return {procs,items,cons,objective,meta};
+  }
+
+  solveBlock(block){
+    const model=this.buildModel(block);
+    const sol=this.lpSolve(model.procs, model.objective, model.cons);
+    const exec={}; model.procs.forEach(p=>exec[p]=sol.values[p]||0);
+    const itemRes={};
+    model.items.forEach(it=>{
+      let out=0,inp=0,net=0;
+      model.procs.forEach(p=>{ const v=this.P[p].io[it]; if(v){ net+=v*exec[p]; if(v>0) out+=v*exec[p]; else inp+=-v*exec[p]; } });
+      const mt=model.meta[it];
+      let target=0,gap=0,surplus=0;
+      if(mt.kind==='target'){ target=mt.rhs; gap=Math.max(0,target-net); surplus=Math.max(0,net-target); }
+      else if(mt.kind==='raw'){ gap=0; surplus=0; }   // 外部供入：默认可得，不计短缺
+      else { surplus=Math.max(0,net); gap=Math.max(0,-net); }
+      itemRes[it]={kind:mt.kind,out,inp,net,target,gap,surplus};
+    });
+    const machines={};
+    model.procs.forEach(p=>{
+      const pr=this.P[p]; const per=pr.speed*60/pr.time;
+      const theo=exec[p]/per; const real=Math.ceil(theo-1e-9);
+      machines[p]={machine:pr.machine, per, exec:exec[p], theo, real, cap:real*per, slack:real*per-exec[p]};
+    });
+    return {block,model,sol,exec,itemRes,machines,status:sol.status};
+  }
+
+  fmt(x){ if(x==null||isNaN(x)) return '0'; if(Math.abs(x)<1e-9) return '0'; if(Math.abs(x-Math.round(x))<1e-6) return String(Math.round(x)); return x.toFixed(3).replace(/\.?0+$/,''); }
+  nm(it){ return (this.ITEM[it]||{}).name||it; }
+  ic(it){ return (this.ITEM[it]||{}).c||'#5A7E98'; }
+
+  buildSidebar(){
+    return React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:9}},
+      ...this.BLOCKS.map(b=>{
+        const r=this.solveBlock(b);
+        const active=this.state.activeBlock===b.id;
+        const hasShort=Object.values(r.itemRes).some(x=>x.gap>1e-6);
+        const hasExt=b.raws.length>0;
+        const okC=r.status==='optimal'&&!hasShort;
+        return React.createElement('div',{key:b.id,onClick:()=>this.setState({activeBlock:b.id}),
+          style:{cursor:'pointer',borderRadius:8,padding:'11px 12px',background:active?'#0F2336':'#0A1726',
+            border:'1px solid '+(active?'#F59E0B':'#16304A'),boxShadow:active?'0 0 0 1px rgba(245,158,11,0.3)':'none'}},
+          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:7,marginBottom:7}},
+            React.createElement('div',{style:{width:8,height:8,borderRadius:2,background:okC?'#4ADE80':'#EF4444'}}),
+            React.createElement('div',{style:{flex:1,fontSize:13,fontWeight:700,color:active?'#EAF4FC':'#C4D8E8'}},b.name),
+            React.createElement('div',{style:{fontSize:9,color:'#3A5870',fontFamily:'JetBrains Mono, monospace'}},b.procs.length+' 过程')
+          ),
+          React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:5}},
+            React.createElement('div',{style:{fontSize:8.5,fontWeight:700,color:okC?'#4ADE80':'#EF4444',background:okC?'rgba(74,222,128,0.12)':'rgba(239,68,68,0.12)',border:'1px solid '+(okC?'#1E5538':'#5A2530'),borderRadius:3,padding:'1px 6px'}},okC?'可行':'有短缺'),
+            React.createElement('div',{style:{fontSize:8.5,color:'#5A7E98',background:'#0A1828',border:'1px solid #1E3A52',borderRadius:3,padding:'1px 6px'}},Object.keys(b.targets).length+' 目标·独立解算'),
+            hasExt?React.createElement('div',{style:{fontSize:8.5,color:'#60A5FA',background:'rgba(96,165,250,0.1)',border:'1px solid #234A6E',borderRadius:3,padding:'1px 6px'}},'外部供入'):null
+          )
+        );
+      })
+    );
+  }
+
+  sec(title,en,extra){
+    return React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:11}},
+      React.createElement('div',{style:{width:3,height:13,borderRadius:2,background:'#F59E0B'}}),
+      React.createElement('div',{style:{fontSize:12.5,fontWeight:700,letterSpacing:'0.06em',color:'#CFE0F0'}},title),
+      en?React.createElement('div',{style:{fontSize:8.5,fontWeight:600,letterSpacing:'0.1em',color:'#2A4860'}},en):null,
+      React.createElement('div',{style:{flex:1}}), extra||null
+    );
+  }
+
+  buildBalance(r){
+    const order=r.model.items.slice().sort((a,b)=>{const o={target:0,clamp:1,inter:2,raw:3};return o[r.itemRes[a].kind]-o[r.itemRes[b].kind];});
+    const head=['物料@品质','目标/min','平衡产出/min','缺口/min','剩余/min'];
+    const tagOf=k=>k==='target'?{t:'目标',c:'#F59E0B'}:k==='clamp'?{t:'截流=0',c:'#A78BFA'}:k==='raw'?{t:'外部供入',c:'#60A5FA'}:{t:'中间物',c:'#5A7E98'};
+    return React.createElement('div',{style:{background:'#0A1726',border:'1px solid #16304A',borderRadius:9,overflow:'hidden'}},
+      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1.6fr 1fr 1fr 1fr 1fr',padding:'8px 14px',borderBottom:'1px solid #14283A',background:'#081320'}},
+        ...head.map((h,i)=>React.createElement('div',{key:i,style:{fontSize:9,fontWeight:700,letterSpacing:'0.06em',color:'#2A4860',textAlign:i?'right':'left'}},h))
+      ),
+      ...order.map(it=>{
+        const x=r.itemRes[it]; const tag=tagOf(x.kind); const shortHL=x.gap>1e-6;
+        return React.createElement('div',{key:it,style:{display:'grid',gridTemplateColumns:'1.6fr 1fr 1fr 1fr 1fr',padding:'7px 14px',borderBottom:'1px solid #0E1E2E',alignItems:'center',background:shortHL?'rgba(239,68,68,0.06)':'transparent'}},
+          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:7}},
+            React.createElement('div',{style:{width:8,height:8,borderRadius:2,background:this.ic(it),flexShrink:0}}),
+            React.createElement('div',{style:{fontSize:12,fontWeight:700,color:'#C4D8E8'}},this.nm(it)),
+            React.createElement('div',{style:{fontSize:8,fontWeight:700,color:tag.c,background:tag.c+'1A',border:'1px solid '+tag.c+'44',borderRadius:3,padding:'0px 5px'}},tag.t)
+          ),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:x.kind==='target'?'#F59E0B':'#3A5870'}},x.kind==='target'?this.fmt(x.target):(x.kind==='clamp'?'0':'—')),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:x.kind==='raw'?'#60A5FA':'#C4D8E8'}},x.kind==='raw'?('需 '+this.fmt(x.inp)):this.fmt(x.net)),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:11,fontWeight:shortHL?700:400,color:shortHL?'#EF4444':'#2E4D65'}},shortHL?this.fmt(x.gap):'0'),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:x.surplus>1e-6?'#FBBF24':'#2E4D65'}},x.surplus>1e-6?this.fmt(x.surplus):'0')
+        );
+      })
+    );
+  }
+
+  buildLineTree(r){
+    const b=r.block;
+    if(!b.acyclic){
+      return React.createElement('div',{style:{background:'#0A1726',border:'1px solid #16304A',borderRadius:9,padding:'13px 15px'}},
+        React.createElement('div',{style:{fontSize:11,color:'#7E9DB8',lineHeight:1.6}},
+          '该解算域含多产物 / 裂解回路：石油气同时由高级原油加工与轻油裂解产出，轻油同时被产出与消耗，不是无环链路。',
+          React.createElement('br'),
+          '此类配平由下方过程执行率与物料守恒矩阵表达，而非配方树。')
+      );
+    }
+    const producerOf=it=>b.procs.find(p=>(this.P[p].io[it]||0)>0);
+    const rowsEls=[];
+    const walk=(it,depth)=>{
+      const prod=producerOf(it); const x=r.itemRes[it];
+      rowsEls.push(React.createElement('div',{key:it+'_'+depth+'_'+rowsEls.length,style:{display:'flex',alignItems:'center',gap:8,padding:'6px 0 6px '+(depth*26+2)+'px',borderBottom:'1px solid #0C1A28'}},
+        React.createElement('div',{style:{width:9,height:9,borderRadius:2,background:this.ic(it),flexShrink:0}}),
+        React.createElement('div',{style:{fontSize:12.5,fontWeight:700,color:'#C4D8E8',minWidth:104}},this.nm(it)),
+        prod?React.createElement('div',{style:{fontSize:9.5,color:'#5A7E98'}},this.P[prod].name):React.createElement('div',{style:{fontSize:8.5,fontWeight:700,color:'#3A5870',background:'#0A1828',border:'1px solid #22425C',borderRadius:3,padding:'1px 5px'}},'源头/采集'),
+        React.createElement('div',{style:{flex:1}}),
+        prod?React.createElement('div',{style:{fontSize:8.5,color:'#3A5870',background:'#0A1828',border:'1px solid #1E3A52',borderRadius:3,padding:'1px 6px',cursor:'pointer'}},'下沉'):null,
+        prod?React.createElement('div',{style:{fontSize:8.5,fontWeight:700,color:'#4ADE80'}},'link:on'):null,
+        React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:12,fontWeight:700,color:this.ic(it),minWidth:78,textAlign:'right'}},this.fmt(x.out||x.net),React.createElement('span',{style:{fontSize:8,color:'#2E4D65'}},' /min'))
+      ));
+      if(prod){ Object.keys(this.P[prod].io).forEach(ing=>{ if(this.P[prod].io[ing]<0) walk(ing,depth+1); }); }
+    };
+    walk(b.root,0);
+    return React.createElement('div',{style:{background:'#0A1726',border:'1px solid #16304A',borderRadius:9,padding:'6px 15px 8px'}},...rowsEls);
+  }
+
+  buildExecRates(r){
+    return React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+      ...r.block.procs.map(p=>React.createElement('div',{key:p,style:{display:'flex',alignItems:'center',gap:10,background:'#0A1726',border:'1px solid #16304A',borderRadius:7,padding:'9px 13px'}},
+        React.createElement('div',{style:{fontSize:12.5,fontWeight:700,color:'#C4D8E8',minWidth:104}},this.P[p].name),
+        React.createElement('div',{style:{fontSize:9.5,color:'#5A7E98'}},this.P[p].machine),
+        React.createElement('div',{style:{flex:1}}),
+        React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:14,fontWeight:700,color:'#86EFAC'}},this.fmt(r.exec[p]),React.createElement('span',{style:{fontSize:8.5,color:'#2E4D65'}},' 次/min'))
+      ))
+    );
+  }
+
+  buildMachines(r){
+    const head=['过程','机器','单机/min','执行/min','理论台数','取整台数','容量/min','余量/min'];
+    return React.createElement('div',{style:{background:'#0A1726',border:'1px solid #16304A',borderRadius:9,overflow:'hidden'}},
+      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1.3fr 1.1fr repeat(6,1fr)',padding:'8px 13px',borderBottom:'1px solid #14283A',background:'#081320'}},
+        ...head.map((h,i)=>React.createElement('div',{key:i,style:{fontSize:8.5,fontWeight:700,letterSpacing:'0.05em',color:'#2A4860',textAlign:i>1?'right':'left'}},h))
+      ),
+      ...r.block.procs.map(p=>{
+        const m=r.machines[p];
+        return React.createElement('div',{key:p,style:{display:'grid',gridTemplateColumns:'1.3fr 1.1fr repeat(6,1fr)',padding:'7px 13px',borderBottom:'1px solid #0E1E2E',alignItems:'center'}},
+          React.createElement('div',{style:{fontSize:11.5,fontWeight:700,color:'#C4D8E8'}},this.P[p].name),
+          React.createElement('div',{style:{fontSize:10,color:'#5A7E98'}},m.machine),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:'#7FA0BC'}},this.fmt(m.per)),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:'#86EFAC'}},this.fmt(m.exec)),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:'#7FA0BC'}},this.fmt(m.theo)),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:11.5,fontWeight:700,color:'#F59E0B'}},m.real),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:'#7FA0BC'}},this.fmt(m.cap)),
+          React.createElement('div',{style:{textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:m.slack>1e-6?'#FBBF24':'#2E4D65'}},this.fmt(m.slack))
+        );
+      })
+    );
+  }
+
+  buildNormal(){
+    const b=this.BLOCKS.find(x=>x.id===this.state.activeBlock);
+    const r=this.solveBlock(b);
+    const okC=r.status==='optimal'&&!Object.values(r.itemRes).some(x=>x.gap>1e-6);
+    return React.createElement('div',{style:{padding:'18px 22px 40px',display:'flex',flexDirection:'column',gap:22,maxWidth:1040}},
+      React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12}},
+        React.createElement('div',{style:{fontSize:19,fontWeight:700,color:'#EAF4FC'}},b.name),
+        React.createElement('div',{style:{fontSize:9.5,fontWeight:700,color:okC?'#4ADE80':'#EF4444',background:okC?'rgba(74,222,128,0.12)':'rgba(239,68,68,0.12)',border:'1px solid '+(okC?'#1E5538':'#5A2530'),borderRadius:4,padding:'3px 9px'}},okC?'求解可行':'存在短缺'),
+        React.createElement('div',{style:{flex:1}}),
+        React.createElement('div',{style:{fontSize:10,color:'#3A5870'}},'目标函数 min Σx = ',React.createElement('span',{style:{fontFamily:'JetBrains Mono, monospace',color:'#7FA0BC',fontWeight:700}},this.fmt(r.sol.obj)),' 次/min')
+      ),
+      React.createElement('div',{style:{fontSize:11,color:'#5A7E98',marginTop:-12}},b.note),
+      React.createElement('div',{},this.sec('目标 · 缺口 · 剩余','BALANCE'),this.buildBalance(r)),
+      React.createElement('div',{},this.sec('配方展开 · Line 树','LINE TREE',React.createElement('div',{style:{fontSize:9,color:'#3A5870'}},'level=解算边界 · 下沉/link 控制量化上下文')),this.buildLineTree(r)),
+      React.createElement('div',{},this.sec('过程执行率 · 工艺层','PROCESS RATE',React.createElement('div',{style:{fontSize:9,color:'#3A5870'}},'次/分钟，非机器数')),this.buildExecRates(r)),
+      React.createElement('div',{},this.sec('机器换算 · 设备层','MACHINES',React.createElement('div',{style:{fontSize:9,color:'#3A5870'}},'取整余量为落地余量，不反向改解')),this.buildMachines(r))
+    );
+  }
+
+  buildDebug(){
+    const b=this.BLOCKS.find(x=>x.id===this.state.activeBlock);
+    const r=this.solveBlock(b); const model=r.model;
+    const opSym={'>=':'≥','<=':'≤','=':'='};
+    const matrix=React.createElement('div',{style:{overflowX:'auto',background:'#0A1726',border:'1px solid #16304A',borderRadius:9}},
+      React.createElement('div',{style:{display:'inline-grid',gridTemplateColumns:'150px repeat('+model.procs.length+',78px) 70px 74px 64px',minWidth:'100%'}},
+        React.createElement('div',{style:{padding:'9px 11px',borderBottom:'1px solid #1A3248',borderRight:'1px solid #14283A',fontSize:9,fontWeight:700,color:'#2A4860',position:'sticky',left:0,background:'#081320'}},'物料 \\ 过程'),
+        ...model.procs.map(p=>React.createElement('div',{key:p,style:{padding:'9px 6px',borderBottom:'1px solid #1A3248',fontSize:9,fontWeight:700,color:'#7E9DB8',textAlign:'center',lineHeight:1.2}},this.P[p].name)),
+        React.createElement('div',{style:{padding:'9px 6px',borderBottom:'1px solid #1A3248',fontSize:9,fontWeight:700,color:'#2A4860',textAlign:'right'}},'约束'),
+        React.createElement('div',{style:{padding:'9px 6px',borderBottom:'1px solid #1A3248',fontSize:9,fontWeight:700,color:'#2A4860',textAlign:'right'}},'解(净)'),
+        React.createElement('div',{style:{padding:'9px 6px',borderBottom:'1px solid #1A3248',fontSize:9,fontWeight:700,color:'#2A4860',textAlign:'center'}},'状态'),
+        ...[].concat(...model.items.map(it=>{
+          const mt=model.meta[it]; const x=r.itemRes[it];
+          const cells=[React.createElement('div',{key:'h'+it,style:{padding:'7px 11px',borderBottom:'1px solid #0E1E2E',borderRight:'1px solid #14283A',display:'flex',alignItems:'center',gap:6,position:'sticky',left:0,background:'#0A1726'}},
+            React.createElement('div',{style:{width:7,height:7,borderRadius:2,background:this.ic(it)}}),
+            React.createElement('div',{style:{fontSize:10.5,fontWeight:700,color:'#C4D8E8'}},this.nm(it)))];
+          model.procs.forEach(p=>{
+            const v=this.P[p].io[it]||0;
+            cells.push(React.createElement('div',{key:p+it,style:{padding:'7px 6px',borderBottom:'1px solid #0E1E2E',textAlign:'center',fontFamily:'JetBrains Mono, monospace',fontSize:10.5,fontWeight:v?700:400,color:v>0?'#4ADE80':v<0?'#F47272':'#1E3248'}},v?(v>0?'+'+v:String(v)):'·'));
+          });
+          cells.push(React.createElement('div',{key:'c'+it,style:{padding:'7px 6px',borderBottom:'1px solid #0E1E2E',textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:mt.kind==='raw'?'#234A6E':'#7FA0BC'}},mt.kind==='raw'?'自由':(opSym[mt.op]+this.fmt(mt.rhs))));
+          cells.push(React.createElement('div',{key:'n'+it,style:{padding:'7px 6px',borderBottom:'1px solid #0E1E2E',textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:'#C4D8E8'}},this.fmt(x.net)));
+          const okR=x.gap<1e-6; const sv=x.surplus>1e-6;
+          cells.push(React.createElement('div',{key:'s'+it,style:{padding:'7px 4px',borderBottom:'1px solid #0E1E2E',textAlign:'center',fontSize:8.5,fontWeight:700,color:!okR?'#EF4444':sv?'#FBBF24':'#4ADE80'}},!okR?'短缺':sv?'剩余':'平衡'));
+          return cells;
+        }))
+      )
+    );
+    const vars=React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:7}},
+      ...model.procs.map((p,i)=>React.createElement('div',{key:p,style:{background:'#0A1726',border:'1px solid #16304A',borderRadius:6,padding:'7px 11px',minWidth:148}},
+        React.createElement('div',{style:{fontSize:8.5,color:'#3A5870',fontFamily:'JetBrains Mono, monospace'}},'x'+(i+1)+' · '+p),
+        React.createElement('div',{style:{display:'flex',alignItems:'baseline',gap:6}},
+          React.createElement('div',{style:{fontSize:11.5,fontWeight:700,color:'#C4D8E8'}},this.P[p].name),
+          React.createElement('div',{style:{flex:1}}),
+          React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:12,fontWeight:700,color:'#86EFAC'}},this.fmt(r.exec[p]))
+        ),
+        React.createElement('div',{style:{fontSize:8.5,color:'#2E4D65'}},'连续 · ≥0')
+      ))
+    );
+    const cons=React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:5}},
+      ...model.cons.map((cn,i)=>{
+        const expr=model.procs.filter(p=>cn.coef[p]).map(p=>{const v=cn.coef[p];return (v>0?'+':'')+v+'·x'+(model.procs.indexOf(p)+1);}).join(' ');
+        const x=r.itemRes[cn.item]; const okR=x.gap<1e-6;
+        return React.createElement('div',{key:i,style:{display:'flex',alignItems:'center',gap:8,background:'#0A1726',border:'1px solid #16304A',borderRadius:6,padding:'6px 11px',fontFamily:'JetBrains Mono, monospace',fontSize:10.5}},
+          React.createElement('div',{style:{color:'#7E9DB8',minWidth:86,fontFamily:'Rajdhani',fontWeight:700}},this.nm(cn.item)),
+          React.createElement('div',{style:{flex:1,color:'#7FA0BC'}},expr||'0'),
+          React.createElement('div',{style:{color:'#F59E0B',fontWeight:700}},opSym[cn.op]+' '+this.fmt(cn.rhs)),
+          React.createElement('div',{style:{fontSize:8.5,fontWeight:700,fontFamily:'Rajdhani',color:okR?'#4ADE80':'#EF4444'}},okR?'满足':'违反')
+        );
+      })
+    );
+    return React.createElement('div',{style:{padding:'18px 22px 40px',display:'flex',flexDirection:'column',gap:22,maxWidth:1120}},
+      React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12}},
+        React.createElement('div',{style:{fontSize:18,fontWeight:700,color:'#EAF4FC'}},'调试 · 解算域'),
+        React.createElement('div',{style:{fontSize:11,fontFamily:'JetBrains Mono, monospace',color:'#60A5FA',background:'#0A1828',border:'1px solid #234A6E',borderRadius:4,padding:'2px 8px'}},'plan:'+this.state.planName+' / block:'+b.id),
+        React.createElement('div',{style:{flex:1}}),
+        React.createElement('div',{style:{fontSize:10,color:'#3A5870'}},'solver: 两阶段单纯形 · ',React.createElement('span',{style:{color:r.status==='optimal'?'#4ADE80':'#EF4444',fontWeight:700}},r.status==='optimal'?'OPTIMAL':r.status.toUpperCase()))
+      ),
+      React.createElement('div',{},this.sec('物料守恒矩阵','行=物料 列=过程 单元=单次执行净变化'),matrix),
+      React.createElement('div',{},this.sec('变量 · 过程执行率','VARIABLES'),vars),
+      React.createElement('div',{},this.sec('约束','CONSTRAINTS'),cons),
+      React.createElement('div',{},this.sec('目标函数','OBJECTIVE'),
+        React.createElement('div',{style:{background:'#0A1726',border:'1px solid #16304A',borderRadius:7,padding:'11px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'#C4D8E8'}},
+          'minimize  Σ xᵢ  =  ',React.createElement('span',{style:{color:'#F59E0B',fontWeight:700}},this.fmt(r.sol.obj)),
+          React.createElement('div',{style:{fontSize:9,color:'#3A5870',marginTop:5,fontFamily:'Rajdhani'}},'在满足全部目标且关键物料不短缺前提下，最小化总过程执行次数')
+        )
+      )
+    );
+  }
+
+  // ===== 节点图（进程级，数据来自 LP 解）=====
+  panRef=React.createRef();
+  CW=178; CH=94; COLSTEP=214; SLOTH=124;
+  startPan(e){
+    if(e.button!==0) return;
+    if(e.target.closest('[data-card]')) return;
+    const el=this.panRef.current; if(!el) return;
+    this._pan={sx:e.clientX,sy:e.clientY,l:el.scrollLeft,t:el.scrollTop};
+    el.style.cursor='grabbing';
+    this._mm=ev=>this.movePan(ev); this._mu=()=>this.endPan();
+    window.addEventListener('mousemove',this._mm); window.addEventListener('mouseup',this._mu);
+    e.preventDefault();
+  }
+  movePan(e){ if(!this._pan)return; const el=this.panRef.current; if(!el)return; el.scrollLeft=this._pan.l-(e.clientX-this._pan.sx); el.scrollTop=this._pan.t-(e.clientY-this._pan.sy); }
+  endPan(){ const el=this.panRef.current; if(el)el.style.cursor='grab'; this._pan=null; window.removeEventListener('mousemove',this._mm); window.removeEventListener('mouseup',this._mu); }
+  componentWillUnmount(){ this.endPan(); }
+
+  buildProcGraph(r){
+    const procs=r.block.procs, P=this.P;
+    const producers={}; procs.forEach(p=>Object.keys(P[p].io).forEach(it=>{ if(P[p].io[it]>0)(producers[it]=producers[it]||[]).push(p); }));
+    const targets=Object.keys(r.block.targets);
+    const isTP=p=>targets.some(t=>(P[p].io[t]||0)>0);
+    // 层级：目标产出过程=0，向上游递增（最长路径松弛）
+    const level={}; procs.forEach(p=>{ level[p]=isTP(p)?0:null; });
+    for(let g=0;g<60;g++){ let ch=false;
+      procs.forEach(p=>{ if(level[p]==null) return;
+        Object.keys(P[p].io).forEach(it=>{ if(P[p].io[it]<0)(producers[it]||[]).forEach(q=>{ const nl=level[p]+1; if(level[q]==null||level[q]<nl){ level[q]=nl; ch=true; } }); });
+      });
+      if(!ch) break;
+    }
+    procs.forEach(p=>{ if(level[p]==null) level[p]=0; });
+    const maxLevel=Math.max(0,...procs.map(p=>level[p]));
+    // 按列居中堆叠
+    const byL={}; procs.forEach(p=>(byL[level[p]]=byL[level[p]]||[]).push(p));
+    let maxRows=0; Object.keys(byL).forEach(L=>maxRows=Math.max(maxRows,byL[L].length));
+    const colH=maxRows*this.SLOTH;
+    const nodes=procs.map(p=>{
+      const outs=Object.keys(P[p].io).filter(it=>P[p].io[it]>0);
+      const ins=Object.keys(P[p].io).filter(it=>P[p].io[it]<0);
+      const prim=outs.find(it=>targets.includes(it))||outs[0]||p;
+      const idx=byL[level[p]].indexOf(p), cnt=byL[level[p]].length;
+      const startY=34+(colH-cnt*this.SLOTH)/2;
+      return {p,level:level[p],outs,ins,prim,color:this.ic(prim),
+        x:level[p]*this.COLSTEP+24, y:startY+idx*this.SLOTH};
+    });
+    const nmap={}; nodes.forEach(n=>nmap[n.p]=n);
+    const edges=[];
+    nodes.forEach(C=>{ C.ins.forEach(it=>{ (producers[it]||[]).forEach(Pp=>{ if(nmap[Pp]) edges.push({f:C.p,t:Pp,item:it,rate:Math.abs(P[C.p].io[it])*r.exec[C.p]}); }); }); });
+    return {nodes,nmap,edges,maxLevel,colH};
+  }
+
+  flowEdge(e,nmap,hi){
+    const sn=nmap[e.f],tn=nmap[e.t]; if(!sn||!tn) return null;
+    const {CW,CH}=this;
+    const sx=sn.x+CW, sy=sn.y+CH/2, tx=tn.x, ty=tn.y+CH/2, midX=(sx+tx)/2;
+    const c=hi?this.ic(e.item):'#27425C', sw=hi?2:1.3, op=hi?1:0.62;
+    const d='M '+sx+' '+sy+' H '+midX+' V '+ty+' H '+tx;
+    return React.createElement('g',{key:e.f+'_'+e.t+'_'+e.item},
+      React.createElement('path',{d,fill:'none',stroke:'#06101A',strokeWidth:sw+4,strokeLinecap:'square'}),
+      React.createElement('path',{d,fill:'none',stroke:c,strokeWidth:sw,opacity:op,strokeLinecap:'square'}),
+      React.createElement('polygon',{points:tx+','+ty+' '+(tx-7)+','+(ty-4)+' '+(tx-7)+','+(ty+4),fill:c,opacity:op}),
+      hi?React.createElement('g',null,
+        React.createElement('rect',{x:midX-26,y:(sy+ty)/2-8,width:52,height:16,rx:3,fill:'#08131F',stroke:c,strokeWidth:0.9}),
+        React.createElement('text',{x:midX,y:(sy+ty)/2+4,textAnchor:'middle',fill:'#E2F0FC',fontSize:8.5,fontFamily:'JetBrains Mono, monospace'},this.fmt(e.rate))
+      ):null
+    );
+  }
+
+  procCard(nd,r,sel){
+    const {CW,CH}=this; const p=nd.proc=nd.p; const c=nd.color; const P=this.P[p];
+    const m=r.machines[p]; const isSel=sel===p;
+    const bd=isSel?c:'#1E3A52';
+    const els=[];
+    if(isSel) els.push(React.createElement('rect',{key:'gl',x:-3,y:-3,width:CW+6,height:CH+6,rx:9,fill:'none',stroke:c,strokeWidth:2,opacity:0.3}));
+    els.push(React.createElement('rect',{key:'bg',x:0,y:0,width:CW,height:CH,rx:6,fill:isSel?'#0F2336':'#0F1E30',stroke:bd,strokeWidth:1.3}));
+    els.push(React.createElement('rect',{key:'st',x:0,y:0,width:CW,height:4,rx:3,fill:c}));
+    const ph=Math.round(CH/2)-4;
+    if(nd.ins.length) els.push(React.createElement('rect',{key:'pL',x:-5,y:ph,width:10,height:8,rx:1.5,fill:'#0F1E30',stroke:bd,strokeWidth:1.2}));
+    if(nd.level<r.maxLevelG) els.push(React.createElement('rect',{key:'pR',x:CW-5,y:ph,width:10,height:8,rx:1.5,fill:'#0F1E30',stroke:bd,strokeWidth:1.2}));
+    // 名称 + 机器×台
+    els.push(React.createElement('text',{key:'nm',x:11,y:17,fill:'#EAF4FC',fontSize:12.5,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},P.name));
+    els.push(React.createElement('text',{key:'mc',x:CW-9,y:17,textAnchor:'end',fill:c,fontSize:11,fontWeight:'700',fontFamily:'JetBrains Mono, monospace'},'×'+m.real));
+    // 执行率 + 机型
+    els.push(React.createElement('text',{key:'ex',x:11,y:38,fill:'#86EFAC',fontSize:16,fontWeight:'700',fontFamily:'JetBrains Mono, monospace'},this.fmt(r.exec[p]),React.createElement('tspan',{fill:'#2E4D65',fontSize:8,dx:2},'次/min')));
+    els.push(React.createElement('text',{key:'ma',x:CW-9,y:38,textAnchor:'end',fill:'#5A7E98',fontSize:9,fontFamily:'Rajdhani, sans-serif'},P.machine));
+    els.push(React.createElement('line',{key:'s1',x1:9,y1:45,x2:CW-9,y2:45,stroke:'#162A3C',strokeWidth:0.8}));
+    // 产出
+    const outStr=nd.outs.map(it=>this.nm(it).replace('@1','')+' '+this.fmt(P.io[it]*r.exec[p])).join('   ');
+    const inStr=nd.ins.map(it=>this.nm(it).replace('@1','')+' '+this.fmt(Math.abs(P.io[it])*r.exec[p])).join('   ');
+    els.push(React.createElement('text',{key:'ol',x:11,y:60,fill:'#3F7256',fontSize:8,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},'产出'));
+    els.push(React.createElement('text',{key:'ov',x:32,y:60,fill:'#8FE3B0',fontSize:9.5,fontFamily:'JetBrains Mono, monospace'},outStr));
+    els.push(React.createElement('text',{key:'il',x:11,y:75,fill:'#7A5230',fontSize:8,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},'投入'));
+    els.push(React.createElement('text',{key:'iv',x:32,y:75,fill:'#D9B38C',fontSize:9.5,fontFamily:'JetBrains Mono, monospace'},inStr||'—（源头/外部供入）'));
+    els.push(React.createElement('text',{key:'pw',x:11,y:CH-7,fill:'#C87070',fontSize:8.5,fontFamily:'JetBrains Mono, monospace'},this.fmtPw(P.pw*r.exec[p]/(P.speed*60/P.time))));
+    els.push(React.createElement('text',{key:'th',x:CW-9,y:CH-7,textAnchor:'end',fill:'#456680',fontSize:8.5,fontFamily:'JetBrains Mono, monospace'},'理论 '+this.fmt(m.theo)+' 台'));
+    return React.createElement('g',{key:p,'data-card':'1',transform:'translate('+nd.x+','+nd.y+')',style:{cursor:'pointer'},
+      onClick:()=>this.setState(s=>({selProc:s.selProc===p?null:p}))},...els);
+  }
+  fmtPw(w){ if(w>=1e6)return (w/1e6).toFixed(1)+' MW'; if(w>=1e3)return (w/1e3).toFixed(0)+' kW'; return Math.round(w)+' W'; }
+
+  buildGraphView(){
+    const b=this.BLOCKS.find(x=>x.id===this.state.activeBlock);
+    const r=this.solveBlock(b); const g=this.buildProcGraph(r); r.maxLevelG=g.maxLevel;
+    const sel=this.state.selProc;
+    const hiSet=new Set(); if(sel) g.edges.forEach((e,i)=>{ if(e.f===sel||e.t===sel) hiSet.add(i); });
+    const svgW=(g.maxLevel+1)*this.COLSTEP+60;
+    const svgH=Math.max(180, g.colH+70);
+    const labels=['目标产物','一级上游','二级上游','三级上游','四级上游','五级上游'];
+    return React.createElement('div',{ref:this.panRef,onMouseDown:e=>this.startPan(e),
+        style:{width:'100%',height:'100%',overflow:'auto',background:'#06101A',cursor:'grab'}},
+      React.createElement('svg',{width:svgW,height:svgH,viewBox:'0 0 '+svgW+' '+svgH,style:{display:'block'}},
+        React.createElement('defs',null,React.createElement('pattern',{id:'pgm',width:22,height:22,patternUnits:'userSpaceOnUse'},React.createElement('path',{d:'M 22 0 L 0 0 0 22',fill:'none',stroke:'#0C1E2E',strokeWidth:0.5}))),
+        React.createElement('rect',{width:svgW,height:svgH,fill:'url(#pgm)'}),
+        ...Array.from({length:g.maxLevel+1},(_,i)=>React.createElement('text',{key:'cl'+i,x:i*this.COLSTEP+24+this.CW/2,y:20,textAnchor:'middle',fill:'#233D55',fontSize:8.5,fontWeight:'700',fontFamily:'Rajdhani, sans-serif',letterSpacing:1.5},labels[i]||(i+'级'))),
+        ...g.edges.map((e,i)=>this.flowEdge(e,g.nmap,hiSet.has(i))).filter(Boolean),
+        ...g.nodes.map(n=>this.procCard(n,r,sel))
+      )
+    );
+  }
+
+  renderVals(){
+    const view=this.state.view;
+    const vbtn=v=>({bg:view===v?'#152232':'transparent',c:view===v?'#EAF4FC':'#4A6A80'});
+    return {
+      planName:this.state.planName,
+      blockCount:this.BLOCKS.length,
+      planStatus:'独立解算 · '+this.BLOCKS.length+' 个生产块',
+      graphBg:vbtn('graph').bg, graphCol:vbtn('graph').c,
+      normalBg:vbtn('normal').bg, normalCol:vbtn('normal').c,
+      debugBg:vbtn('debug').bg, debugCol:vbtn('debug').c,
+      setGraph:()=>this.setState({view:'graph'}),
+      setNormal:()=>this.setState({view:'normal'}),
+      setDebug:()=>this.setState({view:'debug'}),
+      sidebar:this.buildSidebar(),
+      mainView: view==='graph'?this.buildGraphView():view==='debug'?this.buildDebug():this.buildNormal(),
+    };
+  }
+}
+</script>
+</body>
+</html>

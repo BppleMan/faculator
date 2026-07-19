@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<canvas ref="{{cv}}" style="display:block;width:{{px}};height:{{px}}"></canvas>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:96,&quot;height&quot;:96},
+&quot;kind&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;belt&quot;,&quot;pipe&quot;],&quot;default&quot;:&quot;belt&quot;,&quot;tsType&quot;:&quot;'belt'|'pipe'&quot;,&quot;section&quot;:&quot;外观&quot;},
+&quot;up&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;连接&quot;},
+&quot;down&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;连接&quot;},
+&quot;left&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;连接&quot;},
+&quot;right&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;连接&quot;},
+&quot;size&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:96,&quot;min&quot;:32,&quot;max&quot;:256,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;外观&quot;},
+&quot;fluidColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#57D8F0&quot;,&quot;#C9A648&quot;,&quot;#B5723C&quot;,&quot;#8AE08A&quot;],&quot;default&quot;:&quot;#57D8F0&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;外观&quot;}}">
+class Component extends DCLogic {
+  cv = React.createRef();
+  componentDidMount(){ this.draw(); }
+  componentDidUpdate(){ this.draw(); }
+  on(d){ const v=this.props[d]; return v===true||v==='true'||v===1||v==='1'; }
+  get size(){ return +this.props.size||96; }
+  draw(){
+    const cvs=this.cv.current; if(!cvs) return;
+    const S=this.size, dpr=Math.min(2,window.devicePixelRatio||1);
+    cvs.width=Math.round(S*dpr); cvs.height=Math.round(S*dpr);
+    const ctx=cvs.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,S,S);
+    const conns=['up','right','down','left'].filter(d=>this.on(d));
+    if((this.props.kind||'belt')==='pipe') this.drawPipe(ctx,S,conns);
+    else this.drawBelt(ctx,S,conns);
+  }
+  // ---------- BELT ----------
+  drawBelt(ctx,S,conns){
+    const c=S/2, half=S*0.25, beltW=half*2, fw=S*0.11; // 边框厚
+    const ANG={right:0,down:Math.PI/2,left:Math.PI,up:-Math.PI/2};
+    const CY='#5FE8F5', OR='#F2A33C';
+    const frameH=(x,y,w,h)=>{ const g=ctx.createLinearGradient(0,y,0,y+h);
+      g.addColorStop(0,'#6d747e'); g.addColorStop(0.45,'#464b53'); g.addColorStop(1,'#26292e');
+      ctx.fillStyle=g; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.fillRect(x,y,w,S*0.012);
+      ctx.strokeStyle='#141518'; ctx.lineWidth=1; ctx.strokeRect(x+0.5,y+0.5,w-1,h-1); };
+    const frameV=(x,y,w,h)=>{ const g=ctx.createLinearGradient(x,0,x+w,0);
+      g.addColorStop(0,'#6d747e'); g.addColorStop(0.45,'#464b53'); g.addColorStop(1,'#26292e');
+      ctx.fillStyle=g; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.fillRect(x,y,S*0.012,h);
+      ctx.strokeStyle='#141518'; ctx.lineWidth=1; ctx.strokeRect(x+0.5,y+0.5,w-1,h-1); };
+    const bolt=(x,y)=>{ const r=S*0.026; const g=ctx.createRadialGradient(x-r*0.4,y-r*0.4,r*0.2,x,y,r);
+      g.addColorStop(0,'#9aa2ab'); g.addColorStop(1,'#3a3e44');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
+      ctx.strokeStyle='#141518'; ctx.lineWidth=1; ctx.stroke(); };
+    const light=(x,y,w,h)=>{ ctx.save(); ctx.shadowColor=CY; ctx.shadowBlur=S*0.06;
+      ctx.fillStyle=CY; ctx.fillRect(x,y,w,h);
+      ctx.shadowBlur=0; ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.fillRect(x+w*0.25,y+h*0.25,w*0.5,h*0.5); ctx.restore(); };
+    const surface=(x0,x1)=>{ ctx.fillStyle='#24262a'; ctx.fillRect(x0,-half,x1-x0,beltW);
+      ctx.strokeStyle='#17191c'; ctx.lineWidth=S*0.018;
+      for(let x=Math.ceil(x0/(S*0.14))*(S*0.14); x<x1; x+=S*0.14){ ctx.beginPath(); ctx.moveTo(x,-half); ctx.lineTo(x,half); ctx.stroke(); }
+      ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fillRect(x0,-half,x1-x0,S*0.02); ctx.fillRect(x0,half-S*0.02,x1-x0,S*0.02); };
+    const arrow=(x)=>{ ctx.save(); ctx.shadowColor=OR; ctx.shadowBlur=S*0.03; ctx.fillStyle=OR;
+      ctx.beginPath(); ctx.moveTo(x,-half*0.32); ctx.lineTo(x+half*0.5,0); ctx.lineTo(x,half*0.32); ctx.closePath(); ctx.fill(); ctx.restore(); };
+    const endPlate=()=>{ // 在旋转坐标系中，臂端 x=c 处
+      const pw=S*0.085, h=half+fw;
+      frameV(c-pw,-h,pw,h*2);
+      light(c-pw*0.72,-half*0.5,pw*0.44,half);
+      bolt(c-pw/2,-h+fw*0.5); bolt(c-pw/2,h-fw*0.5); };
+    const capPlate=(atX)=>{ frameV(atX,-half-fw,fw,beltW+2*fw); light(atX+fw*0.28,-half*0.35,fw*0.44,half*0.7); };
+    const n=conns.length;
+    const opp=n===2&&((conns.includes('up')&&conns.includes('down'))||(conns.includes('left')&&conns.includes('right')));
+    ctx.save(); ctx.translate(c,c);
+    if(opp){
+      ctx.rotate(conns.includes('right')?0:Math.PI/2);
+      surface(-c,c);
+      frameH(-c,-half-fw,S,fw); frameH(-c,half,S,fw);
+      for(let x=-c+S*0.18;x<c;x+=S*0.32) arrow(x-half*0.25);
+      endPlate(); ctx.rotate(Math.PI); endPlate(); ctx.rotate(Math.PI);
+      bolt(-c+S*0.05,-half-fw/2); bolt(-c+S*0.05,half+fw/2); bolt(c-S*0.05,-half-fw/2); bolt(c-S*0.05,half+fw/2);
+      ctx.restore(); return;
+    }
+    if(n===2){ // 转角
+      ctx.restore();
+      const P={'up,right':[S,0,Math.PI/2,Math.PI],'right,down':[S,S,Math.PI,Math.PI*1.5],'down,left':[0,S,Math.PI*1.5,Math.PI*2],'up,left':[0,0,0,Math.PI/2]};
+      const key=['up,right','right,down','down,left','up,left'].find(k=>k.split(',').every(d=>conns.includes(d)));
+      const [px,py,a0,a1]=P[key];
+      const r0=c-half, r1=c+half, rm=c;
+      ctx.save(); ctx.translate(px,py);
+      ctx.fillStyle='#24262a'; ctx.beginPath(); ctx.arc(0,0,r1,a0,a1); ctx.arc(0,0,r0,a1,a0,true); ctx.closePath(); ctx.fill();
+      ctx.save(); ctx.clip();
+      ctx.strokeStyle='#17191c'; ctx.lineWidth=S*0.018;
+      const dth=S*0.14/rm;
+      for(let a=a0;a<=a1+0.01;a+=dth){ ctx.beginPath(); ctx.moveTo(Math.cos(a)*r0,Math.sin(a)*r0); ctx.lineTo(Math.cos(a)*r1,Math.sin(a)*r1); ctx.stroke(); }
+      ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=S*0.02;
+      ctx.beginPath(); ctx.arc(0,0,r0+S*0.012,a0,a1); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0,0,r1-S*0.012,a0,a1); ctx.stroke();
+      ctx.restore();
+      for(const k of [0.28,0.55,0.82]){ const a=a0+(a1-a0)*k;
+        ctx.save(); ctx.translate(Math.cos(a)*rm,Math.sin(a)*rm); ctx.rotate(a+Math.PI/2);
+        ctx.shadowColor=OR; ctx.shadowBlur=S*0.03; ctx.fillStyle=OR;
+        ctx.beginPath(); ctx.moveTo(-half*0.15,-half*0.32); ctx.lineTo(half*0.35,0); ctx.lineTo(-half*0.15,half*0.32); ctx.closePath(); ctx.fill(); ctx.restore(); }
+      ctx.lineCap='butt';
+      const railArc=(r)=>{ ctx.strokeStyle='#464b53'; ctx.lineWidth=fw; ctx.beginPath(); ctx.arc(0,0,r,a0,a1); ctx.stroke();
+        ctx.strokeStyle='rgba(255,255,255,0.22)'; ctx.lineWidth=S*0.012; ctx.beginPath(); ctx.arc(0,0,r+(r>rm?fw/2-S*0.012:-fw/2),a0,a1); ctx.stroke();
+        ctx.strokeStyle='#141518'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.arc(0,0,r-fw/2,a0,a1); ctx.stroke(); ctx.beginPath(); ctx.arc(0,0,r+fw/2,a0,a1); ctx.stroke(); };
+      railArc(r0-fw/2); railArc(r1+fw/2);
+      const am=(a0+a1)/2; bolt(Math.cos(am)*(r0-fw/2),Math.sin(am)*(r0-fw/2)); bolt(Math.cos(am)*(r1+fw/2),Math.sin(am)*(r1+fw/2));
+      ctx.restore();
+      ctx.save(); ctx.translate(c,c);
+      for(const d of conns){ ctx.save(); ctx.rotate(ANG[d]); endPlate(); ctx.restore(); }
+      ctx.restore(); return;
+    }
+    // 通用：中心 + 臂 / 封板
+    ctx.fillStyle='#24262a'; ctx.fillRect(-half,-half,beltW,beltW);
+    if(n===0||n>=3){ // 中心花纹板
+      ctx.save(); ctx.beginPath(); ctx.rect(-half,-half,beltW,beltW); ctx.clip();
+      ctx.strokeStyle='rgba(110,118,130,0.25)'; ctx.lineWidth=S*0.02;
+      for(let i=-3;i<=3;i++){ ctx.beginPath(); ctx.moveTo(i*half*0.45-half,-half); ctx.lineTo(i*half*0.45+half,half); ctx.stroke(); }
+      ctx.restore();
+      if(n>=3){ const r=half*0.72; // 八角检修板
+        ctx.fillStyle='#3a3e45'; ctx.beginPath();
+        for(let i=0;i<8;i++){ const a=i*Math.PI/4+Math.PI/8; const x=Math.cos(a)*r, y=Math.sin(a)*r; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+        ctx.closePath(); ctx.fill(); ctx.strokeStyle='#141518'; ctx.lineWidth=1; ctx.stroke();
+        bolt(0,0); }
+    }
+    for(const d of ['up','right','down','left']){
+      ctx.save(); ctx.rotate(ANG[d]);
+      if(conns.includes(d)){
+        surface(half,c);
+        for(let x=half+S*0.06;x<c-S*0.1;x+=S*0.26) arrow(x);
+        frameH(half,-half-fw,c-half,fw); frameH(half,half,c-half,fw);
+        endPlate();
+      } else if(n>0){ capPlate(half); }
+      else { capPlate(half); }
+      ctx.restore();
+    }
+    // 角块 + 螺栓
+    for(const sx of [-1,1]) for(const sy of [-1,1]){
+      const x=sx>0?half:-half-fw, y=sy>0?half:-half-fw;
+      frameH(x,y,fw,fw); bolt(x+fw/2,y+fw/2);
+    }
+    ctx.restore();
+  }
+  // ---------- PIPE ----------
+  drawPipe(ctx,S,conns){
+    const c=S/2, half=S*0.19, fw=S*0.11;
+    const ANG={right:0,down:Math.PI/2,left:Math.PI,up:-Math.PI/2};
+    const FL=this.props.fluidColor||'#57D8F0';
+    const ironStops=g=>{ g.addColorStop(0,'#3a3e44'); g.addColorStop(0.3,'#949ca4'); g.addColorStop(0.55,'#6a7178'); g.addColorStop(1,'#24272c'); return g; };
+    const brassStops=g=>{ g.addColorStop(0,'#6e5926'); g.addColorStop(0.3,'#d9b75e'); g.addColorStop(0.6,'#a8842f'); g.addColorStop(1,'#453714'); return g; };
+    const tube=(x0,x1)=>{ ctx.fillStyle=ironStops(ctx.createLinearGradient(0,-half,0,half)); ctx.fillRect(x0,-half,x1-x0,half*2);
+      ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(x0,-half+0.5); ctx.lineTo(x1,-half+0.5); ctx.moveTo(x0,half-0.5); ctx.lineTo(x1,half-0.5); ctx.stroke(); };
+    const rivet=(x,y)=>{ ctx.fillStyle='#2e2612'; ctx.beginPath(); ctx.arc(x,y,S*0.016,0,7); ctx.fill();
+      ctx.fillStyle='rgba(255,235,180,0.5)'; ctx.beginPath(); ctx.arc(x-S*0.005,y-S*0.005,S*0.007,0,7); ctx.fill(); };
+    const flange=(x)=>{ const h=half*1.5;
+      ctx.fillStyle=brassStops(ctx.createLinearGradient(0,-h,0,h)); ctx.fillRect(x-fw,-h,fw,h*2);
+      ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=1; ctx.strokeRect(x-fw+0.5,-h+0.5,fw-1,h*2-1);
+      rivet(x-fw/2,-h+fw*0.5); rivet(x-fw/2,0); rivet(x-fw/2,h-fw*0.5); };
+    const dome=(x,dir)=>{ // 半球封头，dir=+1 朝 +x
+      const r=half*1.35;
+      const g=brassStops(ctx.createLinearGradient(0,-r,0,r));
+      ctx.fillStyle=g; ctx.beginPath();
+      if(dir<0) ctx.arc(x,0,r,Math.PI/2,Math.PI*1.5); else ctx.arc(x,0,r,-Math.PI/2,Math.PI/2);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=1; ctx.stroke();
+      rivet(x+dir*r*0.45,-r*0.4); rivet(x+dir*r*0.45,r*0.4); };
+    const glow=path=>{ ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
+      ctx.shadowColor=FL; ctx.shadowBlur=S*0.09; ctx.strokeStyle=FL; ctx.lineWidth=S*0.055; path(); ctx.stroke();
+      ctx.shadowBlur=0; ctx.strokeStyle='rgba(255,255,255,0.75)'; ctx.lineWidth=S*0.02; path(); ctx.stroke(); ctx.restore(); };
+    const n=conns.length;
+    const opp=n===2&&((conns.includes('up')&&conns.includes('down'))||(conns.includes('left')&&conns.includes('right')));
+    if(n===2&&!opp){ // 弯管
+      const P={'up,right':[S,0,Math.PI/2,Math.PI],'right,down':[S,S,Math.PI,Math.PI*1.5],'down,left':[0,S,Math.PI*1.5,Math.PI*2],'up,left':[0,0,0,Math.PI/2]};
+      const key=['up,right','right,down','down,left','up,left'].find(k=>k.split(',').every(d=>conns.includes(d)));
+      const [px,py,a0,a1]=P[key];
+      const r0=c-half, r1=c+half;
+      ctx.save(); ctx.translate(px,py);
+      const g=ctx.createRadialGradient(0,0,r0,0,0,r1);
+      g.addColorStop(0,'#24272c'); g.addColorStop(0.35,'#6a7178'); g.addColorStop(0.62,'#949ca4'); g.addColorStop(1,'#3a3e44');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,r1,a0,a1); ctx.arc(0,0,r0,a1,a0,true); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(0,0,r0,a0,a1); ctx.stroke(); ctx.beginPath(); ctx.arc(0,0,r1,a0,a1); ctx.stroke();
+      glow(()=>{ ctx.beginPath(); ctx.arc(0,0,c,a0+0.04,a1-0.04); });
+      ctx.restore();
+      ctx.save(); ctx.translate(c,c);
+      for(const d of conns){ ctx.save(); ctx.rotate(ANG[d]); flange(c); ctx.restore(); }
+      ctx.restore(); return;
+    }
+    ctx.save(); ctx.translate(c,c);
+    if(opp){
+      ctx.rotate(conns.includes('right')?0:Math.PI/2);
+      tube(-c,c); flange(-c+fw); flange(c);
+      glow(()=>{ ctx.beginPath(); ctx.moveTo(-c+fw+S*0.02,0); ctx.lineTo(c-fw-S*0.02,0); });
+      ctx.restore(); return;
+    }
+    if(n===0){ // 独立短接头
+      tube(-S*0.2,S*0.2); flange(-S*0.2+fw); flange(S*0.2);
+      glow(()=>{ ctx.beginPath(); ctx.moveTo(-S*0.08,0); ctx.lineTo(S*0.08,0); });
+      ctx.restore(); return;
+    }
+    if(n===1){ // 端头：臂 + 半球封头
+      ctx.rotate(ANG[conns[0]]);
+      tube(0,c); dome(0,-1); flange(c);
+      glow(()=>{ ctx.beginPath(); ctx.moveTo(-half*0.4,0); ctx.lineTo(c-fw-S*0.02,0); });
+      ctx.restore(); return;
+    }
+    // 三通 / 十字
+    for(const d of conns){ ctx.save(); ctx.rotate(ANG[d]); tube(0,c); flange(c); ctx.restore(); }
+    const cr=half*1.28;
+    const rg=ctx.createRadialGradient(-cr*0.35,-cr*0.35,cr*0.15,0,0,cr);
+    rg.addColorStop(0,'#aab2ba'); rg.addColorStop(0.55,'#6a7178'); rg.addColorStop(1,'#2a2d32');
+    ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(0,0,cr,0,7); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=1; ctx.stroke();
+    glow(()=>{ ctx.beginPath(); for(const d of conns){ ctx.moveTo(0,0); ctx.lineTo(Math.cos(ANG[d])*(c-fw-S*0.02),Math.sin(ANG[d])*(c-fw-S*0.02)); } });
+    ctx.restore();
+  }
+  renderVals(){ const px=this.size+'px'; return { cv:this.cv, px }; }
+}
+</script>
+</body>
+</html>

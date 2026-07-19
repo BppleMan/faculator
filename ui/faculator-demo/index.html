@@ -1,0 +1,51 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Faculator 设计系统 · 总览</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0;background:var(--tex-page);font-family:var(--font-display);color:var(--text-1);padding:28px 32px 60px}
+h1{font-size:24px;letter-spacing:0.08em;margin:0 0 4px}
+.sub{font-size:11px;letter-spacing:0.14em;color:var(--text-3);font-weight:700;margin-bottom:28px}
+h2{font-size:14px;letter-spacing:0.14em;color:var(--amber);margin:36px 0 12px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(680px,1fr));gap:18px}
+.card{background:var(--bg-1);border:1px solid var(--line-2)}
+.card header{display:flex;align-items:baseline;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line-1)}
+.card header b{font-size:13px;letter-spacing:0.04em}
+.card header span{font-size:10px;color:var(--text-3)}
+iframe{display:block;width:100%;border:0;background:var(--bg-1)}
+</style></head><body>
+<h1>FACULATOR 设计系统</h1>
+<div class="sub">暖炭钢 + 金琥珀 · 重工业控制台 · 组件总览</div>
+
+<h2>基础规范 FOUNDATIONS</h2>
+<div class="grid" id="g1"></div>
+<h2>组件 COMPONENTS</h2>
+<div class="grid" id="g2"></div>
+
+<script>
+const F = [
+['guidelines/colors-base.html','基底 · 暖炭钢',148],
+['guidelines/colors-lines-text.html','板缝线与文本',170],
+['guidelines/colors-amber.html','金琥珀 · 主强调',148],
+['guidelines/colors-semantic.html','语义色',148],
+['guidelines/type-display.html','显示字体 Noto Sans SC',168],
+['guidelines/type-mono.html','等宽数值 IBM Plex Mono',148],
+['guidelines/fx-plate.html','钢板 · 螺丝 · 格栅',170],
+['guidelines/fx-texture.html','纯 CSS 材质',160],
+['guidelines/fx-stripes.html','警示斜纹',140],
+['guidelines/spacing.html','间距 4px 基准',150],
+['guidelines/motion.html','机械反馈',148]];
+const C = [
+['components/buttons/buttons.card.html','按钮 Buttons · Button / IconButton / LatchGroup',260],
+['components/inputs/inputs.card.html','输入 Inputs · Input / NumberField / Select',210],
+['components/toggles/toggles.card.html','开关与选择 · Checkbox / Radio / Switch / Segmented',210],
+['components/feedback/feedback.card.html','反馈 · Badge / Tag / Alert / ProgressBar',330],
+['components/overlays/overlays.card.html','浮层 · Tooltip / Dialog',190],
+['components/data/data.card.html','数据 · Gauge / StatCard / DataTable / ChartFrame',400],
+['components/navigation/navigation.card.html','导航 · Tabs / Breadcrumb / SideNav',320],
+['components/surfaces/surfaces.card.html','容器 · Panel',250]];
+function fill(id, list){
+  document.getElementById(id).innerHTML = list.map(([src,name,h]) =>
+    '<div class="card"><header><b>'+name+'</b><span>'+src+'</span></header><iframe src="'+src+'" style="height:'+h+'px" scrolling="no" loading="lazy"></iframe></div>').join('');
+}
+fill('g1', F); fill('g2', C);
+</script>
+</body></html>

@@ -1,0 +1,163 @@
+<!-- @dsCard group="Explorations" viewport="720x560" subtitle="精铣质感 3 版 · A 铣削键排 / B 背光刻字 / C 微动指示" name="TabBar · 精铣" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:16px 18px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const W = 132;
+const AM = '#DCA943';
+const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const PLATE = 'var(--tex-noise), linear-gradient(180deg, #2E2A22, #201D16 55%, #171410)';
+const KEY   = 'var(--tex-noise), linear-gradient(180deg, #2A261E, #1D1A14)';
+const PANEL = {fontSize:12,color:'var(--text-2)',padding:'10px 13px',background:'var(--tex-noise), linear-gradient(180deg, #262219, #1B1811)',border:'1px solid var(--line-0)',borderRadius:3,boxShadow:'inset 0 1px 0 rgba(233,215,170,0.08), inset 0 -1px 0 rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.5)'};
+let seq = 3;
+const START = [{id:1,label:'基地规划'},{id:2,label:'新建计划'},{id:3,label:'资源调度'}];
+
+const AC = { ctx: null };
+function sound(){
+  try {
+    if (!AC.ctx) AC.ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const ctx = AC.ctx; if (ctx.state==='suspended') ctx.resume();
+    const t = ctx.currentTime, len = 0.09;
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*len), ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++){ const p=i/d.length; d[i] = (Math.random()*2-1) * Math.pow(1-p,1.6) * 0.5; }
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.1; bp.frequency.value=2400;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.03, t+0.004); g.gain.exponentialRampToValueAtTime(0.0001, t+len);
+    src.connect(bp); bp.connect(g); g.connect(ctx.destination); src.start(t);
+    const o = ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(120, t+0.06);
+    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.0001,t); g2.gain.linearRampToValueAtTime(0.03,t+0.01); g2.gain.exponentialRampToValueAtTime(0.0001,t+0.11);
+    o.connect(g2); g2.connect(ctx.destination); o.start(t); o.stop(t+0.12);
+  } catch(e){}
+}
+function useTabs(){
+  const [tabs,setTabs] = React.useState(START);
+  const [cur,setCur] = React.useState(1);
+  const pick = (id) => { if (id===cur) return; setCur(id); sound(); };
+  const add = () => { seq++; const t={id:seq,label:'计划 '+String(seq).padStart(2,'0')}; setTabs(ts=>[...ts,t]); setCur(seq); sound(); };
+  const close = (id) => setTabs(ts=>{ const nx=ts.filter(t=>t.id!==id);
+    if (id===cur && nx.length) setCur(nx[Math.max(0, ts.findIndex(t=>t.id===id)-1)].id); return nx; });
+  return {tabs,cur,pick,add,close};
+}
+function CloseBtn({onClick, active}){
+  return <span onClick={(e)=>{e.stopPropagation();onClick();}} style={{
+    width:15,height:15,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:12,lineHeight:1,cursor:'pointer',borderRadius:'50%',color:active?'var(--text-3)':'var(--text-4)',
+    transition:'color 140ms'}}
+    onMouseEnter={e=>{e.currentTarget.style.color='var(--danger)'}}
+    onMouseLeave={e=>{e.currentTarget.style.color=active?'var(--text-3)':'var(--text-4)'}}>&#215;</span>;
+}
+function AddBtn({onClick}){
+  return <span onClick={onClick} style={{
+    width:26,height:26,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:15,fontWeight:400,cursor:'pointer',borderRadius:3,color:'var(--text-3)',
+    background:KEY,border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 0 rgba(233,215,170,0.14), inset 0 -1px 0 rgba(0,0,0,0.5)',userSelect:'none',transition:'color 140ms'}}
+    onMouseEnter={e=>{e.currentTarget.style.color=AM}}
+    onMouseLeave={e=>{e.currentTarget.style.color='var(--text-3)'}}>+</span>;
+}
+function Screw({style}){ return <span className="fx-screw" style={{position:'absolute',...style}}></span>; }
+function Demo({name,note,children}){
+  return <div style={{display:'flex',flexDirection:'column',gap:8}}>
+    <div style={{display:'flex',gap:10,alignItems:'baseline'}}><span style={{fontSize:12,fontWeight:700,color:'var(--amber)'}}>{name}</span><span className="lbl">{note}</span></div>
+    {children}
+  </div>;
+}
+
+/* A · 铣削键排 — 一整块铣削面板,选中键微抬,底缝亮琥珀细线 */
+function BarA(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  return <div style={{display:'flex',flexDirection:'column',gap:10}}>
+    <div style={{position:'relative',display:'flex',alignItems:'center',gap:2,padding:'6px 30px 6px 6px',background:PLATE,border:'1px solid var(--line-0)',borderRadius:5,
+      boxShadow:'inset 0 1px 0 rgba(233,215,170,0.16), inset 0 -2px 4px rgba(0,0,0,0.5), 0 3px 6px rgba(0,0,0,0.55)'}}>
+      <Screw style={{top:5,left:5}}/><Screw style={{top:5,right:5}}/><Screw style={{bottom:5,left:5}}/><Screw style={{bottom:5,right:5}}/>
+      {tabs.map((t)=>{ const a=t.id===cur;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'relative',width:W,height:42,flexShrink:0,cursor:'pointer',userSelect:'none',borderRadius:3,overflow:'hidden',
+          transform:a?'translateY(-1px)':'none',transition:'transform 200ms '+EASE+', box-shadow 200ms',
+          background:a?'var(--tex-noise), linear-gradient(180deg, #322D24, #221E17)':KEY,
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.28), inset 0 -1px 0 rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.6)'
+                     :'inset 0 1px 0 rgba(233,215,170,0.08), inset 0 -1px 0 rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.3)'}}>
+          <div style={{display:'flex',alignItems:'center',gap:4,padding:'0 6px 0 11px',height:'100%'}}>
+            <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12.5,fontWeight:700,letterSpacing:'0.02em',
+              color:a?'#E6DAC0':'var(--text-3)',textShadow:a?'0 1px 0 rgba(0,0,0,0.6)':'0 1px 0 rgba(233,215,170,0.08)',transition:'color 180ms'}}>{t.label}</span>
+            <CloseBtn active={a} onClick={()=>close(t.id)}/>
+          </div>
+          {/* 底缝琥珀指示 */}
+          <div style={{position:'absolute',left:9,right:9,bottom:0,height:2,borderRadius:1,
+            background:a?AM:'transparent',boxShadow:a?'0 0 7px '+AM+', 0 0 2px '+AM:'none',transition:'background 200ms, box-shadow 200ms'}}></div>
+        </div>;})}
+      <span style={{position:'absolute',right:6,top:'50%',marginTop:-13}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={PANEL}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* B · 背光刻字 — 齐平嵌入,选中如字被背光照亮 */
+function BarB(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  return <div style={{display:'flex',flexDirection:'column',gap:10}}>
+    <div style={{display:'flex',alignItems:'center',gap:1,padding:4,background:'var(--tex-noise), linear-gradient(180deg, #211E17, #171410)',border:'1px solid var(--line-0)',borderRadius:4,
+      boxShadow:'inset 0 2px 5px rgba(0,0,0,0.6), inset 0 -1px 0 rgba(233,215,170,0.06)'}}>
+      {tabs.map((t)=>{ const a=t.id===cur;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'relative',width:W,height:40,flexShrink:0,cursor:'pointer',userSelect:'none',borderRadius:3,
+          display:'flex',alignItems:'center',gap:4,padding:'0 6px 0 12px',transition:'background 200ms, box-shadow 200ms',
+          background:a?'radial-gradient(ellipse 120% 80% at 22% 120%, '+AM+'2E, transparent 62%), linear-gradient(180deg, #1E1B14, #141109)':'transparent',
+          boxShadow:a?'inset 0 1px 3px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(0,0,0,0.5)':'none'}}>
+          {/* 背光小灯 */}
+          <span style={{position:'absolute',left:6,top:'50%',width:4,height:4,marginTop:-2,borderRadius:'50%',
+            background:a?AM:'#2A2620',boxShadow:a?'0 0 6px '+AM:'none',transition:'background 200ms, box-shadow 200ms'}}></span>
+          <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12.5,fontWeight:700,letterSpacing:'0.03em',
+            color:a?'#F0DFB4':'var(--text-4)',textShadow:a?'0 0 9px '+AM+'99, 0 1px 0 rgba(0,0,0,0.6)':'0 1px 0 rgba(233,215,170,0.06)',transition:'color 200ms, text-shadow 200ms'}}>{t.label}</span>
+          <CloseBtn active={a} onClick={()=>close(t.id)}/>
+        </div>;})}
+      <span style={{marginLeft:4,marginRight:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={PANEL}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* C · 微动指示 — 分立钢键,一枚考究琥珀指示灯 + 发丝下划线 */
+function BarC(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  return <div style={{display:'flex',flexDirection:'column',gap:10}}>
+    <div style={{display:'flex',alignItems:'center',gap:7}}>
+      {tabs.map((t)=>{ const a=t.id===cur;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'relative',width:W,height:44,flexShrink:0,cursor:'pointer',userSelect:'none',borderRadius:4,overflow:'hidden',
+          background:KEY,border:'1px solid var(--line-0)',transition:'box-shadow 200ms, transform 180ms '+EASE,
+          transform:a?'none':'translateY(0)',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.22), inset 0 -1px 0 rgba(0,0,0,0.5), 0 0 0 1px '+AM+'33, 0 2px 5px rgba(0,0,0,0.55)'
+                     :'inset 0 1px 0 rgba(233,215,170,0.1), inset 0 -1px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.5)'}}>
+          <div style={{display:'flex',alignItems:'center',gap:9,padding:'0 6px 0 10px',height:'100%'}}>
+            {/* 精密指示灯 */}
+            <span style={{position:'relative',width:9,height:9,flexShrink:0,borderRadius:'50%',
+              background:'radial-gradient(circle at 38% 32%, #14110C, #0A0908)',boxShadow:'inset 0 0 0 1px rgba(0,0,0,0.8), inset 0 1px 1px rgba(0,0,0,0.9)'}}>
+              <span style={{position:'absolute',inset:2,borderRadius:'50%',background:a?AM:'#241F16',
+                boxShadow:a?'0 0 6px '+AM+', inset 0 0 1px #FFF8':'none',transition:'background 200ms, box-shadow 200ms'}}></span>
+            </span>
+            <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12.5,fontWeight:700,letterSpacing:'0.02em',
+              color:a?'#E6DAC0':'var(--text-3)',textShadow:'0 1px 0 rgba(0,0,0,0.55)',transition:'color 180ms'}}>{t.label}</span>
+            <CloseBtn active={a} onClick={()=>close(t.id)}/>
+          </div>
+          <div style={{position:'absolute',left:10,right:10,bottom:0,height:1.5,
+            background:a?AM:'transparent',boxShadow:a?'0 0 6px '+AM:'none',transition:'background 200ms, box-shadow 200ms'}}></div>
+        </div>;})}
+      <AddBtn onClick={add}/>
+    </div>
+    <div style={PANEL}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+function App(){
+  return <div style={{display:'flex',flexDirection:'column',gap:22}}>
+    <Demo name="A · 铣削键排" note="整块铣削面板,选中键微抬,底缝亮琥珀细线"><BarA/></Demo>
+    <Demo name="B · 背光刻字" note="齐平嵌入,选中如字被背光照亮"><BarB/></Demo>
+    <Demo name="C · 微动指示" note="分立钢键,一枚考究琥珀指示灯 + 发丝下划线"><BarC/></Demo>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

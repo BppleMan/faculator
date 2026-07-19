@@ -1,0 +1,133 @@
+<!-- @dsCard group="Explorations" viewport="560x420" subtitle="Solari 分瓣翻页数字输入 · 步进/滚轮/键入皆翻牌" name="FlapNumber · 翻牌数字" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>
+body{margin:0;background:var(--tex-page);padding:20px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}
+.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}
+@keyframes flapTop{0%{transform:rotateX(0)}100%{transform:rotateX(-90deg)}}
+@keyframes flapBottom{0%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const AM='#DCA943', AM2='#F2E1B4';
+const CELL='var(--tex-noise), linear-gradient(180deg, #26221A, #17140E)';
+const KEY='var(--tex-noise), linear-gradient(180deg, #2A261E, #1C1913)';
+
+const AC={ctx:null};
+function clack(){
+  try{
+    if(!AC.ctx) AC.ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const ctx=AC.ctx; if(ctx.state==='suspended') ctx.resume();
+    const t=ctx.currentTime;
+    const o=ctx.createOscillator(); o.type='triangle';
+    o.frequency.setValueAtTime(560,t); o.frequency.exponentialRampToValueAtTime(150,t+0.045);
+    const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.04,t+0.004); g.gain.exponentialRampToValueAtTime(0.0001,t+0.07);
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.08);
+    const len=0.04,buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*len),ctx.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2)*0.35;
+    const s=ctx.createBufferSource(); s.buffer=buf;
+    const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=3000;
+    const g2=ctx.createGain(); g2.gain.setValueAtTime(0.03,t); g2.gain.exponentialRampToValueAtTime(0.0001,t+len);
+    s.connect(hp); hp.connect(g2); g2.connect(ctx.destination); s.start(t);
+  }catch(e){}
+}
+
+const CH=64, CW=44, FS=42;
+function Half({half, digit}){
+  const top = half==='top';
+  return <div style={{position:'absolute',left:0,right:0,top:top?0:CH/2,height:CH/2,overflow:'hidden',
+    background:CELL,borderRadius:top?'5px 5px 0 0':'0 0 5px 5px',
+    boxShadow:top?'inset 0 1px 0 rgba(233,215,170,0.16)':'inset 0 -1px 0 rgba(0,0,0,0.6)'}}>
+    <div style={{position:'absolute',left:0,right:0,top:top?0:-CH/2,height:CH,display:'flex',alignItems:'center',justifyContent:'center',
+      fontFamily:'var(--font-mono)',fontSize:FS,fontWeight:700,color:AM2,textShadow:'0 0 10px '+AM+'88, 0 1px 0 rgba(0,0,0,0.7)'}}>{digit}</div>
+  </div>;
+}
+function LeafTop({digit}){
+  return <div style={{position:'absolute',left:0,right:0,top:0,height:CH/2,overflow:'hidden',zIndex:4,transformOrigin:'center bottom',backfaceVisibility:'hidden',
+    animation:'flapTop 130ms cubic-bezier(0.4,0.1,0.7,0.5) both',
+    background:CELL,borderRadius:'5px 5px 0 0',boxShadow:'inset 0 1px 0 rgba(233,215,170,0.16), 0 3px 5px rgba(0,0,0,0.5)'}}>
+    <div style={{position:'absolute',left:0,right:0,top:0,height:CH,display:'flex',alignItems:'center',justifyContent:'center',
+      fontFamily:'var(--font-mono)',fontSize:FS,fontWeight:700,color:AM2,textShadow:'0 0 10px '+AM+'88'}}>{digit}</div>
+  </div>;
+}
+function LeafBottom({digit}){
+  return <div style={{position:'absolute',left:0,right:0,top:CH/2,height:CH/2,overflow:'hidden',zIndex:3,transformOrigin:'center top',backfaceVisibility:'hidden',
+    animation:'flapBottom 150ms cubic-bezier(0.3,0.6,0.3,1) both',animationDelay:'120ms',
+    background:CELL,borderRadius:'0 0 5px 5px',boxShadow:'inset 0 -1px 0 rgba(0,0,0,0.6)'}}>
+    <div style={{position:'absolute',left:0,right:0,top:-CH/2,height:CH,display:'flex',alignItems:'center',justifyContent:'center',
+      fontFamily:'var(--font-mono)',fontSize:FS,fontWeight:700,color:AM2,textShadow:'0 0 10px '+AM+'88'}}>{digit}</div>
+  </div>;
+}
+function Flap({digit, old}){
+  const changed = digit!==old;
+  return <div style={{position:'relative',width:CW,height:CH,flexShrink:0,perspective:'240px',borderRadius:5,border:'1px solid var(--line-0)',
+    boxShadow:'0 3px 6px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(0,0,0,0.4)'}}>
+    <Half half="top" digit={digit}/>
+    <Half half="bottom" digit={changed?old:digit}/>
+    {changed && <React.Fragment key={digit}>
+      <LeafTop digit={old}/>
+      <LeafBottom digit={digit}/>
+    </React.Fragment>}
+    {/* 中缝铰链 */}
+    <div style={{position:'absolute',left:0,right:0,top:'50%',height:2,marginTop:-1,background:'linear-gradient(180deg, rgba(0,0,0,0.7), rgba(233,215,170,0.08))',zIndex:5,pointerEvents:'none'}}></div>
+    <div style={{position:'absolute',left:-2,top:'50%',width:4,height:5,marginTop:-2.5,borderRadius:1,background:'linear-gradient(180deg,#6A6048,#241F16)',border:'1px solid #000',zIndex:6}}></div>
+    <div style={{position:'absolute',right:-2,top:'50%',width:4,height:5,marginTop:-2.5,borderRadius:1,background:'linear-gradient(180deg,#6A6048,#241F16)',border:'1px solid #000',zIndex:6}}></div>
+  </div>;
+}
+
+function Stepper({dir, onClick}){
+  return <button onClick={onClick} style={{width:34,height:CH/2-1,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+    border:'1px solid var(--line-0)',color:'var(--text-2)',fontSize:11,padding:0,
+    background:KEY,borderRadius:dir==='up'?'4px 4px 0 0':'0 0 4px 4px',
+    boxShadow:'inset 0 1px 0 rgba(233,215,170,0.16), inset 0 -1px 0 rgba(0,0,0,0.5)',transition:'color 120ms, background 120ms'}}
+    onMouseDown={e=>{e.currentTarget.style.background='linear-gradient(180deg,#211D16,#171410)';e.currentTarget.style.color=AM;}}
+    onMouseUp={e=>{e.currentTarget.style.background='';e.currentTarget.style.color='';}}
+    onMouseLeave={e=>{e.currentTarget.style.background='';e.currentTarget.style.color='';}}>{dir==='up'?'\u25B2':'\u25BC'}</button>;
+}
+
+const DIGITS = 4, MAXV = Math.pow(10,DIGITS)-1;
+function FlapNumber(){
+  const [val,setVal] = React.useState(128);
+  const [foc,setFoc] = React.useState(false);
+  const digits = String(Math.max(0,Math.min(MAXV,val))).padStart(DIGITS,'0').split('');
+  const prev = React.useRef(digits);
+  React.useEffect(()=>{ prev.current = digits; });
+  const set = (v)=>{ v=Math.max(0,Math.min(MAXV,v)); setVal(v); clack(); };
+  const onKey = (e)=>{
+    if(e.key==='ArrowUp'){ set(val+1); e.preventDefault(); }
+    else if(e.key==='ArrowDown'){ set(val-1); e.preventDefault(); }
+    else if(e.key==='PageUp'){ set(val+10); e.preventDefault(); }
+    else if(e.key==='PageDown'){ set(val-10); e.preventDefault(); }
+    else if(/^[0-9]$/.test(e.key)){ set((val*10 + parseInt(e.key,10)) % (MAXV+1)); e.preventDefault(); }
+    else if(e.key==='Backspace'){ set(Math.floor(val/10)); e.preventDefault(); }
+  };
+  return <div style={{display:'flex',flexDirection:'column',gap:14,alignItems:'flex-start'}}>
+    <div tabIndex={0} onKeyDown={onKey} onFocus={()=>setFoc(true)} onBlur={()=>setFoc(false)}
+      onWheel={(e)=>{ set(val + (e.deltaY<0?1:-1)); }}
+      style={{display:'inline-flex',alignItems:'stretch',gap:10,padding:12,outline:'none',borderRadius:8,cursor:'ns-resize',
+        background:'var(--tex-noise), linear-gradient(180deg, #201D16, #14110C)',border:'1px solid var(--line-0)',
+        boxShadow:(foc?'0 0 0 1px '+AM+', 0 0 12px '+AM+'44, ':'')+'inset 0 1px 0 rgba(233,215,170,0.1), inset 0 -2px 6px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.5)',transition:'box-shadow 160ms'}}>
+      <div style={{display:'flex',gap:5,alignItems:'center'}}>
+        {digits.map((d,i)=> <Flap key={i} digit={d} old={prev.current[i]||'0'}/> )}
+      </div>
+      <div style={{display:'flex',flexDirection:'column',justifyContent:'center',gap:2}}>
+        <Stepper dir="up" onClick={()=>set(val+1)}/>
+        <Stepper dir="down" onClick={()=>set(val-1)}/>
+      </div>
+    </div>
+    <div className="lbl" style={{color:'var(--text-3)'}}>{foc?'\u25B2\u25BC / \u6EDA\u8F6E / \u952E\u5165\u6570\u5B57 \u00b7 BACKSPACE \u9000\u4F4D':'\u70B9\u51FB\u805A\u7126\u540E\u53EF\u952E\u5165 \u00b7 \u6EDA\u8F6E\u6216 \u25B2\u25BC \u6B65\u8FDB'}</div>
+  </div>;
+}
+
+function App(){
+  return <div style={{display:'flex',flexDirection:'column',gap:22}}>
+    <div style={{display:'flex',gap:10,alignItems:'baseline'}}><span style={{fontSize:12,fontWeight:700,color:'var(--amber)'}}>翻牌数字输入</span><span className="lbl">SOLARI SPLIT-FLAP · number input</span></div>
+    <FlapNumber/>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

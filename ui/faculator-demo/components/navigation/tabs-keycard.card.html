@@ -1,0 +1,262 @@
+<!-- @dsCard group="Explorations" viewport="740x860" subtitle="插卡取电 6 版 · A 横槽 / B 卡座 / C 磁条 / D 电柱 / E 背光 / F 拉手" name="TabBar · 插卡取电" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:14px 16px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const W = 126;
+const AM = '#DCA943', GN = '#6FBF5E';
+const CARD   = 'var(--tex-noise), linear-gradient(180deg, #2B271F, #1A1712)';
+const CARD_A = 'var(--tex-noise), linear-gradient(180deg, #34301F, #211D13)';
+const STEEL  = 'var(--tex-noise), linear-gradient(180deg, #302B22, #1C1913)';
+const EASE = 'cubic-bezier(0.2, 0.9, 0.25, 1)';
+const PANEL = {fontSize:12,color:'var(--text-2)',padding:'9px 12px',background:'var(--tex-noise), linear-gradient(180deg, #2A2620, #1E1C16)',border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 0 rgba(233,215,170,0.1), 0 2px 4px rgba(0,0,0,0.5)'};
+let seq = 3;
+const START = [{id:1,label:'基地规划'},{id:2,label:'新建计划'}];
+
+const AC = { ctx: null };
+function sound(){
+  try {
+    if (!AC.ctx) AC.ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const ctx = AC.ctx; if (ctx.state==='suspended') ctx.resume();
+    const t = ctx.currentTime, len = 0.12;
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*len), ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++){ const p=i/d.length; d[i] = (Math.random()*2-1) * Math.sin(Math.PI*p) * 0.6; }
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=0.8;
+    bp.frequency.setValueAtTime(1050, t); bp.frequency.exponentialRampToValueAtTime(500, t+len);
+    const g1 = ctx.createGain();
+    g1.gain.setValueAtTime(0.0001, t); g1.gain.linearRampToValueAtTime(0.045, t+0.02); g1.gain.exponentialRampToValueAtTime(0.0001, t+len);
+    src.connect(bp); bp.connect(g1); g1.connect(ctx.destination); src.start(t);
+    const o = ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(150, t+0.04); o.frequency.exponentialRampToValueAtTime(72, t+0.15);
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.0001, t+0.04); g2.gain.linearRampToValueAtTime(0.08, t+0.07); g2.gain.exponentialRampToValueAtTime(0.0001, t+0.19);
+    o.connect(g2); g2.connect(ctx.destination); o.start(t+0.04); o.stop(t+0.2);
+  } catch(e){}
+}
+function useTabs(){
+  const [tabs,setTabs] = React.useState(START);
+  const [cur,setCur] = React.useState(1);
+  const pick = (id) => { if (id===cur) return; setCur(id); sound(); };
+  const add = () => { seq++; const t={id:seq,label:'计划 '+String(seq).padStart(2,'0')}; setTabs(ts=>[...ts,t]); setCur(seq); sound(); };
+  const close = (id) => setTabs(ts=>{ const nx=ts.filter(t=>t.id!==id);
+    if (id===cur && nx.length) setCur(nx[Math.max(0, ts.findIndex(t=>t.id===id)-1)].id); return nx; });
+  return {tabs,cur,pick,add,close};
+}
+function CloseBtn({onClick, active}){
+  return <span onClick={(e)=>{e.stopPropagation();onClick();}} style={{
+    width:14,height:14,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:11,lineHeight:1,cursor:'pointer',borderRadius:2,color:active?'var(--text-3)':'var(--text-4)',
+    background:'#0A0908',border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 2px rgba(0,0,0,0.8)'}}
+    onMouseEnter={e=>{e.currentTarget.style.color='var(--danger)'}}
+    onMouseLeave={e=>{e.currentTarget.style.color=active?'var(--text-3)':'var(--text-4)'}}>&#215;</span>;
+}
+function AddBtn({onClick}){
+  return <span onClick={onClick} style={{
+    width:22,height:22,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:14,fontWeight:700,cursor:'pointer',borderRadius:2,color:'var(--text-2)',
+    background:'var(--tex-noise), radial-gradient(ellipse 90% 70% at 50% 18%, #2E2A22, #1E1C16 60%, #16140F)',
+    border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 1px rgba(233,215,170,0.15), 0 1px 0 #050403, 0 2px 2px rgba(0,0,0,0.7)',userSelect:'none'}}>+</span>;
+}
+function Face({t,a,close}){
+  return <React.Fragment>
+    <span style={{width:8,height:8,flexShrink:0,borderRadius:1,background:a?'linear-gradient(135deg,#EFE7D4,#C9BC9E)':'#2A2620',
+      boxShadow:a?'inset 0 0 0 1px '+AM:'inset 0 1px 1px rgba(0,0,0,0.6)'}}></span>
+    <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12,fontWeight:700,letterSpacing:'0.03em',
+      color:a?'var(--text-1)':'var(--text-3)'}}>{t.label}</span>
+    <CloseBtn active={a} onClick={close}/>
+  </React.Fragment>;
+}
+function Lamp({a, label, off}){
+  return <div style={{display:'flex',alignItems:'center',gap:6,minWidth:0}}>
+    <span className={a?'fx-lamp-blink':''} style={{width:5,height:5,borderRadius:'50%',flexShrink:0,
+      background:a?GN:'#242118',boxShadow:a?'0 0 6px '+GN:'inset 0 1px 1px rgba(0,0,0,0.85)',transition:'background 150ms, box-shadow 150ms'}}></span>
+    <span style={{fontFamily:'var(--font-mono)',fontSize:8,fontWeight:700,letterSpacing:'0.14em',whiteSpace:'nowrap',
+      color:a?GN:'var(--text-4)',textShadow:a?'0 0 5px '+GN+'88':'none',transition:'color 150ms'}}>{a?label:off}</span>
+  </div>;
+}
+function Demo({name,note,children}){
+  return <div style={{display:'flex',flexDirection:'column',gap:6}}>
+    <div style={{display:'flex',gap:10,alignItems:'baseline'}}><span style={{fontSize:12,fontWeight:700,color:'var(--amber)'}}>{name}</span><span className="lbl">{note}</span></div>
+    {children}
+  </div>;
+}
+const LB = 24; // 标签带高度:始终露在槽口之上
+
+/* A · 横槽取电 — 单条长槽,卡下插到底,绿灯取电 */
+function BarA(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+8, CARD_H=40, TOP=10, IN=10, SLOT_T=44, SLOT_H=22, H=SLOT_T+SLOT_H+4;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:'linear-gradient(180deg,#413A2E,#221F19)',border:'1px solid var(--line-0)',borderRadius:2,boxShadow:'inset 0 1px 0 rgba(233,215,170,0.25)'}}></div>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',zIndex:2,left:x,top:TOP,width:W,height:CARD_H,cursor:'pointer',userSelect:'none',
+          transform:a?'translateY('+IN+'px)':'none',transition:'transform 240ms '+EASE+', box-shadow 200ms',
+          borderRadius:'3px 3px 2px 2px',background:a?CARD_A:CARD,border:'1px solid var(--line-0)',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.22), 0 0 0 1px '+AM+'44':'inset 0 1px 0 rgba(233,215,170,0.12), 0 3px 5px rgba(0,0,0,0.55)'}}>
+          <div style={{height:LB,display:'flex',alignItems:'center',gap:7,padding:'0 8px'}}><Face t={t} a={a} close={()=>close(t.id)}/></div>
+        </div>;})}
+      <div style={{position:'absolute',zIndex:3,top:SLOT_T,left:0,right:0,height:SLOT_H,background:STEEL,border:'1px solid var(--line-0)',borderRadius:3,boxShadow:'inset 0 2px 5px rgba(0,0,0,0.6)'}}>
+        <div style={{position:'absolute',top:3,left:8,right:8,height:3,background:'#040302',borderRadius:2,boxShadow:'inset 0 1px 2px #000'}}></div>
+        {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+          return <div key={t.id} style={{position:'absolute',left:x+4,width:W-8,bottom:5}}><Lamp a={a} label="取电" off="待插 ↓"/></div>;})}
+      </div>
+      <span style={{position:'absolute',top:TOP+3,left:6+tabs.length*STEP,zIndex:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* B · 独立卡座 — 每页一个读卡座,插到底 POWER */
+function BarB(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+12, DOCK_H=54, TOP=6, LIP=18, CARD_H=32, IN=8, H=TOP+DOCK_H+4;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id}>
+          <div style={{position:'absolute',zIndex:1,left:x,top:TOP,width:W,height:DOCK_H,borderRadius:4,background:STEEL,border:'1px solid var(--line-0)',
+            boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.2), 0 0 10px '+AM+'40, 0 2px 4px rgba(0,0,0,0.6)':'inset 0 1px 0 rgba(233,215,170,0.12), inset 0 -3px 5px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.6)',transition:'box-shadow 240ms'}}>
+            <div style={{position:'absolute',top:5,left:10,right:10,height:3,background:'#040302',borderRadius:2,boxShadow:'inset 0 1px 2px #000'}}></div>
+          </div>
+          <div onClick={()=>pick(t.id)} style={{position:'absolute',zIndex:2,left:x+6,width:W-12,top:TOP,height:CARD_H,cursor:'pointer',userSelect:'none',
+            transform:'translateY('+(a?IN:0)+'px)',transition:'transform 260ms '+EASE,
+            borderRadius:'3px 3px 2px 2px',background:a?CARD_A:CARD,border:'1px solid var(--line-0)',
+            boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.22)':'0 3px 5px rgba(0,0,0,0.6)'}}>
+            <div style={{height:LB,display:'flex',alignItems:'center',gap:7,padding:'0 8px'}}><Face t={t} a={a} close={()=>close(t.id)}/></div>
+          </div>
+          <div style={{position:'absolute',zIndex:3,left:x,top:TOP+DOCK_H-LIP,width:W,height:LIP,borderRadius:'0 0 4px 4px',background:STEEL,
+            borderLeft:'1px solid var(--line-0)',borderRight:'1px solid var(--line-0)',borderBottom:'1px solid var(--line-0)',boxShadow:'inset 0 -2px 4px rgba(0,0,0,0.5)',
+            display:'flex',alignItems:'center',padding:'0 10px'}}>
+            <Lamp a={a} label="POWER" off="— STBY"/>
+          </div>
+        </div>;})}
+      <span style={{position:'absolute',top:TOP+16,left:6+tabs.length*STEP,zIndex:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* C · 磁条门卡 — 磁条刷过读缝,琥珀扫描发光 */
+function BarC(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+8, CARD_H=40, TOP=6, IN=8, SLOT_T=40, SLOT_H=14, H=SLOT_T+SLOT_H+4;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',zIndex:2,left:x,top:TOP,width:W,height:CARD_H,cursor:'pointer',userSelect:'none',overflow:'hidden',
+          transform:a?'translateY('+IN+'px)':'none',transition:'transform 240ms '+EASE,
+          borderRadius:'3px 3px 2px 2px',background:a?CARD_A:CARD,border:'1px solid var(--line-0)',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.22)':'inset 0 1px 0 rgba(233,215,170,0.12), 0 3px 5px rgba(0,0,0,0.55)'}}>
+          <div style={{height:LB,display:'flex',alignItems:'center',gap:7,padding:'0 8px'}}><Face t={t} a={a} close={()=>close(t.id)}/></div>
+          <div style={{position:'absolute',left:0,right:0,bottom:6,height:8,background:'linear-gradient(180deg,#1C1A15,#0B0A08)',borderTop:'1px solid #000',borderBottom:'1px solid #000',
+            boxShadow:a?'0 0 7px '+AM+', inset 0 1px 0 rgba(255,235,170,0.12)':'inset 0 1px 0 rgba(255,255,255,0.04)',transition:'box-shadow 200ms'}}></div>
+        </div>;})}
+      <div style={{position:'absolute',zIndex:3,top:SLOT_T,left:0,right:0,height:SLOT_H,background:STEEL,border:'1px solid var(--line-0)',borderRadius:2,boxShadow:'inset 0 1px 4px rgba(0,0,0,0.6)'}}>
+        <div style={{position:'absolute',top:4,left:6,right:6,height:3,background:'#040302',borderRadius:2,boxShadow:'inset 0 1px 2px #000'}}></div>
+        {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+          return <span key={t.id} style={{position:'absolute',left:x+6,bottom:1}}><Lamp a={a} label="已读" off="刷卡"/></span>;})}
+      </div>
+      <span style={{position:'absolute',top:TOP+8,left:6+tabs.length*STEP,zIndex:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* D · 竖插取电柱 — 插入后卡侧电轨点亮 */
+function BarD(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+10, CARD_H=46, TOP=10, IN=10, SLOT_T=46, SLOT_H=24, H=SLOT_T+SLOT_H+4;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:'linear-gradient(180deg,#413A2E,#221F19)',border:'1px solid var(--line-0)',borderRadius:2}}></div>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',zIndex:2,left:x,top:TOP,width:W,height:CARD_H,cursor:'pointer',userSelect:'none',
+          transform:a?'translateY('+IN+'px)':'none',transition:'transform 240ms '+EASE,
+          borderRadius:'3px 3px 2px 2px',background:a?CARD_A:CARD,border:'1px solid var(--line-0)',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.22)':'inset 0 1px 0 rgba(233,215,170,0.12), 0 3px 5px rgba(0,0,0,0.55)'}}>
+          <div style={{position:'absolute',left:3,top:5,bottom:5,width:3,borderRadius:2,
+            background:a?'linear-gradient(180deg,'+AM+',#8F681E)':'#241F16',boxShadow:a?'0 0 7px '+AM:'inset 0 0 2px #000',transition:'background 200ms, box-shadow 200ms'}}></div>
+          <div style={{height:LB,display:'flex',alignItems:'center',gap:7,padding:'0 8px 0 12px'}}><Face t={t} a={a} close={()=>close(t.id)}/></div>
+        </div>;})}
+      <div style={{position:'absolute',zIndex:3,top:SLOT_T,left:0,right:0,height:SLOT_H,background:STEEL,border:'1px solid var(--line-0)',borderRadius:3,boxShadow:'inset 0 2px 5px rgba(0,0,0,0.6)'}}>
+        <div style={{position:'absolute',top:3,left:8,right:8,height:3,background:'#040302',borderRadius:2,boxShadow:'inset 0 1px 2px #000'}}></div>
+        {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+          return <div key={t.id} style={{position:'absolute',left:x+6,width:W-12,bottom:5}}><Lamp a={a} label="取电中" off="断电 ↓"/></div>;})}
+      </div>
+      <span style={{position:'absolute',top:TOP+6,left:6+tabs.length*STEP,zIndex:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* E · 嵌板背光 — 齐平嵌板,选中背光雕字(最克制) */
+function BarE(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{display:'flex',gap:4,alignItems:'center',padding:6,background:STEEL,border:'1px solid var(--line-0)',borderRadius:4,boxShadow:'inset 0 1px 0 rgba(233,215,170,0.15), 0 2px 5px rgba(0,0,0,0.6)'}}>
+      {tabs.map((t)=>{ const a=t.id===cur;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'relative',width:W,height:34,cursor:'pointer',userSelect:'none',borderRadius:2,
+          background:a?'linear-gradient(180deg,#201C14,#161310)':'linear-gradient(180deg,#221E17,#1A1712)',border:'1px solid var(--line-0)',
+          boxShadow:a?'inset 0 2px 6px rgba(0,0,0,0.75), inset 0 0 10px '+AM+'2E':'inset 0 1px 0 rgba(233,215,170,0.14), 0 1px 0 #000',transition:'box-shadow 200ms',
+          display:'flex',alignItems:'center',gap:7,padding:'0 9px'}}>
+          <span className={a?'fx-lamp-blink':''} style={{width:5,height:5,borderRadius:'50%',flexShrink:0,background:a?GN:'#242118',boxShadow:a?'0 0 6px '+GN:'inset 0 1px 1px #000',transition:'background 150ms, box-shadow 150ms'}}></span>
+          <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12,fontWeight:700,letterSpacing:'0.03em',
+            color:a?AM:'var(--text-4)',textShadow:a?'0 0 8px '+AM+'aa':'0 1px 0 #000',transition:'color 200ms, text-shadow 200ms'}}>{t.label}</span>
+          <CloseBtn active={a} onClick={()=>close(t.id)}/>
+        </div>;})}
+      <AddBtn onClick={add}/>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* F · 卡匣拉手 — 滚花拉手,插到底与槽口齐平 */
+function BarF(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+10, HANDLE=13, TOP=6, IN=12, SLOT_T=50, SLOT_H=20, H=SLOT_T+SLOT_H+4;
+  const CARD_H = HANDLE + LB + 8; // 拉手 + 标签带 + 插舌
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',zIndex:2,left:x,top:TOP,width:W,cursor:'pointer',userSelect:'none',
+          transform:a?'translateY('+IN+'px)':'none',transition:'transform 260ms '+EASE}}>
+          <div style={{height:HANDLE,borderRadius:'3px 3px 0 0',background:'var(--tex-noise), linear-gradient(180deg,#3A342A,#241F18)',border:'1px solid var(--line-0)',
+            boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.3)':'inset 0 1px 0 rgba(233,215,170,0.22), 0 3px 6px rgba(0,0,0,0.6)',
+            display:'flex',alignItems:'center',justifyContent:'center',position:'relative'}}>
+            <div style={{position:'absolute',left:10,right:10,top:4,bottom:4,background:'repeating-linear-gradient(90deg, rgba(233,215,170,0.16) 0 1px, transparent 1px 4px)',borderRadius:1}}></div>
+            <span style={{width:5,height:5,borderRadius:'50%',background:a?AM:'#2A241A',boxShadow:a?'0 0 5px '+AM:'inset 0 1px 1px #000',zIndex:1}}></span>
+          </div>
+          <div style={{height:CARD_H-HANDLE,background:a?CARD_A:CARD,borderLeft:'1px solid var(--line-0)',borderRight:'1px solid var(--line-0)',borderBottom:'1px solid var(--line-0)',borderRadius:'0 0 2px 2px'}}>
+            <div style={{height:LB,display:'flex',alignItems:'center',gap:7,padding:'0 8px'}}><Face t={t} a={a} close={()=>close(t.id)}/></div>
+          </div>
+        </div>;})}
+      <div style={{position:'absolute',zIndex:3,top:SLOT_T,left:0,right:0,height:SLOT_H,background:STEEL,border:'1px solid var(--line-0)',borderRadius:3,boxShadow:'inset 0 2px 5px rgba(0,0,0,0.6)'}}>
+        <div style={{position:'absolute',top:3,left:8,right:8,height:3,background:'#040302',borderRadius:2,boxShadow:'inset 0 1px 2px #000'}}></div>
+        {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+          return <div key={t.id} style={{position:'absolute',left:x+6,width:W-12,bottom:4}}><Lamp a={a} label="到位" off="拔出 ↑"/></div>;})}
+      </div>
+      <span style={{position:'absolute',top:TOP+8,left:6+tabs.length*STEP,zIndex:2}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+function App(){
+  return <div style={{display:'flex',flexDirection:'column',gap:18}}>
+    <Demo name="A · 横槽取电" note="单条长槽,卡下插到底,绿灯取电"><BarA/></Demo>
+    <Demo name="B · 独立卡座" note="每页一个读卡座,插到底 POWER"><BarB/></Demo>
+    <Demo name="C · 磁条门卡" note="磁条刷过读缝,琥珀扫描发光"><BarC/></Demo>
+    <Demo name="D · 竖插取电柱" note="插入后卡侧电轨点亮"><BarD/></Demo>
+    <Demo name="E · 嵌板背光" note="齐平嵌板,选中背光雕字(最克制)"><BarE/></Demo>
+    <Demo name="F · 卡匣拉手" note="滚花拉手,插到底与槽口齐平"><BarF/></Demo>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

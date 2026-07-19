@@ -1,0 +1,59 @@
+/* Faculator 质感与动效令牌 —— 方正钢板/螺丝/金琥珀/机械反馈 */
+:root {
+  /* 形状:完全方正,无切角无圆角(变量保留兼容旧引用) */
+  --chamfer-sm: inset(0);
+  --chamfer-md: inset(0);
+  --chamfer-lg: inset(0);
+
+  /* 磨砂金属纹理:内联 SVG 噪点(feTurbulence),无需图片文件 */
+  --tex-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.24 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* 陈旧斑驳:低频湍流大块污渍(岁月痕迹) */
+  --tex-grime: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0.9 0.9 0.5 -0.42'/%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* 铜锈斑:低频湍流,暗铜绿色调,极淡 */
+  --tex-patina: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.30 0 0 0 0 0.22 0.7 0.7 0.7 0.35 -0.28'/%3E%3C/filter%3E%3Crect width='360' height='360' filter='url(%23p)'/%3E%3C/svg%3E");
+
+  /* 钢板面:黑描边 + 内侧高光由 shadow 提供 */
+  --plate: var(--tex-grime), var(--tex-noise), linear-gradient(180deg, var(--plate-hi), var(--plate-lo));
+  --plate-flat: linear-gradient(180deg, var(--plate-hi), var(--plate-lo));
+  /* 页面深底纹理 */
+  --tex-page: var(--tex-grime), var(--tex-noise), radial-gradient(ellipse 130% 100% at 50% 0%, #17150F, #0D0C0A 78%);
+  /* 拉丝金属(横向细丝) */
+  --tex-brushed: repeating-linear-gradient(180deg, rgba(255,244,214,0.020) 0 1px, transparent 1px 2px);
+  --plate-amber: var(--tex-patina), var(--tex-noise), linear-gradient(180deg, #CE9F3E, #AC7F26 55%, #8F681E);
+  /* 老黄铜(更沉,用于铭牌/边框重点) */
+  --plate-brass-aged: var(--tex-grime), var(--tex-noise), linear-gradient(180deg, #9A7526, #7A5B1D 60%, #64491A);
+  --shadow-plate: inset 0 0 0 1px var(--line-2), inset 0 1px 0 var(--steel-edge), inset 0 -14px 24px -14px rgba(0,0,0,0.55), 0 2px 5px rgba(0,0,0,0.6);
+  --shadow-inset: inset 0 0 0 1px var(--line-1), inset 0 2px 4px rgba(0,0,0,0.55);
+
+  /* 警示斜纹 */
+  --stripes-warn: repeating-linear-gradient(-45deg, rgba(223,166,60,0.30) 0 8px, transparent 8px 16px);
+  --stripes-danger: repeating-linear-gradient(-45deg, rgba(224,85,69,0.32) 0 8px, transparent 8px 16px);
+
+  /* 动效 */
+  --ease-mech: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --dur-fast: 90ms;
+  --dur-base: 150ms;
+
+  /* 间距(4 基准,高密度) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 28px;
+}
+
+/* 机械感交互 */
+.fx-mech { transition: transform var(--dur-fast) var(--ease-mech), filter var(--dur-base) var(--ease-mech), opacity var(--dur-base); }
+.fx-glow:hover { filter: brightness(1.08) drop-shadow(0 0 6px var(--amber-glow)); }
+.fx-press:active { transform: translateY(1px); }
+
+/* 螺丝(加在 position:relative 容器四角) */
+.fx-screw { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #4A463D, #23211D 70%); box-shadow: inset 0 -1px 1px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,0,0,0.6); }
+.fx-screw::after { content: ''; position: absolute; left: 0; right: 0; top: 2px; height: 1px; background: rgba(0,0,0,0.75); transform: rotate(35deg); }
+
+/* 散热格栅(装饰,给面板底部) */
+.fx-vent { background: repeating-linear-gradient(90deg, #0E0D0B 0 3px, #1E1D1A 3px 6px); box-shadow: inset 0 1px 3px rgba(0,0,0,0.7); border: 1px solid var(--line-0); }
+
+/* 状态灯呼吸 */
+@keyframes fx-lamp { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+.fx-lamp-blink { animation: fx-lamp 1.6s var(--ease-mech) infinite; }
+
+/* 进度条流动斜纹 */
+@keyframes fx-flow { from { background-position: 0 0; } to { background-position: 32px 0; } }

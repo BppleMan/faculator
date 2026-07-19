@@ -1,0 +1,22 @@
+/* Faculator 字体令牌 */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+:root {
+  --font-display: 'Noto Sans SC', sans-serif;   /* 标题/控件/正文 */
+  --font-body: 'Noto Sans SC', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;      /* 数值/代码/微标注 */
+
+  --fs-9: 9px;    /* 微标注(等宽+宽字距) */
+  --fs-11: 11px;  /* 标签/次要 */
+  --fs-12: 12px;  /* 控件文字 */
+  --fs-13: 13px;  /* 正文/条目名 */
+  --fs-16: 16px;  /* 区块标题 */
+  --fs-22: 22px;  /* 大数值 */
+  --fs-28: 28px;  /* 页面主标题/仪表读数 */
+
+  --ls-tight: 0.02em;
+  --ls-wide: 0.10em;   /* 控件/标签 */
+  --ls-caps: 0.16em;   /* 微标注 */
+
+  --fw-med: 500; --fw-semi: 700; --fw-bold: 900;
+}

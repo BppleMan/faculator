@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <script src="./plan-data.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; --accent:#A99BB5; --accent-rgb:169,155,181; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #44444A; border-radius: 3px; }
+    input::placeholder { color: #707077; }
+  </style>
+</helmet>
+
+<div style="display:flex;flex-direction:{{ shellDir }};height:100vh;background:#1E1E20;font-family:'Rajdhani',sans-serif;color:#DFDFE2;overflow:hidden;">
+
+  {{ tabBar }}
+  <div style="display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden;">
+  <!-- 顶部导航 -->
+  <div style="height:52px;display:flex;align-items:center;padding:0 18px;background:#161618;border-bottom:1px solid #39393D;flex-shrink:0;gap:5px;">
+
+    <div style="flex:1;"></div>
+    <div style="display:flex;background:#28282B;border:1px solid #44444A;border-radius:7px;padding:3px;gap:2px;flex-shrink:0;">
+      <div onClick="{{ setNodes }}" style="padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.06em;background:{{ viewNBg }};color:{{ viewNCol }};">节点图</div>
+      <div onClick="{{ setTree }}" style="padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.06em;background:{{ viewTBg }};color:{{ viewTCol }};">层级树</div>
+      <div onClick="{{ setColumns }}" style="padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.06em;background:{{ viewCBg }};color:{{ viewCCol }};">分栏</div>
+      <div onClick="{{ setSankey }}" style="padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.06em;background:{{ viewSBg }};color:{{ viewSCol }};">桑基图</div>
+    </div>
+    <div style="display:flex;background:#28282B;border:1px solid #44444A;border-radius:7px;padding:3px;gap:2px;flex-shrink:0;margin-left:8px;">
+      <div onClick="{{ setLayCenter }}" style="padding:4px 11px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.06em;background:{{ layCBg }};color:{{ layCCol }};">居中平衡</div>
+      <div onClick="{{ setLayFirst }}" style="padding:4px 11px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.06em;background:{{ layFBg }};color:{{ layFCol }};">对齐原料</div>
+    </div>
+    <div style="width:1px;height:18px;background:#39393D;margin:0 10px;flex-shrink:0;"></div>
+    <div style="font-size:11px;color:#67676E;font-weight:600;letter-spacing:0.06em;white-space:nowrap;flex-shrink:0;">v2.0 · 太空时代</div>
+  </div>
+
+  <!-- 主体区域 -->
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- 左侧：生产块列表 + 层级总览 -->
+    <div style="width:{{ sideAW }};flex-shrink:0;background:#161618;border-right:1px solid #39393D;display:flex;flex-direction:column;overflow:hidden;transition:width .15s ease;">
+      <div style="padding:11px 10px 11px 12px;border-bottom:1px solid #39393D;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+        <sc-if value="{{ sideAWide }}" hint-placeholder-val="{{ true }}">
+          <span style="font-size:12px;font-weight:700;letter-spacing:0.1em;color:#B0B0B7;">生产块</span>
+          <span style="font-size:9px;font-weight:600;letter-spacing:0.1em;color:#707077;flex:1;text-align:right;">BLOCKS</span>
+        </sc-if>
+        {{ sideAToggle }}
+      </div>
+      <sc-if value="{{ sideAWide }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;padding:10px;overflow-y:auto;">{{ blockList }}</div>
+      </sc-if>
+      <sc-if value="{{ sideANarrow }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto;padding:8px 0;">{{ sideRail }}</div>
+      </sc-if>
+    </div>
+
+
+    <!-- 画布区 -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:#1C1C1E;">
+      <!-- 下钻面包屑导航条 -->
+      <div style="flex-shrink:0;height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;background:#19191B;border-bottom:1px solid #37373A;">{{ breadcrumb }}</div>
+      <div style="flex:1;position:relative;overflow:hidden;">
+        <sc-if value="{{ isProdNodes }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;inset:0;">{{ graph }}</div>
+        </sc-if>
+        <sc-if value="{{ isProdTree }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;">{{ treeView }}</div>
+        </sc-if>
+        <sc-if value="{{ isProdColumns }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;">{{ columnView }}</div>
+        </sc-if>
+        <sc-if value="{{ isProdSankey }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;">{{ sankeyView }}</div>
+        </sc-if>
+      </div>
+      {{ levelsDock }}
+    </div>
+
+    <!-- 右侧面板 -->
+    <div style="width:250px;flex-shrink:0;background:#161618;border-left:1px solid #39393D;overflow-y:auto;display:flex;flex-direction:column;">
+
+      <!-- 选中物品 -->
+      <div style="padding:14px 14px;border-bottom:1px solid #39393D;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#707077;margin-bottom:8px;">选中物品</div>
+        <div style="display:flex;align-items:center;gap:9px;background:#28282B;border:1px solid #44444A;border-radius:7px;padding:9px 11px;">
+          <div style="width:10px;height:10px;border-radius:2px;flex-shrink:0;background:{{ selColor }};"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ selName }}</div>
+            <div style="font-size:9px;color:#8E8E96;margin-top:2px;">{{ selMachine }} × {{ selMach }} 台 · 第{{ selLevel }}级</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:7px;">
+          <div style="flex:1;background:#28282B;border:1px solid #44444A;border-radius:6px;padding:7px 10px;">
+            <div style="font-size:9px;color:#707077;margin-bottom:2px;font-weight:700;">速率</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:{{ selColor }};">{{ selRate }}</div>
+          </div>
+          <div style="flex:1;background:#28282B;border:1px solid #44444A;border-radius:6px;padding:7px 10px;">
+            <div style="font-size:9px;color:#707077;margin-bottom:2px;font-weight:700;">功耗</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#C09088;">{{ selPow }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 目标产率 -->
+      <div style="padding:14px 14px;border-bottom:1px solid #39393D;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#707077;margin-bottom:8px;">目标产率</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div onClick="{{ decRate }}" style="width:30px;height:30px;background:#28282B;border:1px solid #44444A;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--accent);user-select:none;flex-shrink:0;line-height:1;">−</div>
+          <div style="flex:1;background:#28282B;border:1px solid #44444A;border-radius:6px;padding:4px 8px;text-align:center;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--accent);">{{ targetRate }}</span>
+            <span style="font-size:11px;color:#7F7F87;margin-left:3px;">/min</span>
+          </div>
+          <div onClick="{{ incRate }}" style="width:30px;height:30px;background:#28282B;border:1px solid #44444A;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--accent);user-select:none;flex-shrink:0;line-height:1;">+</div>
+        </div>
+      </div>
+
+      <!-- 组装机等级 -->
+      <div style="padding:14px 14px;border-bottom:1px solid #39393D;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#707077;margin-bottom:8px;">组装机等级</div>
+        <div style="display:flex;gap:5px;">
+          <div onClick="{{ setT1 }}" style="flex:1;text-align:center;padding:7px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;background:{{ tier1Bg }};border:1px solid {{ tier1Bd }};color:{{ tier1Col }};">一级</div>
+          <div onClick="{{ setT2 }}" style="flex:1;text-align:center;padding:7px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;background:{{ tier2Bg }};border:1px solid {{ tier2Bd }};color:{{ tier2Col }};">二级</div>
+          <div onClick="{{ setT3 }}" style="flex:1;text-align:center;padding:7px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;background:{{ tier3Bg }};border:1px solid {{ tier3Bd }};color:{{ tier3Col }};">三级</div>
+        </div>
+      </div>
+
+      <!-- 模块槽位 -->
+      <div style="padding:14px 14px;border-bottom:1px solid #39393D;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#707077;margin-bottom:8px;">模块槽位 <span style="color:#39393D;font-weight:500;">(点击循环)</span></div>
+        {{ modSlots }}
+        <div style="background:#202023;border-radius:6px;padding:9px 10px;margin-top:7px;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:11px;color:#8E8E96;">速度加成</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8496B2;">{{ speedMult }}×</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:11px;color:#8E8E96;">产量加成</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7FA98A;">+{{ prodBonus }}%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:11px;color:#8E8E96;">功耗倍率</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#C09088;">{{ powerMult }}×</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 信标 -->
+      <div style="padding:14px 14px;border-bottom:1px solid #39393D;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#707077;margin-bottom:8px;">信标数/机器</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div onClick="{{ decBcn }}" style="width:28px;height:28px;background:#28282B;border:1px solid #44444A;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#8E8E96;user-select:none;flex-shrink:0;line-height:1;">−</div>
+          <div style="flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;">{{ beaconCount }}</div>
+          <div onClick="{{ incBcn }}" style="width:28px;height:28px;background:#28282B;border:1px solid #44444A;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#8E8E96;user-select:none;flex-shrink:0;line-height:1;">+</div>
+        </div>
+      </div>
+
+      <!-- 汇总 -->
+      <div style="padding:14px 14px;flex:1;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;color:#707077;margin-bottom:8px;">汇总统计</div>
+        <div style="background:#202023;border-radius:7px;padding:12px 13px;display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#8E8E96;">机器总数</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;">{{ totalM }}</span>
+          </div>
+          <div style="height:1px;background:#28282B;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#8E8E96;">总功耗</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:#C09088;">{{ totalPow }}</span>
+          </div>
+          <div style="height:1px;background:#28282B;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:#8E8E96;">综合效率</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:#7FA98A;">{{ eff }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 底部状态栏 -->
+  <div style="height:32px;background:#161618;border-top:1px solid #39393D;display:flex;align-items:center;padding:0 18px;gap:22px;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="width:5px;height:5px;border-radius:50%;background:#7FA98A;box-shadow:0 0 5px #7FA98A88;"></div>
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.07em;color:#707077;">机器</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;">{{ totalM }}</span>
+    </div>
+    <div style="width:1px;height:12px;background:#39393D;"></div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.07em;color:#707077;">功耗</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#C09088;">{{ totalPow }}</span>
+    </div>
+    <div style="width:1px;height:12px;background:#39393D;"></div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.07em;color:#707077;">节点</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#7FA8B0;">{{ nodeCount }}</span>
+    </div>
+    <div style="width:1px;height:12px;background:#39393D;"></div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.07em;color:#707077;">效率</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#7FA98A;">{{ eff }}</span>
+    </div>
+    <div style="width:1px;height:12px;background:#39393D;"></div>
+    {{ solverChip }}
+    <div style="flex:1;"></div>
+    <div style="font-size:10px;color:#39393D;font-weight:500;">异星工厂 2.0 · 太空时代</div>
+  </div>
+  </div>
+  {{ recipePicker }}
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#A99BB5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;莫兰迪主题&quot;,&quot;options&quot;:[&quot;#A99BB5&quot;,&quot;#C4A0A0&quot;,&quot;#94A7BE&quot;,&quot;#96AA8F&quot;,&quot;#BFAC72&quot;]}}">
+class Component extends DCLogic {
+  state = {
+    activeTab: 'production',
+    viewMode: 'nodes',
+    layoutMode: 'first',    // 'center' 居中平衡 | 'first' 对齐首个原料
+    collapsed: {},          // 层级树折叠状态 uid->true
+    colPath: [],            // 分栏视图当前路径 uid[]
+    selectedNode: null,
+    hoveredNode: null,
+    targetRate: 45,
+    assemblerTier: 3,
+    modules: ['speed3','speed3','prod3','prod3'],
+    beaconCount: 8,
+    petgasRecipe: 'adv',   // 'basic' 基础原油处理 | 'adv' 高级原油处理
+    oilMode: 'crack',      // 'store' 储存副产 | 'crack' 全部裂化
+    recipeChoice: {},      // 通用配方选择 itemId -> 候选索引（mod-ready）
+    tabBarPos: 'top',   // 顶层 tab bar 停靠：'top' 横放 | 'left' 竖放
+    sideAWide: true,    // 生产块侧边栏 宽/窄
+    sideBWide: true,    // 层级总览侧边栏 宽/窄
+    solverOpen: false,  // 配平账本弹层
+    activePlan: 'p1',                          // 当前 ProductionPlan（顶部 tab）
+    activeBlock: null,                         // 当前 ProductionBlock（侧栏 tab）
+    navStack: [{kind:'block',name:'新计划'}],   // 下钻导航栈（base=block 多 line；drilled=单物品）
+    pickerOpen: false, pickerGroup: 'intermediate-products', pickerSearch: '', pickerTarget: 'block',
+    navIdx: 0,
+    lineRates: {},                             // 每条 line 的目标产率覆盖： `${blockId}:${idx}` -> rate
+    virtual: {},                               // 已下沉物品 → 在上层规划中折叠为虚拟配方（输入=子规划整体原料）
+  };
+
+  // ProductionPlan：顶部 tab。初始为空计划，动线：新建 tab/生产块 → 配方选择器 → BOM 展开
+  PLANS=[
+    {id:'p1', name:'新计划 1', blocks:[]},
+  ];
+  // ProductionBlock：侧栏 tab。一个 block 含多条 line（多个主目标），同屏堆叠渲染、无需切换
+  BLOCKS={};
+  LINEGAP=58;   // 同一 block 内相邻 line 之间的纵向间隔
+
+  curBlock(){ return this.BLOCKS[this.state.activeBlock]||null; }
+  curNav(){ return this.state.navStack[this.state.navIdx] || this.state.navStack[0]; }
+  lineRate(i){ const key=this.state.activeBlock+':'+i; const v=this.state.lineRates[key]; const b=this.curBlock(); const ln=b&&b.lines[i]; return v!=null?v:(ln?ln.rate:60); }
+  parseLineIdx(uid){ const m=(uid||'').match(/^L(\d+)_/); return m?+m[1]:0; }
+  selLineIdx(){ if(this.state.navIdx>0) return 0; return this.parseLineIdx(this.state.selectedNode); }
+
+  // ===== 下钻导航（浏览器式后退/前进）=====
+  drillInto(node){
+    if(node.isRaw || !this.RECIPES[node.itemId]) return;
+    this.setState(s=>{
+      const stack=s.navStack.slice(0,s.navIdx+1);
+      stack.push({kind:'item', root:node.itemId, rate:node.rate, name:node.name});
+      return {navStack:stack, navIdx:s.navIdx+1, selectedNode:null, collapsed:{}, colPath:[],
+        virtual:Object.assign({},s.virtual,{[node.itemId]:true})};
+    });
+  }
+  unvirtualize(id){ this.setState(s=>{ const v=Object.assign({},s.virtual); delete v[id]; return {virtual:v}; }); }
+  navBack(){ this.setState(s=> s.navIdx>0 ? {navIdx:s.navIdx-1, selectedNode:null, collapsed:{}, colPath:[]} : {}); }
+  navFwd(){ this.setState(s=> s.navIdx<s.navStack.length-1 ? {navIdx:s.navIdx+1, selectedNode:null, collapsed:{}, colPath:[]} : {}); }
+  navTo(i){ this.setState(s=> i>=0&&i<s.navStack.length ? {navIdx:i, selectedNode:null, collapsed:{}, colPath:[]} : {}); }
+  selectBlock(id){
+    const b=this.BLOCKS[id]; if(!b) return;
+    this.setState({activeBlock:id, navStack:[{kind:'block',name:b.name}], navIdx:0, selectedNode:null, collapsed:{}, colPath:[]});
+  }
+  selectPlan(id){
+    const p=this.PLANS.find(x=>x.id===id); if(!p) return;
+    if(p.blocks.length) this.selectBlock(p.blocks[0]);
+    else this.setState({activeBlock:null, navStack:[{kind:'block',name:p.name}], navIdx:0, selectedNode:null, collapsed:{}, colPath:[]});
+    this.setState({activePlan:id});
+  }
+  // 配方选择器
+  openPicker(target){ this.setState({pickerOpen:true, pickerSearch:'', pickerTarget:target||'block'}); }
+  pickItem(id){
+    if(this.state.pickerTarget==='line'){          // 向当前生产块追加一条并列产线
+      const b=this.curBlock();
+      if(b){ b.lines.push({item:id,rate:60});
+        this.setState({pickerOpen:false, selectedNode:null, collapsed:{}, colPath:[]});
+        return; }
+    }
+    const plan=this.PLANS.find(p=>p.id===this.state.activePlan)||this.PLANS[0];
+    const bid='blk_'+Date.now()+'_'+Math.floor(Math.random()*1e4);
+    this.BLOCKS[bid]={name:window.FacData.names[id]||id, color:this.NC[id], lines:[{item:id,rate:60}]};
+    plan.blocks.push(bid);
+    this.setState({pickerOpen:false});
+    this.selectBlock(bid);
+  }
+
+  FLUID=new Set(window.FacData.fluids);
+  BELT=900;  // 黄带 900/min，用于带占用估算
+
+  panRef = React.createRef();
+
+  // 抓手平移：按住空白处拖动画布
+  startPan(e){
+    if(e.button!==0) return;
+    const el=this.panRef.current; if(!el) return;
+    this._pan={sx:e.clientX,sy:e.clientY,l:el.scrollLeft,t:el.scrollTop};
+    el.style.cursor='grabbing';
+    this._mm=ev=>this.movePan(ev);
+    this._mu=()=>this.endPan();
+    window.addEventListener('mousemove',this._mm);
+    window.addEventListener('mouseup',this._mu);
+    e.preventDefault();
+  }
+  movePan(e){
+    if(!this._pan) return;
+    const el=this.panRef.current; if(!el) return;
+    el.scrollLeft=this._pan.l-(e.clientX-this._pan.sx);
+    el.scrollTop =this._pan.t-(e.clientY-this._pan.sy);
+  }
+  endPan(){
+    const el=this.panRef.current; if(el) el.style.cursor='grab';
+    this._pan=null;
+    window.removeEventListener('mousemove',this._mm);
+    window.removeEventListener('mouseup',this._mu);
+  }
+  componentWillUnmount(){ this.endPan(); }
+
+  // Tweaks：莫兰迪主题色写入 CSS 变量
+  applyAccent(){
+    const hex=this.props.accentColor||'#A99BB5';
+    const m=hex.replace('#','');
+    const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);
+    document.body.style.setProperty('--accent',hex);
+    document.body.style.setProperty('--accent-rgb',r+','+g+','+b);
+  }
+  componentDidMount(){ this.applyAccent(); }
+  componentDidUpdate(){ this.applyAccent(); }
+
+  // 统一卡片尺寸 —— 所有卡片(含原料)等大，紧凑布局提高一屏密度
+  CW=150; CH=128; COLSTEP=166; SLOTH=134;
+  // 输入端口纵向分布（配方卡右缘：一个原料一个接口）
+  portY(i,cnt){ if(!cnt||cnt<=1) return this.CH/2; const top=22, bot=this.CH-16; return top+(bot-top)*i/(cnt-1); }
+
+  // 真实配方数据：uploads/game-data.json → plan-data.js 预处理（含 i18n 中文名）
+  RECIPES=window.FacData.recipesDefault;
+  RAW=window.FacData.raw;
+
+  // 候选配方（含 petgas 的基础/高级；ALT 优先；否则回退单一 RECIPES）
+  recipesOf(itemId){
+    if(itemId==='petroleum-gas') return [
+      {rid:'basic',name:'基础原油处理',icon:'基',machine:'炼油厂',ings:[['crude-oil',100]],outText:'45 石油气'},
+      {rid:'adv',  name:'高级原油处理',icon:'高',machine:'炼油厂',ings:[['crude-oil',100],['water',50]],outText:'55 石油气 +45 轻油 +25 重油'},
+    ];
+    return window.FacData.recipesAll[itemId]||[];
+  }
+  recipeIdx(itemId){
+    if(itemId==='petroleum-gas') return this.state.petgasRecipe==='adv'?1:0;
+    return this.state.recipeChoice[itemId]||0;
+  }
+  chosenRecipe(itemId){ const l=this.recipesOf(itemId); return l.length?l[Math.min(this.recipeIdx(itemId),l.length-1)]:null; }
+  setRecipe(itemId,idx){
+    if(itemId==='petroleum-gas'){ this.setState({petgasRecipe:idx===1?'adv':'basic'}); return; }
+    this.setState(s=>({recipeChoice:Object.assign({},s.recipeChoice,{[itemId]:idx})}));
+  }
+  recipeIO(r){
+    if(r.outText){ const ins=(r.ings||[]).map(([id,q])=>q+'×'+this.itemDisplayName(id)).join(' + '); return ins+' → '+r.outText; }
+    const ins=(r.ings||[]).map(([id,q])=>q+'×'+this.itemDisplayName(id)).join(' + ');
+    return ins+' → '+(r.out||1)+'×'+(r.name||'产物');
+  }
+  itemDisplayName(id){ return (this.RECIPES[id]||this.RAW[id]||{}).name||window.FacData.names[id]||id; }
+
+  // 石油气配方（真实数据，5秒/次，炼油厂）
+  // basic: 100原油 → 45石油气
+  // adv:   100原油+50水 → 55石油气 + 45轻油 + 25重油
+  // 裂化（化工厂2秒/次）：重40+水30→轻30；轻30+水30→石油气20
+  // 全裂化净产：97.5石油气/精炼周期（=19.5/秒），最优比 20:5:17
+  PETGAS={
+    basic:{name:'基础原油处理', time:5, pw:420000, pet:45, light:0,  heavy:0,  crude:100, water:0 },
+    adv:  {name:'高级原油处理', time:5, pw:420000, pet:55, light:45, heavy:25, crude:100, water:50},
+  };
+
+  // 物品配色：常用物品有固定色，其余按名称哈希生成同明度低饱和色（贴合灰黑金主题）
+  NC=new Proxy({
+    'chemical-science-pack':'#7FA8C8','automation-science-pack':'#C87F7F','advanced-circuit':'#C8A85A','engine-unit':'#C88A96',
+    'water':'#6BAAD8','steam':'#9FB6C4','petroleum-gas':'#7FC0DC','crude-oil':'#8A8A8A','light-oil':'#C9A648','heavy-oil':'#B5723C',
+    'iron-plate':'#A89C8C','copper-plate':'#C08556','iron-ore':'#8FA3B0','copper-ore':'#C07F56','coal':'#7A7268','stone':'#A09880',
+    'steel-plate':'#B0B0B0','electronic-circuit':'#7FB88A','plastic-bar':'#B0B8C0','sulfur':'#C8C060','iron-gear-wheel':'#A8B0B8','pipe':'#8FA8B8',
+  },{get:(t,k)=>{ if(t[k]) return t[k]; if(typeof k!=='string') return undefined; let h=0; for(let i=0;i<k.length;i++) h=(h*31+k.charCodeAt(i))>>>0; return t[k]='hsl('+(h%360)+',30%,64%)'; }});
+
+  MOD={
+    empty: {label:'—',  s:0,   p:0,   w:0   },
+    speed1:{label:'速1',s:.20, p:0,   w:.50 },
+    speed2:{label:'速2',s:.30, p:0,   w:.60 },
+    speed3:{label:'速3',s:.50, p:-.15,w:.70 },
+    prod1: {label:'产1',s:-.05,p:.04, w:.40 },
+    prod2: {label:'产2',s:-.05,p:.06, w:.60 },
+    prod3: {label:'产3',s:-.05,p:.10, w:.80 },
+    eff1:  {label:'效1',s:-.30,p:0,   w:-.20},
+    eff2:  {label:'效2',s:-.30,p:0,   w:-.30},
+    eff3:  {label:'效3',s:-.30,p:0,   w:-.40},
+  };
+  MOD_CYCLE=['empty','speed1','speed2','speed3','prod1','prod2','prod3','eff1','eff2','eff3'];
+  MOD_C={speed3:'#8496B2',speed2:'#7FA8B0',speed1:'#98B4BC',prod3:'#6F9E7C',prod2:'#7FA98A',prod1:'#9DBBA4',eff3:'var(--accent)',eff2:'#C4B084',eff1:'#D0C29E',empty:'#44444A'};
+
+  modEffect(){
+    let s=1,p=1,w=1;
+    this.state.modules.forEach(m=>{
+      const d=this.MOD[m]||this.MOD.empty;
+      s+=d.s; p+=d.p; w+=d.w;
+    });
+    return {s:Math.max(0.2,s),p:Math.max(1,p),w:Math.max(0.2,w)};
+  }
+
+  k(){ return this.state.targetRate/45; }
+
+  // 信标加速：每个信标≈+0.5 速度（2×速度3模块，50%传输）
+  beaconSpeed(){ return this.state.beaconCount*0.5; }
+
+  // 完全展开配方树：输入不共用，每条支线各算各的
+  computeTree(){
+    const {s:sBase,p:pMul,w:wMul}=this.modEffect();
+    const sMul=sBase+this.beaconSpeed();      // 模块速度 + 信标速度
+    const nodes=[],edges=[];
+    let cursor=30, maxLevel=0;
+    const byp={'light-oil':0,'heavy-oil':0};  // 全规划副产物累计
+    const groupGap=(depth)=> depth===0?52 : depth===1?28 : depth===2?14 : 8;
+
+    // 原料叶子也是配方卡：采集配方（离岸泵取水/抽油机采油/电力采掘机采矿）
+    const collectName=(itemId,raw)=>{
+      if(itemId==='water') return '离岸泵取水';
+      if(itemId==='crude-oil') return '抽油机采油';
+      const nm=window.FacData.names[itemId]||(raw&&raw.name)||itemId;
+      return raw?('采掘'+nm):nm;
+    };
+    const rawNode=(itemId,rate,level,pid)=>{
+      const raw=this.RAW[itemId];
+      maxLevel=Math.max(maxLevel,level);
+      const machines=raw?rate/raw.perMachine:0;
+      const node={uid:pid,itemId,level,rate,isRaw:true,isCollect:!!raw,isTarget:false,
+        name:collectName(itemId,raw), machine:raw?raw.machine:'采集',
+        machines, pw:machines*(raw?raw.pw:0), color:this.NC[itemId]||'#818CF8',
+        ings:[], x:level*this.COLSTEP+20, y:cursor};
+      cursor+=this.SLOTH;
+      nodes.push(node);
+      return node;
+    };
+
+    // 石油气 —— 含原油处理 / 裂化 / 副产物的特殊子系统
+    const makePetgas=(rate,level,pid)=>{
+      maxLevel=Math.max(maxLevel,level);
+      const recipe=this.state.petgasRecipe;   // basic|adv
+      const mode=this.state.oilMode;          // store|crack
+      const R=this.PETGAS[recipe];
+      const cyclesPerMachineMin=60/R.time*sMul;   // 单台炼油厂每分钟周期数
+      let refineries=0, crackM=0, crude=0, water=0, lightBy=0, heavyBy=0, grossL=0, grossH=0, note='';
+      if(recipe==='basic'){
+        const cyc=rate/R.pet;
+        refineries=cyc/cyclesPerMachineMin;
+        crude=cyc*R.crude;
+        note='单一产物 · 无副产';
+      } else if(mode==='store'){
+        const cyc=rate/R.pet;
+        refineries=cyc/cyclesPerMachineMin;
+        crude=cyc*R.crude; water=cyc*R.water;
+        lightBy=cyc*R.light; heavyBy=cyc*R.heavy;
+        grossL=lightBy; grossH=heavyBy;
+        note='副产轻油/重油 → 储液罐';
+      } else {                                 // adv + 全裂化
+        const netPerCyc=97.5;                  // 全裂化后每周期净石油气
+        const cyc=rate/netPerCyc;
+        refineries=cyc/cyclesPerMachineMin;
+        crude=cyc*R.crude;
+        const heavyProd=cyc*R.heavy;           // 精炼产出重油
+        const hcCyc=heavyProd/40;              // 重油裂化周期
+        const lightTot=cyc*R.light+hcCyc*30;   // 精炼轻油 + 重裂得轻油
+        const lcCyc=lightTot/30;               // 轻油裂化周期
+        const crackPerMin=60/2*sMul;           // 化工厂裂化每分钟周期数
+        crackM=hcCyc/crackPerMin+lcCyc/crackPerMin;
+        water=cyc*R.water+hcCyc*30+lcCyc*30;
+        grossL=cyc*R.light; grossH=cyc*R.heavy;
+        note='重油→轻油→石油气 全裂化';
+      }
+      const node={uid:pid,itemId:'petroleum-gas',level,rate,isRaw:false,isTarget:false,isOil:true,
+        name:R.name, machine:'炼油厂', machines:refineries, crackMachines:crackM,
+        recipe, mode, lightBy, heavyBy, grossLight:grossL, grossHeavy:grossH, note,
+        pw:refineries*R.pw*wMul+crackM*210000*wMul,
+        color:this.NC['petroleum-gas'], ings:[], x:level*this.COLSTEP+20, y:0};
+      nodes.push(node);
+      byp['light-oil']+=lightBy; byp['heavy-oil']+=heavyBy;
+      const kids=[];
+      const cu=rawNode('crude-oil',crude,level+1,pid+'>crude-oil');
+      cu.parentUid=node.uid; cu.parentName=node.name;
+      node.ings.push({uid:cu.uid,itemId:'crude-oil',qty:R.crude,rate:crude,name:cu.name});
+      edges.push({f:node.uid,t:cu.uid,qty:R.crude,pi:0}); kids.push(cu);
+      if(R.water>0){
+        const wt=rawNode('water',water,level+1,pid+'>water');
+        wt.parentUid=node.uid; wt.parentName=node.name;
+        node.ings.push({uid:wt.uid,itemId:'water',qty:R.water,rate:water,name:wt.name});
+        edges.push({f:node.uid,t:wt.uid,qty:R.water,pi:1}); kids.push(wt);
+      }
+      node.y=kids[0].y;
+      if(this.state.layoutMode==='center' && kids.length>1)
+        node.y=(kids[0].y+kids[kids.length-1].y)/2;   // 居中于子节点
+      return node;
+    };
+
+    // 虚拟配方：下沉过的物品在上层折叠为一个 game-data 中不存在的合成配方，
+    // 输入=子规划展开后的整体原料（叶子），机器/功耗=子规划合计
+    const collectVirt=(itemId,rate,depth,seen,acc)=>{
+      if(depth>8||seen.has(itemId)){ acc.leaf[itemId]=(acc.leaf[itemId]||0)+rate; return; }
+      if(itemId==='petroleum-gas'){
+        const adv=this.state.petgasRecipe==='adv';
+        const cyc=rate/((adv?55:45)*pMul);
+        acc.m+=cyc/(12*sMul); acc.pw+=cyc/(12*sMul)*420000*wMul;
+        const s2=new Set(seen); s2.add(itemId);
+        collectVirt('crude-oil',cyc*100,depth+1,s2,acc);
+        if(adv) collectVirt('water',cyc*50,depth+1,s2,acc);
+        return;
+      }
+      const rec=this.chosenRecipe(itemId);
+      if(!rec||!rec.ings||!rec.ings.length){ acc.leaf[itemId]=(acc.leaf[itemId]||0)+rate; return; }
+      const eff=(rec.speed||1)*sMul;
+      const crafts=rate/((rec.out||1)*pMul);
+      const mm=crafts*(rec.time||1)/60/eff;
+      acc.m+=mm; acc.pw+=mm*(rec.pw||0)*wMul;
+      const s2=new Set(seen); s2.add(itemId);
+      rec.ings.forEach(([iid,q])=>collectVirt(iid,crafts*q,depth+1,s2,acc));
+    };
+    const makeVirtual=(itemId,rate,level,pid)=>{
+      maxLevel=Math.max(maxLevel,level);
+      const acc={m:0,pw:0,leaf:{}};
+      collectVirt(itemId,rate,0,new Set(),acc);
+      const node={uid:pid,itemId,level,rate,isRaw:false,isTarget:false,isVirtual:true,
+        name:(this.RECIPES[itemId]||{}).name||window.FacData.names[itemId]||itemId,
+        machine:'虚拟配方 · 子规划合计', machines:acc.m, pw:acc.pw,
+        color:this.NC[itemId], ings:[], x:level*this.COLSTEP+20, y:0};
+      nodes.push(node);
+      const kids=[];
+      Object.keys(acc.leaf).forEach((iid,i)=>{
+        if(i>0) cursor+=groupGap(level);
+        const c=make(iid, acc.leaf[iid], level+1, pid+'>'+iid);
+        c.parentUid=node.uid; c.parentName=node.name;
+        const per=Math.round(acc.leaf[iid]/rate*10)/10;
+        node.ings.push({uid:c.uid,itemId:iid,qty:per,rate:acc.leaf[iid],name:c.name});
+        edges.push({f:node.uid,t:c.uid,qty:per,pi:i});
+        kids.push(c);
+      });
+      if(kids.length){ node.y=kids[0].y; if(this.state.layoutMode==='center'&&kids.length>1) node.y=(kids[0].y+kids[kids.length-1].y)/2; }
+      else { node.y=cursor; cursor+=this.SLOTH; }
+      return node;
+    };
+    const make=(itemId,rate,level,pid)=>{
+      if(itemId==='petroleum-gas') return makePetgas(rate,level,pid);
+      if(this.state.virtual&&this.state.virtual[itemId]&&level>0) return makeVirtual(itemId,rate,level,pid);
+      // 环路/深度保护：祖先段（去掉根 L*_ 前缀与 >R 段）出现同名物品即视为循环，按原料截断
+      const anc=pid.split('>').slice(0,-1).map(x=>x==='R'?'':x.replace(/^L\d+_/,'').replace(/_R$/,'')).filter(Boolean).slice(level<=1?1:0);
+      if(level>8||anc.includes(itemId)) return rawNode(itemId,rate,level,pid);
+      const rec=this.chosenRecipe(itemId);
+      if(!rec) return rawNode(itemId,rate,level,pid);
+      maxLevel=Math.max(maxLevel,level);
+      const eff=rec.speed*sMul;
+      const crafts=rate/(rec.out*pMul);        // 每分钟所需合成次数(含产量加成)
+      const machines=crafts*rec.time/60/eff;
+      const node={uid:pid,itemId,level,rate,isRaw:false,isTarget:false,
+        name:rec.name, machine:rec.machine, machines, pw:machines*rec.pw*wMul,
+        color:this.NC[itemId]||'#818CF8', ings:[], x:level*this.COLSTEP+20, y:0};
+      nodes.push(node);
+      const kids=[];
+      rec.ings.forEach(([ingId,qty],i)=>{
+        if(i>0) cursor+=groupGap(level);
+        const c=make(ingId, crafts*qty, level+1, pid+'>'+ingId);
+        c.parentUid=node.uid; c.parentName=node.name;
+        node.ings.push({uid:c.uid,itemId:ingId,qty,rate:crafts*qty,name:c.name});
+        edges.push({f:node.uid,t:c.uid,qty,pi:i});
+        kids.push(c);
+      });
+      node.y=kids[0].y;                         // 下游与第一个上游原料对齐
+      if(this.state.layoutMode==='center' && kids.length>1)
+        node.y=(kids[0].y+kids[kids.length-1].y)/2;
+      return node;
+    };
+    // 目标物独立成列（L0=纯物品卡）：唯一输入口接一级配方卡的输出口
+    const makeTarget=(itemId,rate,pid)=>{
+      const child=make(itemId,rate,1,pid+'>R');
+      child.parentUid=pid; child.parentName='目标 · '+(window.FacData.names[itemId]||itemId);
+      const node={uid:pid,itemId,level:0,rate,isRaw:false,isTarget:true,
+        name:window.FacData.names[itemId]||itemId, machine:'规划目标 · 物品', machines:0, pw:0,
+        color:this.NC[itemId], ings:[{uid:child.uid,itemId,qty:1,rate}], x:20, y:child.y};
+      nodes.push(node);
+      edges.push({f:pid,t:child.uid,qty:1,pi:0});
+      return node;
+    };
+    const cur=this.curNav();
+    let roots;
+    if(this.state.navIdx===0){
+      const b=this.curBlock();
+      roots=(b?b.lines:[]).map((ln,i)=>({item:ln.item, rate:this.lineRate(i), pid:'L'+i+'_'+ln.item}));
+    } else {
+      roots=[{item:cur.root, rate:cur.rate, pid:cur.root}];
+    }
+    roots.forEach((rt,i)=>{ if(i>0) cursor+=this.LINEGAP; makeTarget(rt.item, rt.rate, rt.pid); });
+    return {nodes,edges,maxLevel,byp,sMul};
+  }
+
+  // 节点图专用布局：按折叠状态剪枝并紧凑重排
+  layoutGraph(T){
+    const nmap={}; T.nodes.forEach(n=>{nmap[n.uid]=n;});
+    const collapsed=this.state.collapsed||{};
+    const groupGap=(depth)=> depth===0?34 : depth===1?18 : depth===2?10 : 5;
+    let cursor=24;
+    const vis=[], visE=[];
+    const place=(uid,depth)=>{
+      const n=nmap[uid]; if(!n) return cursor;
+      const childUids=(collapsed[uid]?[]:n.ings.map(g=>g.uid)).filter(u=>nmap[u]);
+      const vn=Object.assign({},n,{x:depth*this.COLSTEP+20,y:0,
+        collapsedParent:!!collapsed[uid]&&n.ings.length>0, childCount:n.ings.length});
+      vis.push(vn);
+      if(!childUids.length){ vn.y=cursor; cursor+=this.SLOTH; }
+      else {
+        const ys=[];
+        childUids.forEach((cu,i)=>{ if(i>0) cursor+=groupGap(depth); ys.push(place(cu,depth+1));
+          const g=n.ings.find(x=>x.uid===cu)||{}; visE.push({f:uid,t:cu,qty:g.qty,pi:n.ings.indexOf(g)}); });
+        vn.y=(this.state.layoutMode==='center'&&ys.length>1)?(ys[0]+ys[ys.length-1])/2:ys[0];
+      }
+      return vn.y;
+    };
+    const roots=T.nodes.filter(n=>n.level===0);
+    roots.forEach((root,i)=>{ if(i>0) cursor+=this.LINEGAP; place(root.uid,0); });
+    const maxLevel=vis.reduce((m,n)=>Math.max(m,n.level),0);
+    return {nodes:vis,edges:visE,maxLevel};
+  }
+
+  fmtRate(r){
+    if(r>=1000) return String(Math.round(r));
+    if(r>=100)  return String(Math.round(r));
+    if(r>=10)   return r.toFixed(1).replace(/\.0$/,'');
+    return r.toFixed(1).replace(/\.0$/,'');
+  }
+  fmtMach(m){ return m.toFixed(2).replace(/\.?0+$/,''); }
+  fmtMW(mw){ return mw>=1?`${mw.toFixed(1)} MW`:`${(mw*1000).toFixed(0)} kW`; }
+  fmtNodePW(pw){
+    if(pw>=1e6) return `${(pw/1e6).toFixed(1)} MW`;
+    if(pw>=1e3) return `${(pw/1e3).toFixed(0)} kW`;
+    return `${Math.round(pw)} W`;
+  }
+
+  // 通用配方切换栏：任意 itemId 有 ≥2 候选配方即渲染一排 icon 芯片（hover 出 I/O）
+  recipeRail(n,y){
+    const list=n.isRaw?[]:this.recipesOf(n.itemId);
+    if(list.length<2) return [];
+    const idx=this.recipeIdx(n.itemId);
+    const els=[React.createElement('text',{key:'rll',x:10,y:y+1,fill:'#7F7F87',fontSize:7.5,fontWeight:'700',fontFamily:'Rajdhani, sans-serif',letterSpacing:0.5},'配方')];
+    list.forEach((r,i)=>{
+      const active=i===idx; const gl=r.icon||((r.machine||'?')[0]);
+      const x=32+i*21;
+      els.push(React.createElement('g',{key:'rc'+i,onClick:e=>{e.stopPropagation();this.setRecipe(n.itemId,i);},onMouseDown:e=>e.stopPropagation(),style:{cursor:'pointer'}},
+        React.createElement('title',null,r.name+'　('+(r.machine||'')+')\n'+this.recipeIO(r)),
+        React.createElement('rect',{x,y:y-9,width:18,height:15,rx:3,fill:active?n.color+'2A':'#28282B',stroke:active?n.color:'#4C4C52',strokeWidth:active?1.3:1}),
+        React.createElement('text',{x:x+9,y:y+1.5,textAnchor:'middle',fill:active?n.color:'#96969E',fontSize:8.5,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},gl)
+      ));
+    });
+    return els;
+  }
+
+  // 小药丸按钮（SVG 内可点击）
+  pill(key,x,y,w,label,active,color,onClick){
+    return React.createElement('g',{key,
+      onClick:e=>{e.stopPropagation();onClick();},
+      onMouseDown:e=>e.stopPropagation(),
+      style:{cursor:'pointer'}},
+      React.createElement('rect',{x,y,width:w,height:15,rx:4,fill:active?color+'26':'#28282B',stroke:active?color:'#44444A',strokeWidth:1}),
+      React.createElement('text',{x:x+w/2,y:y+10.5,textAnchor:'middle',fill:active?color:'#96969E',fontSize:8.5,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},label)
+    );
+  }
+
+  buildCard(n,isSel,isHov){
+    const {CW,CH}=this; const c=n.color; const hi=isSel||isHov;
+    const bg=isSel?'#343437':n.isRaw?'#232326':'#2E2E31';
+    const bd=hi?c:n.isRaw?'#3B3B3F':'#44444A';
+    const isFluid=this.FLUID.has(n.itemId);
+    const els=[];
+    if(isSel) els.push(React.createElement('rect',{key:'gl',x:-3,y:-3,width:CW+6,height:CH+6,rx:8,fill:'none',stroke:c,strokeWidth:2,opacity:0.28}));
+    els.push(React.createElement('rect',{key:'bg',x:0,y:0,width:CW,height:CH,rx:5,fill:bg,stroke:bd,strokeWidth:1.3}));
+    els.push(React.createElement('rect',{key:'st',x:0,y:0,width:CW,height:4,rx:3,fill:c,opacity:n.isRaw?0.5:1}));
+
+    // PCB 引脚（端口只是理解层概念，不具象化：恢复简洁引脚样式）
+    const ph=Math.round(CH/2)-4;
+    if(n.level>0) els.push(React.createElement('rect',{key:'pL',x:-5,y:ph,width:10,height:8,rx:1.5,fill:bg,stroke:bd,strokeWidth:1.2}));
+    if(!n.isRaw&&n.ings&&n.ings.length) els.push(React.createElement('rect',{key:'pR',x:CW-5,y:ph,width:10,height:8,rx:1.5,fill:bg,stroke:hi?c:bd,strokeWidth:hi?1.5:1.2}));
+
+    // 折叠/展开上游：右侧中点圆形按钮（有上游原料的非原料节点）
+    if(!n.isRaw && n.childCount>0){
+      const cy=CH/2, cxr=CW+3;
+      els.push(React.createElement('g',{key:'col',
+        onClick:e=>{e.stopPropagation();this.toggleCollapse(n.uid);},
+        onMouseDown:e=>e.stopPropagation(),
+        style:{cursor:'pointer'}},
+        React.createElement('circle',{cx:cxr,cy:cy,r:8,fill:'#28282B',stroke:n.collapsedParent?c:bd,strokeWidth:1.3}),
+        React.createElement('line',{x1:cxr-3.5,y1:cy,x2:cxr+3.5,y2:cy,stroke:n.collapsedParent?c:'#A6A6AD',strokeWidth:1.5}),
+        n.collapsedParent?React.createElement('line',{x1:cxr,y1:cy-3.5,x2:cxr,y2:cy+3.5,stroke:c,strokeWidth:1.5}):null,
+        n.collapsedParent?React.createElement('text',{x:cxr+13,y:cy+3.5,fill:c,fontSize:8.5,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},'+'+n.childCount):null
+      ));
+    }
+
+    // 名称
+    els.push(React.createElement('text',{key:'nm',x:10,y:15,fill:'#DFDFE2',fontSize:11,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},n.name));
+    // 角标
+    if(n.isTarget){
+      els.push(React.createElement('rect',{key:'tb',x:CW-32,y:7,width:25,height:11,rx:3,fill:'rgba(var(--accent-rgb),0.18)',stroke:'var(--accent)',strokeWidth:0.8}));
+      els.push(React.createElement('text',{key:'tl',x:CW-19.5,y:15.5,textAnchor:'middle',fill:'var(--accent)',fontSize:7,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},'目标'));
+    } else if(n.isVirtual){
+      els.push(React.createElement('g',{key:'vb',
+        onClick:e=>{e.stopPropagation();this.unvirtualize(n.itemId);},
+        onMouseDown:e=>e.stopPropagation(),style:{cursor:'pointer'}},
+        React.createElement('title',null,'虚拟配方：由下沉子规划折叠而来，输入=子规划整体原料，机器/功耗=子规划合计。\n点击还原为普通展开'),
+        React.createElement('rect',{x:CW-32,y:7,width:25,height:11,rx:3,fill:'rgba(var(--accent-rgb),0.18)',stroke:'var(--accent)',strokeWidth:0.8}),
+        React.createElement('text',{x:CW-19.5,y:15.5,textAnchor:'middle',fill:'var(--accent)',fontSize:7,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},'虚拟')));
+    } else if(n.isOil && n.recipe==='adv' && n.mode==='store'){
+      els.push(React.createElement('rect',{key:'yb',x:CW-34,y:7,width:27,height:11,rx:3,fill:'rgba(179,126,88,0.2)',stroke:'#B37E58',strokeWidth:0.8}));
+      els.push(React.createElement('text',{key:'yl',x:CW-20.5,y:15.5,textAnchor:'middle',fill:'var(--accent)',fontSize:7,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},'副产'));
+    } else if(n.isRaw){
+      els.push(React.createElement('rect',{key:'rb',x:CW-32,y:7,width:25,height:11,rx:3,fill:'#28282B',stroke:'#44444A',strokeWidth:0.8}));
+      els.push(React.createElement('text',{key:'rl',x:CW-19.5,y:15.5,textAnchor:'middle',fill:'#7F7F87',fontSize:7,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},n.isCollect?'采集':'原料'));
+    }
+    // 速率 + 机器数（合并到一行，省纵向空间）
+    els.push(React.createElement('text',{key:'rt',x:10,y:36,fill:c,fontSize:17,fontWeight:'700',fontFamily:'JetBrains Mono, monospace'},
+      React.createElement('tspan',{},this.fmtRate(n.rate)),
+      React.createElement('tspan',{fill:'#727279',fontSize:8,dx:2},'/min')
+    ));
+    if(!n.isOil&&!n.isTarget) els.push(React.createElement('text',{key:'mx',x:CW-8,y:36,textAnchor:'end',fill:n.isRaw?'#9E9EA6':c,fontSize:12,fontWeight:'700',fontFamily:'JetBrains Mono, monospace'},`×${this.fmtMach(n.machines)}`));
+    els.push(React.createElement('line',{key:'s1',x1:8,y1:43,x2:CW-8,y2:43,stroke:'#333336',strokeWidth:0.8}));
+
+    // 中段：配方切换栏（有≥2候选） / 机型 / 原料输送
+    const hasAlts=!n.isRaw && !n.isVirtual && !n.isTarget && this.recipesOf(n.itemId).length>1;
+    if(hasAlts){
+      els.push(...this.recipeRail(n,57));
+    } else if(!n.isRaw){
+      els.push(React.createElement('text',{key:'mch',x:10,y:58,fill:'#A2A2AA',fontSize:9.5,fontFamily:'Rajdhani, sans-serif'},n.machine));
+    } else {
+      els.push(React.createElement('text',{key:'mch',x:10,y:58,fill:'#7F7F87',fontSize:9,fontFamily:'Rajdhani, sans-serif'},n.machine));
+      els.push(React.createElement('text',{key:'bl',x:CW-8,y:58,textAnchor:'end',fill:isFluid?'#8496B2':'#A6A6AD',fontSize:9,fontFamily:isFluid?'Rajdhani, sans-serif':'JetBrains Mono, monospace'},isFluid?'流体管道':`${(n.rate/this.BELT).toFixed(2)} 黄带`));
+    }
+
+    // 输入/输出列表（不参与连线，纯交互：hover/点选可定位上游供给者与下游消耗者）
+    // 输入/输出：贴在卡片左右两缘的活性芯片（不参与连线；hover 高亮供给/消耗方，点击定位）
+    if(!n.isTarget){
+      const hovIO=this.state.hoverIO;
+      const chip=(key,side,y,itemId,rate,linkUid,tip)=>{
+        const w=56,h=14,x=side==='out'?-4:CW-w+4;   // 微微压边，呈“挂在边上”
+        const HL2=this.state.hoverLink;
+        const on=hovIO===n.uid+key || !!(HL2&&linkUid&&HL2.f===(side==='out'?linkUid:n.uid)&&HL2.t===(side==='out'?n.uid:linkUid));
+        const ic=this.NC[itemId];
+        return React.createElement('g',{key,
+          onMouseEnter:()=>{this.setState({hoverIO:n.uid+key, hoverLink:linkUid?{f:side==='out'?linkUid:n.uid, t:side==='out'?n.uid:linkUid, far:linkUid}:null});},
+          onMouseLeave:()=>{this.setState({hoverIO:null, hoverLink:null});},
+          onClick:linkUid?(e=>{e.stopPropagation();this.setState({selectedNode:linkUid});}):undefined,
+          onMouseDown:e=>e.stopPropagation(),
+          style:{cursor:linkUid?'pointer':'default'}},
+          React.createElement('title',null,tip),
+          React.createElement('rect',{x,y,width:w,height:h,rx:7,fill:on?ic+'30':'#232326',stroke:on?ic:'#3C3C40',strokeWidth:on?1.2:1}),
+          React.createElement('circle',{cx:side==='out'?x+8:x+w-8,cy:y+h/2,r:2.8,fill:ic}),
+          React.createElement('text',{x:side==='out'?x+15:x+8,y:y+h/2+2.8,fill:on?'#EAEAEC':'#A6A6AD',fontSize:7.5,fontWeight:'700',fontFamily:'JetBrains Mono, monospace'},this.fmtRate(rate)),
+          on?null:React.createElement('text',{x:side==='out'?x+w-6:x+w-16,y:y+h/2+2.8,textAnchor:'end',fill:'#7F7F87',fontSize:6.5,fontFamily:'Rajdhani, sans-serif'},
+            (s=>s.length>3?s.slice(0,3):s)(this.itemDisplayName(itemId))));
+      };
+      const outs=[{itemId:n.itemId,rate:n.rate,uid:n.parentUid,tip:'产出 '+this.itemDisplayName(n.itemId)+' '+this.fmtRate(n.rate)+'/min\n→ 流向下游：'+(n.parentName||'规划目标')}];
+      if(n.isOil&&n.grossLight>0) outs.push({itemId:'light-oil',rate:n.grossLight,uid:null,tip:'副产轻油 '+this.fmtRate(n.grossLight)+'/min '+(n.mode==='crack'?'→ 裂化为石油气（已计入产出）':'→ 储液罐')});
+      if(n.isOil&&n.grossHeavy>0) outs.push({itemId:'heavy-oil',rate:n.grossHeavy,uid:null,tip:'副产重油 '+this.fmtRate(n.grossHeavy)+'/min '+(n.mode==='crack'?'→ 裂化为轻油（已计入产出）':'→ 储液罐')});
+      const ins=n.ings||[];
+      const y0=66, step=17;
+      outs.slice(0,3).forEach((o,i)=>els.push(chip('o'+i,'out',y0+i*step,o.itemId,o.rate,o.uid,o.tip)));
+      ins.slice(0,3).forEach((g,i)=>els.push(chip('i'+i,'in',y0+i*step,g.itemId,g.rate,g.uid,
+        '输入 '+this.itemDisplayName(g.itemId)+' '+this.fmtRate(g.rate)+'/min\n← 由上游「'+(g.name||'上游配方')+'」供给（点击定位）')));
+      if(ins.length>3) els.push(React.createElement('text',{key:'im',x:CW-8,y:y0+3*step+8,textAnchor:'end',fill:'#67676E',fontSize:6.5,fontFamily:'Rajdhani, sans-serif'},'+'+(ins.length-3)));
+      if(!ins.length&&n.isCollect) els.push(React.createElement('text',{key:'ie',x:CW-8,y:y0+9,textAnchor:'end',fill:'#67676E',fontSize:7,fontFamily:'Rajdhani, sans-serif'},'直接采集'));
+    }
+    // 底部：功耗 + 机器/模块/信标
+    els.push(React.createElement('line',{key:'s2',x1:8,y1:CH-18,x2:CW-8,y2:CH-18,stroke:'#333336',strokeWidth:0.8}));
+    if(!n.isTarget) els.push(React.createElement('text',{key:'pw',x:10,y:CH-6,fill:'#C09088',fontSize:8.5,fontFamily:'JetBrains Mono, monospace'},this.fmtNodePW(n.pw)));
+    if(n.isTarget){
+      els.push(React.createElement('text',{key:'tgt',x:10,y:CH-6,fill:'#8E8E96',fontSize:8.5,fontFamily:'Rajdhani, sans-serif'},'产率见上 · 选中后侧栏可调'));
+    } else if(n.isOil){
+      let mLine=`炼油厂 ×${this.fmtMach(n.machines)}`;
+      if(n.crackMachines>0) mLine+=` +裂${this.fmtMach(n.crackMachines)}`;
+      els.push(React.createElement('text',{key:'oilm',x:CW-8,y:CH-6,textAnchor:'end',fill:'#94949C',fontSize:8.5,fontFamily:'Rajdhani, sans-serif'},mLine));
+    } else if(!n.isRaw&&!n.isTarget){
+      els.push(React.createElement('rect',{key:'bcn',x:CW-70,y:CH-15,width:16,height:9,rx:2,fill:'#28282B',stroke:'#8A7D96',strokeWidth:0.8}));
+      els.push(React.createElement('text',{key:'bcnt',x:CW-62,y:CH-8,textAnchor:'middle',fill:'#8496B2',fontSize:7,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},`塔${this.state.beaconCount}`));
+      this.state.modules.forEach((m,i)=>{
+        els.push(React.createElement('rect',{key:`md${i}`,x:CW-49+i*12,y:CH-15,width:10,height:9,rx:2,fill:this.MOD_C[m]||'#44444A',opacity:0.85}));
+      });
+    } else {
+      const per=n.machines>0?n.rate/n.machines:0;
+      els.push(React.createElement('text',{key:'pm',x:CW-8,y:CH-6,textAnchor:'end',fill:'#88888F',fontSize:8.5,fontFamily:'JetBrains Mono, monospace'},`单机 ${this.fmtRate(per)}/m`));
+    }
+
+    // 下沉按钮：选中/悬停时出现在可下钻的非原料中间节点上（以该节点为新根重新展开）
+    const canDrill=!n.isRaw && n.level>0 && !!this.RECIPES[n.itemId];
+    if(canDrill && hi){
+      els.push(React.createElement('g',{key:'drill',
+        onClick:e=>{e.stopPropagation();this.drillInto(n);},
+        onMouseDown:e=>e.stopPropagation(),
+        style:{cursor:'pointer'}},
+        React.createElement('rect',{x:CW-50,y:CH-16,width:42,height:13,rx:4,fill:c+'22',stroke:c,strokeWidth:1}),
+        React.createElement('text',{x:CW-29,y:CH-6,textAnchor:'middle',fill:c,fontSize:8.5,fontWeight:'700',fontFamily:'Rajdhani, sans-serif'},'下沉 ↧')
+      ));
+    }
+
+    return React.createElement('g',{
+      key:n.uid,
+      transform:`translate(${n.x},${n.y})`,
+      onClick:()=>this.setState(s=>({selectedNode:s.selectedNode===n.uid?null:n.uid})),
+      onDoubleClick:()=>this.drillInto(n),
+      onMouseEnter:()=>this.setState({hoveredNode:n.uid}),
+      onMouseLeave:()=>this.setState({hoveredNode:null}),
+      style:{cursor:'pointer'},
+    },...els);
+  }
+
+  buildEdge(e,nmap,isHi){
+    const sn=nmap[e.f],tn=nmap[e.t];
+    if(!sn||!tn) return null;
+    const {CW,CH}=this;
+    const sx=sn.x+CW, sy=sn.y+CH/2;
+    const tx=tn.x,    ty=tn.y+CH/2;
+    const midX=(sx+tx)*0.5;
+    const c=isHi?sn.color:'#4D4D53';
+    const sw=isHi?2:1.3, op=isHi?1:0.7;
+    const d=`M ${sx} ${sy} H ${midX} V ${ty} H ${tx}`;
+    const els=[
+      React.createElement('path',{key:'bg',d,fill:'none',stroke:'#1C1C1E',strokeWidth:sw+4,strokeLinecap:'square'}),
+      React.createElement('path',{key:'p',d,fill:'none',stroke:c,strokeWidth:sw,opacity:op,strokeLinecap:'square'}),
+      React.createElement('polygon',{key:'a',points:`${tx},${ty} ${tx-7},${ty-4} ${tx-7},${ty+4}`,fill:c,opacity:op}),
+    ];
+    // 配比标签 —— 始终显示，置于进入子节点(原料)的水平段上，每个子节点只有一条入边故不重叠
+    const lw=e.qty>=100?34:e.qty>=10?28:24;
+    const lx=tx-12-lw/2, ly=ty;
+    els.push(
+      React.createElement('rect',{key:'lb',x:lx-lw/2,y:ly-8,width:lw,height:16,rx:3,fill:'#1B1B1D',stroke:isHi?c:'#4D4D53',strokeWidth:isHi?1:0.9}),
+      React.createElement('text',{key:'lt',x:lx,y:ly+4,textAnchor:'middle',fill:isHi?'#E5E5E8':'#9E9EA6',fontSize:9,fontWeight:'700',fontFamily:'JetBrains Mono, monospace'},`×${e.qty}`)
+    );
+    return React.createElement('g',{key:`${e.f}-${e.t}`},...els);
+  }
+
+  buildGraph(T){
+    if(!T.nodes.length){
+      return React.createElement('div',{style:{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:14,background:'#1C1C1E'}},
+        React.createElement('div',{style:{fontSize:13,color:'#8E8E96',letterSpacing:'0.05em'}},'当前计划还没有生产块'),
+        React.createElement('div',{onClick:()=>this.openPicker(),
+          style:{display:'flex',alignItems:'center',gap:8,padding:'10px 22px',borderRadius:8,cursor:'pointer',
+            background:'rgba(var(--accent-rgb),0.12)',border:'1px solid var(--accent)',color:'var(--accent)',fontSize:14,fontWeight:700,letterSpacing:'0.06em'},
+          onMouseEnter:e=>{e.currentTarget.style.background='rgba(var(--accent-rgb),0.22)';},
+          onMouseLeave:e=>{e.currentTarget.style.background='rgba(var(--accent-rgb),0.12)';}},
+          '＋ 选择配方，创建生产块'));
+    }
+    const {selectedNode:sel,hoveredNode:hov}=this.state;
+    const L=this.layoutGraph(T);          // 折叠剪枝后的可见布局
+    const nmap={}; L.nodes.forEach(n=>{nmap[n.uid]=n;});
+    const focus=sel||hov;
+    const hiSet=new Set();
+    const HL=this.state.hoverLink;
+    if(HL) L.edges.forEach((e,i)=>{ if(e.f===HL.f&&e.t===HL.t) hiSet.add(i); });
+    else if(focus) L.edges.forEach((e,i)=>{ if(e.f===focus||e.t===focus) hiSet.add(i); });
+
+    const svgW=(L.maxLevel+1)*this.COLSTEP+40;
+    const svgH=Math.max(120,...L.nodes.map(n=>n.y+this.CH))+50;
+    const labels=['目标产物','一级配方','二级配方','三级配方','四级配方','五级配方','六级配方','七级配方','八级配方'];
+
+    return React.createElement('div',{
+        ref:this.panRef,
+        onMouseDown:e=>this.startPan(e),
+        onScroll:e=>{ if(this._lvl) this._lvl.scrollLeft=e.target.scrollLeft; },
+        style:{width:'100%',height:'100%',overflow:'auto',background:'#1C1C1E',cursor:'grab'}
+      },
+      React.createElement('svg',{width:svgW,height:svgH,viewBox:`0 0 ${svgW} ${svgH}`,style:{display:'block',flexShrink:0}},
+        React.createElement('defs',null,
+          React.createElement('pattern',{id:'pg',width:22,height:22,patternUnits:'userSpaceOnUse'},
+            React.createElement('path',{d:'M 22 0 L 0 0 0 22',fill:'none',stroke:'#28282B',strokeWidth:0.5})
+          )
+        ),
+        React.createElement('rect',{width:svgW,height:svgH,fill:'#1C1C1E'}),
+        React.createElement('rect',{width:svgW,height:svgH,fill:'url(#pg)'}),
+        ...Array.from({length:L.maxLevel+1},(_,i)=>
+          React.createElement('text',{key:`cl${i}`,x:i*this.COLSTEP+20+this.CW/2,y:18,textAnchor:'middle',fill:'#6A6A71',fontSize:8.5,fontWeight:'700',fontFamily:'Rajdhani, sans-serif',letterSpacing:1.5},labels[i])
+        ),
+        ...Array.from({length:L.maxLevel},(_,i)=>
+          React.createElement('line',{key:`vl${i}`,x1:(i+1)*this.COLSTEP+8,y1:24,x2:(i+1)*this.COLSTEP+8,y2:svgH,stroke:'#2A2A2D',strokeWidth:1,strokeDasharray:'4 10'})
+        ),
+        ...L.edges.map((e,i)=>this.buildEdge(e,nmap,hiSet.has(i))).filter(Boolean),
+        ...L.nodes.map(n=>this.buildCard(n,sel===n.uid,hov===n.uid||(HL&&HL.far===n.uid)))
+      )
+    );
+  }
+
+  // 左侧层级总览
+  buildLevels(T){
+    const labels=['目标产物','一级配方','二级配方','三级配方','四级配方','五级配方','六级配方','七级配方','八级配方'];
+    const itemName=id=>(this.RECIPES[id]||this.RAW[id]||{}).name||window.FacData.names[id]||id;
+    const rows=[];
+    for(let L=0;L<=T.maxLevel;L++){
+      const ns=T.nodes.filter(n=>n.level===L);
+      const out={},inp={};
+      ns.forEach(n=>{ out[n.itemId]=(out[n.itemId]||0)+n.rate; });
+      ns.forEach(n=>n.ings.forEach(g=>{ inp[g.itemId]=(inp[g.itemId]||0)+g.rate; }));
+      const machines=ns.reduce((s,n)=>s+n.machines,0);
+      rows.push({L,out,inp,machines,allRaw:ns.every(n=>n.isRaw)});
+    }
+
+    const itemRow=(id,r,em)=>React.createElement('div',{key:id,style:{display:'flex',alignItems:'center',gap:7,padding:'2px 0'}},
+      React.createElement('div',{style:{width:7,height:7,borderRadius:2,background:this.NC[id]||'#8E8E96',flexShrink:0}}),
+      React.createElement('div',{style:{flex:1,fontSize:11.5,color:em?'#CCCCD1':'#A5A5AC',fontWeight:em?700:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},itemName(id)),
+      React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:em?(this.NC[id]||'var(--accent)'):'#96969E',flexShrink:0}},`${this.fmtRate(r)}/m`)
+    );
+
+    // 副产物总览卡
+    const byp=T.byp||{'light-oil':0,'heavy-oil':0};
+    const hasByp=byp['light-oil']>0.01||byp['heavy-oil']>0.01;
+    const oilAdv=this.state.petgasRecipe==='adv';
+    let bypCard=null;
+    // 副产物配平（规划器级）：求解器在配方表中搜索可消耗副产的配方链并配平机器数
+    const oilMode=this.state.oilMode;
+    const balBtn=(mode,label,col)=>React.createElement('div',{key:mode,onClick:()=>this.setState({oilMode:mode}),
+      style:{flex:1,textAlign:'center',fontSize:10,fontWeight:700,cursor:'pointer',padding:'5px 4px',borderRadius:5,
+        background:oilMode===mode?col+'26':'#28282B',border:'1px solid '+(oilMode===mode?col:'#44444A'),color:oilMode===mode?col:'#96969E'}},label);
+    const balRow=React.createElement('div',{key:'bal',style:{display:'flex',gap:6,marginTop:9}},
+      balBtn('crack','自动裂化配平','#7FA98A'), balBtn('store','保留副产','var(--accent)'));
+    const solverCap=React.createElement('div',{key:'sc',style:{fontSize:8.5,color:'#7F7F87',marginTop:6,lineHeight:1.4,display:'flex',alignItems:'center',gap:5}},
+      React.createElement('div',{style:{fontSize:8,fontWeight:700,color:'#96969E',background:'#28282B',border:'1px solid #44444A',borderRadius:3,padding:'1px 4px',flexShrink:0}},'LP'),
+      '求解器搜索配方表→选裂化链消耗副产→矩阵配平机器数（mod 配方自动纳入）');
+    if(false&&hasByp){
+      bypCard=React.createElement('div',{key:'byp',style:{background:'#2E2823',border:'1px solid rgba(179,126,88,0.4)',borderLeft:'3px solid #B37E58',borderRadius:7,padding:'10px 11px'}},
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:7}},
+          React.createElement('div',{style:{fontSize:10,fontWeight:700,color:'#C29876',background:'rgba(179,126,88,0.18)',borderRadius:4,padding:'2px 7px'}},'副产'),
+          React.createElement('div',{style:{fontSize:11.5,fontWeight:700,color:'#C3A970'}},'原油副产物 · 储液罐')
+        ),
+        itemRow('light-oil',byp['light-oil'],true),
+        itemRow('heavy-oil',byp['heavy-oil'],true),
+        React.createElement('div',{style:{fontSize:9.5,color:'#7A5230',marginTop:6,lineHeight:1.35}},'未找到消耗路径，残余副产随蓝瓶产出，需储液罐存储'),
+        balRow, solverCap
+      );
+    } else if(false&&oilAdv){
+      bypCard=React.createElement('div',{key:'byp',style:{background:'#242A26',border:'1px solid rgba(127,169,138,0.35)',borderLeft:'3px solid #7FA98A',borderRadius:7,padding:'10px 11px'}},
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:5}},
+          React.createElement('div',{style:{fontSize:10,fontWeight:700,color:'#7FA98A',background:'rgba(127,169,138,0.16)',borderRadius:4,padding:'2px 7px'}},'零废'),
+          React.createElement('div',{style:{fontSize:11.5,fontWeight:700,color:'#9DBBA4'}},'副产物 · 自动配平')
+        ),
+        React.createElement('div',{style:{fontSize:9.5,color:'#3F7256',lineHeight:1.35}},'求解器选用 重油裂化 + 轻油裂化 消耗全部副产，机器数已配平（无堆积）'),
+        balRow, solverCap
+      );
+    }
+
+    return React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:9}},
+      bypCard,
+      rows.map(row=>{
+        const outIds=Object.keys(row.out);
+        const inpIds=Object.keys(row.inp);
+        const accent=row.L===0?'var(--accent)':row.allRaw?'#88AABE':'#8B93A5';
+        const els=[];
+        // 标题条
+        els.push(React.createElement('div',{key:'h',style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}},
+          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:7}},
+            React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:10,fontWeight:700,color:accent,background:accent+'1F',borderRadius:4,padding:'2px 7px'}},`L${row.L}`),
+            React.createElement('div',{style:{fontSize:11.5,fontWeight:700,color:'#B0B0B7',letterSpacing:'0.04em'}},labels[row.L])
+          ),
+          row.machines>0&&React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:9.5,color:'#7F7F87'}},`${this.fmtMach(row.machines)} 台`)
+        ));
+        // 产出
+        els.push(React.createElement('div',{key:'ol',style:{fontSize:9,fontWeight:700,letterSpacing:'0.1em',color:'#707077',margin:'2px 0 3px'}},'产出'));
+        els.push(React.createElement('div',{key:'ob',style:{marginBottom:inpIds.length?8:0}},outIds.map(id=>itemRow(id,row.out[id],true))));
+        // 消耗
+        if(inpIds.length){
+          els.push(React.createElement('div',{key:'il',style:{fontSize:9,fontWeight:700,letterSpacing:'0.1em',color:'#707077',margin:'0 0 3px'}},'消耗'));
+          els.push(React.createElement('div',{key:'ib'},inpIds.map(id=>itemRow(id,row.inp[id],false))));
+        }
+        return React.createElement('div',{key:row.L,style:{background:'#1B1B1D',border:`1px solid ${row.L===0?'rgba(var(--accent-rgb),0.28)':'#36363A'}`,borderLeft:`3px solid ${accent}`,borderRadius:7,padding:'10px 11px'}},...els);
+      })
+    );
+  }
+
+  buildPower(T){
+    const rows=[...T.nodes].sort((a,b)=>b.pw-a.pw).slice(0,14);
+    const maxPW=rows[0]?.pw||1;
+    const totalMW=T.nodes.reduce((s,n)=>s+n.pw,0)/1e6;
+    const items=rows.map(n=>React.createElement('div',{key:n.uid,style:{display:'flex',alignItems:'center',gap:12,marginBottom:11}},
+      React.createElement('div',{style:{width:8,height:8,borderRadius:2,background:n.color,flexShrink:0}}),
+      React.createElement('div',{style:{width:150,fontSize:13,fontWeight:600,color:'#BBBBC1',flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},`${n.name} ·L${n.level}`),
+      React.createElement('div',{style:{flex:1,height:15,background:'#28282B',borderRadius:3,overflow:'hidden',border:'1px solid #39393D'}},
+        React.createElement('div',{style:{width:`${(n.pw/maxPW)*100}%`,minWidth:4,height:'100%',background:`${n.color}77`,borderRadius:3}})
+      ),
+      React.createElement('div',{style:{width:70,textAlign:'right',fontFamily:'JetBrains Mono, monospace',fontSize:11,fontWeight:500,color:'#C09088',flexShrink:0}},this.fmtNodePW(n.pw))
+    ));
+    return React.createElement('div',{style:{fontFamily:'Rajdhani, sans-serif',color:'#DFDFE2',padding:'34px 42px'}},
+      React.createElement('div',{style:{marginBottom:26}},
+        React.createElement('div',{style:{fontSize:10,fontWeight:700,letterSpacing:'0.12em',color:'#7F7F87',marginBottom:6}},'能源消耗分析'),
+        React.createElement('div',{style:{fontSize:36,fontWeight:700,lineHeight:1}},this.fmtMW(totalMW)),
+        React.createElement('div',{style:{fontSize:13,color:'#96969E',marginTop:6}},`${T.nodes.length} 个节点 · 含模块功耗修正 · 显示前 ${rows.length}`)
+      ),
+      ...items
+    );
+  }
+
+  buildResearch(){
+    const k=this.k();
+    const packs=[
+      {name:'自动化',color:'#B98890',rate:Math.round(45*k),eff:98},
+      {name:'物流',  color:'#8496B2',rate:Math.round(45*k),eff:96},
+      {name:'军事',  color:'#BC8A6A',rate:Math.round(30*k),eff:93},
+      {name:'化学',  color:'#818CF8',rate:Math.round(45*k),eff:97,active:true},
+      {name:'生产',  color:'#7FA98A',rate:Math.round(20*k),eff:72,bottleneck:true},
+      {name:'效用',  color:'#7FA8B0',rate:Math.round(20*k),eff:88},
+    ];
+    const cards=packs.map(p=>{
+      const els=[];
+      els.push(React.createElement('div',{key:'s',style:{position:'absolute',top:0,left:0,right:0,height:3,background:p.color}}));
+      if(p.bottleneck) els.push(React.createElement('div',{key:'b',style:{position:'absolute',top:11,right:10,background:'#A97F78',color:'#F5EBE8',fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:3,letterSpacing:'0.08em'}},'瓶颈'));
+      if(p.active&&!p.bottleneck) els.push(React.createElement('div',{key:'a',style:{position:'absolute',top:11,right:10,background:p.color+'33',color:p.color,fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:3,letterSpacing:'0.08em'}},'当前'));
+      els.push(React.createElement('div',{key:'n',style:{fontSize:13,fontWeight:700,color:'#B0B0B7',marginTop:8,marginBottom:10}},`${p.name}科研包`));
+      els.push(React.createElement('div',{key:'r',style:{fontFamily:'JetBrains Mono, monospace',fontSize:28,fontWeight:700,color:p.color,marginBottom:10}},`${p.rate}/min`));
+      els.push(React.createElement('div',{key:'bar',style:{height:4,background:'#28282B',borderRadius:2,overflow:'hidden',marginBottom:6}},
+        React.createElement('div',{style:{width:`${p.eff}%`,height:'100%',background:p.bottleneck?'#AF6A62':p.color,borderRadius:2}})
+      ));
+      els.push(React.createElement('div',{key:'e',style:{fontSize:11,color:'#7F7F87'}},`效率: ${p.eff}%`));
+      return React.createElement('div',{key:p.name,style:{background:'#202023',border:`1px solid ${p.bottleneck?'#A97F78':p.active?p.color+'44':'#39393D'}`,borderRadius:10,padding:18,position:'relative',overflow:'hidden'}},...els);
+    });
+    return React.createElement('div',{style:{fontFamily:'Rajdhani, sans-serif',color:'#DFDFE2',padding:'34px 42px'}},
+      React.createElement('div',{style:{marginBottom:26}},
+        React.createElement('div',{style:{fontSize:10,fontWeight:700,letterSpacing:'0.12em',color:'#7F7F87',marginBottom:6}},'科研效率面板'),
+        React.createElement('div',{style:{fontSize:36,fontWeight:700,lineHeight:1}},`${Math.ceil(k*16)} 台研究室`),
+        React.createElement('div',{style:{fontSize:13,color:'#96969E',marginTop:6}},'科研包消耗 · 瓶颈以红色标注')
+      ),
+      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}},...cards)
+    );
+  }
+
+  buildPlanning(){
+    const k=this.k();
+    const CELL=28,COLS=24,ROWS=16,W=COLS*CELL,H=ROWS*CELL;
+    const shapes=[
+      {x:1,y:2,w:3,h:3,c:'#818CF8',l:'组装'},{x:6,y:2,w:3,h:3,c:'#C4B084',l:'组装'},{x:11,y:2,w:3,h:3,c:'#B98890',l:'组装'},
+      {x:1,y:6,w:3,h:3,c:'#A6B380',l:'化工'},{x:6,y:7,w:3,h:3,c:'#94A3B8',l:'化工'},{x:11,y:7,w:3,h:3,c:'#94A3B8',l:'电炉'},
+      {x:17,y:2,w:2,h:3,c:'#8496B2',l:'信标'},{x:17,y:6,w:2,h:3,c:'#8496B2',l:'信标'},
+      {x:0,y:1,w:1,h:12,c:'#C4B084',l:''},{x:5,y:1,w:1,h:12,c:'#C4B084',l:''},{x:10,y:1,w:1,h:12,c:'#C4B084',l:''},
+    ];
+    const svgEls=[
+      React.createElement('defs',{key:'d'},
+        React.createElement('pattern',{id:'bpg',width:CELL,height:CELL,patternUnits:'userSpaceOnUse'},
+          React.createElement('path',{d:`M ${CELL} 0 L 0 0 0 ${CELL}`,fill:'none',stroke:'#28282B',strokeWidth:0.5})
+        )
+      ),
+      React.createElement('rect',{key:'bg',width:W,height:H,fill:'#161618'}),
+      React.createElement('rect',{key:'gr',width:W,height:H,fill:'url(#bpg)'}),
+      ...shapes.map((s,i)=>React.createElement('g',{key:i},
+        React.createElement('rect',{x:s.x*CELL+1,y:s.y*CELL+1,width:s.w*CELL-2,height:s.h*CELL-2,rx:3,fill:s.c,fillOpacity:0.14,stroke:s.c,strokeOpacity:0.55,strokeWidth:1.5}),
+        s.l&&React.createElement('text',{x:(s.x+s.w/2)*CELL,y:(s.y+s.h/2)*CELL+4,textAnchor:'middle',fill:s.c,fontSize:9,fontFamily:'JetBrains Mono',fontWeight:'700',opacity:0.85},s.l)
+      )),
+    ];
+    const stats=[
+      {l:'组装机',v:`${Math.ceil(14*k)}台`,c:'#818CF8'},
+      {l:'化工厂', v:`${Math.ceil(1.1*k)}台`,c:'#A6B380'},
+      {l:'电炉',   v:`${Math.ceil(7*k)}台`,c:'#94A3B8'},
+      {l:'信标',   v:`${this.state.beaconCount*Math.ceil(14*k)}`,c:'#8496B2'},
+    ];
+    return React.createElement('div',{style:{fontFamily:'Rajdhani, sans-serif',color:'#DFDFE2',padding:'34px 42px'}},
+      React.createElement('div',{style:{marginBottom:22}},
+        React.createElement('div',{style:{fontSize:10,fontWeight:700,letterSpacing:'0.12em',color:'#7F7F87',marginBottom:6}},'工厂蓝图规划'),
+        React.createElement('div',{style:{fontSize:36,fontWeight:700,lineHeight:1}},`${COLS}×${ROWS} 格布局`),
+        React.createElement('div',{style:{fontSize:13,color:'#96969E',marginTop:6}},'每5格设信标列 · 最优吞吐量')
+      ),
+      React.createElement('svg',{width:W,height:H,viewBox:`0 0 ${W} ${H}`,style:{border:'1px solid #39393D',borderRadius:8,maxWidth:'100%',display:'block'}},...svgEls),
+      React.createElement('div',{style:{display:'flex',gap:11,marginTop:18,flexWrap:'wrap'}},
+        ...stats.map(s=>React.createElement('div',{key:s.l,style:{background:'#202023',border:'1px solid #39393D',borderRadius:7,padding:'9px 14px'}},
+          React.createElement('div',{style:{fontSize:10,color:'#707077',marginBottom:2,letterSpacing:'0.1em',fontWeight:700}},s.l),
+          React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:18,fontWeight:700,color:s.c}},s.v)
+        ))
+      )
+    );
+  }
+
+  buildModSlots(){
+    return React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5}},
+      this.state.modules.map((m,i)=>{
+        const d=this.MOD[m]||this.MOD.empty;
+        const mc=this.MOD_C[m]||'#44444A';
+        return React.createElement('div',{
+          key:i,
+          onClick:()=>{
+            const next=(this.MOD_CYCLE.indexOf(m)+1)%this.MOD_CYCLE.length;
+            const mods=[...this.state.modules]; mods[i]=this.MOD_CYCLE[next];
+            this.setState({modules:mods});
+          },
+          style:{display:'flex',alignItems:'center',gap:7,padding:'7px 9px',
+            background:m==='empty'?'#28282B':'#19191B',
+            border:`1px solid ${m==='empty'?'#44444A':mc}`,borderRadius:5,cursor:'pointer'},
+        },
+          React.createElement('div',{style:{width:9,height:9,borderRadius:2,background:mc,flexShrink:0}}),
+          React.createElement('span',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:12,fontWeight:700,color:m==='empty'?'#6C6C73':mc}},d.label)
+        );
+      })
+    );
+  }
+
+  // 折叠切换
+  toggleCollapse(uid){ this.setState(s=>{const c={...s.collapsed}; if(c[uid]) delete c[uid]; else c[uid]=true; return {collapsed:c};}); }
+  setAllCollapsed(T,val){
+    const c={};
+    if(val) T.nodes.forEach(n=>{ if(n.ings&&n.ings.length&&n.level>0) c[n.uid]=true; });
+    this.setState({collapsed:c});
+  }
+
+  // ===== 层级树视图（文件树式，可折叠展开）=====
+  buildTreeView(T){
+    const nmap={}; T.nodes.forEach(n=>{nmap[n.uid]=n;});
+    const kids={}; T.edges.forEach(e=>{ (kids[e.f]=kids[e.f]||[]).push(e.t); });
+    const qtyOf={}; T.edges.forEach(e=>{ qtyOf[e.t]=e.qty; });
+    const root=T.nodes.find(n=>n.level===0);
+    const {selectedNode,collapsed}=this.state;
+    const GUIDE='#37373B', GW=22, RH=42;
+
+    const rows=[];
+    const walk=(uid,depth,ancLast)=>{
+      const n=nmap[uid]; if(!n) return;
+      const cs=kids[uid]||[];
+      const hasC=cs.length>0;
+      const isCol=!!collapsed[uid];
+      const isSel=selectedNode===n.uid;
+      const c=n.color;
+      const kind=n.isTarget?{t:'目标',bg:'rgba(var(--accent-rgb),0.16)',bd:'var(--accent)',fg:'var(--accent)'}
+        :(n.isOil&&n.recipe==='adv'&&n.mode==='store')?{t:'副产',bg:'rgba(179,126,88,0.18)',bd:'#B37E58',fg:'#C29876'}
+        :n.isRaw?{t:'原料',bg:'#28282B',bd:'#4C4C52',fg:'#96969E'}:null;
+
+      // 引导线列
+      const guides=[];
+      for(let i=0;i<depth;i++){
+        const last=ancLast[i];
+        const isElbow=(i===depth-1);
+        const seg=[];
+        if(isElbow){
+          seg.push(React.createElement('div',{key:'v',style:{position:'absolute',left:GW/2+'px',top:0,width:'1px',height:last?(RH/2+'px'):'100%',background:GUIDE}}));
+          seg.push(React.createElement('div',{key:'h',style:{position:'absolute',left:GW/2+'px',top:RH/2+'px',width:(GW/2)+'px',height:'1px',background:GUIDE}}));
+        } else if(!last){
+          seg.push(React.createElement('div',{key:'v',style:{position:'absolute',left:GW/2+'px',top:0,width:'1px',height:'100%',background:GUIDE}}));
+        }
+        guides.push(React.createElement('div',{key:'g'+i,style:{position:'relative',width:GW+'px',flexShrink:0,alignSelf:'stretch'}},...seg));
+      }
+
+      // 展开/折叠三角 或 叶子点
+      const tri=hasC
+        ? React.createElement('div',{key:'tri',onClick:e=>{e.stopPropagation();this.toggleCollapse(uid);},
+            style:{width:'16px',height:'16px',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:isSel?c:'#96969E',fontSize:'10px',transform:isCol?'rotate(-90deg)':'none',transition:'transform .12s'}},'▾')
+        : React.createElement('div',{key:'leaf',style:{width:'16px',height:'16px',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}},
+            React.createElement('div',{style:{width:'5px',height:'5px',borderRadius:'1px',background:GUIDE}}));
+
+      const qty=qtyOf[uid];
+      const isFluid=this.FLUID.has(n.itemId);
+      const machineTxt=n.isOil?`炼油厂 ×${this.fmtMach(n.machines)}${n.crackMachines>0?' +裂'+this.fmtMach(n.crackMachines):''}`
+        : n.isRaw?n.machine : `${n.machine} ×${this.fmtMach(n.machines)}`;
+      // 模块/信标 或 原料输送
+      const midInfo = n.isRaw
+        ? React.createElement('div',{style:{fontSize:'9px',color:isFluid?'#8496B2':'#9E9EA6',fontFamily:isFluid?'Rajdhani, sans-serif':'JetBrains Mono, monospace',flexShrink:0,whiteSpace:'nowrap'}},isFluid?'流体管道':((n.rate/this.BELT).toFixed(2)+' 黄带'))
+        : n.isOil
+        ? React.createElement('div',{style:{fontSize:'9px',fontWeight:700,color:n.mode==='crack'?'#7FA98A':'var(--accent)',fontFamily:'Rajdhani, sans-serif',flexShrink:0,whiteSpace:'nowrap'}},n.recipe==='adv'?(n.mode==='crack'?'全裂化':'储副产'):'基础')
+        : React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'4px',flexShrink:0}},
+            React.createElement('div',{style:{fontSize:'7px',fontWeight:700,color:'#8496B2',background:'#28282B',border:'1px solid #8A7D96',borderRadius:'2px',padding:'1px 3px',fontFamily:'Rajdhani, sans-serif'}},'塔'+this.state.beaconCount),
+            ...this.state.modules.map((m,i)=>React.createElement('div',{key:i,style:{width:'8px',height:'8px',borderRadius:'2px',background:this.MOD_C[m]||'#44444A',opacity:0.85}})));
+
+      rows.push(React.createElement('div',{key:uid,
+        onClick:()=>this.setState(s=>({selectedNode:s.selectedNode===n.uid?null:n.uid})),
+        style:{display:'flex',alignItems:'stretch',height:RH+'px',cursor:'pointer'},
+        onMouseEnter:e=>{const card=e.currentTarget.querySelector('[data-card]'); if(card&&!isSel)card.style.borderColor=c;},
+        onMouseLeave:e=>{const card=e.currentTarget.querySelector('[data-card]'); if(card&&!isSel)card.style.borderColor=n.isRaw?'#343437':'#3D3D41';}},
+        ...guides,
+        React.createElement('div',{'data-card':'1',style:{display:'flex',alignItems:'center',gap:'8px',flex:1,minWidth:0,padding:'0 11px 0 9px',margin:'3px 0',borderRadius:'6px',
+          background:isSel?'#313134':'#232326',border:'1px solid '+(isSel?c:n.isRaw?'#343437':'#3D3D41'),borderLeft:'3px solid '+c,
+          boxShadow:isSel?('0 0 0 1px '+c+'55'):'none'}},
+          tri,
+          React.createElement('div',{style:{fontSize:'12.5px',fontWeight:700,color:isSel?'#EAEAEC':'#C6C6CB',fontFamily:'Rajdhani, sans-serif',whiteSpace:'nowrap',flexShrink:0}},n.name),
+          qty!=null?React.createElement('div',{style:{fontSize:'9.5px',color:'#88888F',fontFamily:'JetBrains Mono, monospace',background:'#28282B',border:'1px solid #39393D',borderRadius:'3px',padding:'1px 5px',flexShrink:0}},'×'+qty):null,
+          kind?React.createElement('div',{style:{fontSize:'8.5px',fontWeight:700,color:kind.fg,background:kind.bg,border:'1px solid '+kind.bd,borderRadius:'3px',padding:'1px 5px',flexShrink:0}},kind.t):null,
+          React.createElement('div',{style:{flex:1,minWidth:'8px'}}),
+          React.createElement('div',{style:{fontSize:'10px',color:'#94949C',fontFamily:'Rajdhani, sans-serif',whiteSpace:'nowrap',flexShrink:0}},machineTxt),
+          React.createElement('div',{style:{width:'1px',height:'16px',background:'#39393E',flexShrink:0}}),
+          midInfo,
+          React.createElement('div',{style:{width:'1px',height:'16px',background:'#39393E',flexShrink:0}}),
+          React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:'10px',color:'#C09088',whiteSpace:'nowrap',flexShrink:0,minWidth:'46px',textAlign:'right'}},this.fmtNodePW(n.pw)),
+          React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:'13px',fontWeight:700,color:c,whiteSpace:'nowrap',flexShrink:0,minWidth:'78px',textAlign:'right'}},
+            this.fmtRate(n.rate),React.createElement('span',{style:{fontSize:'8px',color:'#727279'}},' /min'))
+        )
+      ));
+
+      if(hasC && !isCol) cs.forEach((ch,i)=>walk(ch,depth+1,[...ancLast,i===cs.length-1]));
+    };
+    if(root) walk(root.uid,0,[]);
+
+    const headBtn=(label,onClick)=>React.createElement('div',{onClick,style:{fontSize:'10px',fontWeight:700,color:'#96969E',background:'#28282B',border:'1px solid #44444A',borderRadius:'4px',padding:'4px 10px',cursor:'pointer',letterSpacing:'0.04em'}},label);
+
+    return React.createElement('div',{style:{position:'absolute',inset:0,display:'flex',flexDirection:'column',background:'#1C1C1E'}},
+      // 表头
+      React.createElement('div',{style:{flexShrink:0,display:'flex',alignItems:'center',gap:'8px',padding:'10px 16px',borderBottom:'1px solid #37373A'}},
+        React.createElement('div',{style:{fontSize:'12px',fontWeight:700,letterSpacing:'0.1em',color:'#B0B0B7'}},'层级树'),
+        React.createElement('div',{style:{fontSize:'9px',fontWeight:600,letterSpacing:'0.1em',color:'#707077'}},'HIERARCHY · 可折叠'),
+        React.createElement('div',{style:{flex:1}}),
+        headBtn('展开全部',()=>this.setAllCollapsed(T,false)),
+        headBtn('折叠到一级',()=>this.setAllCollapsed(T,true))
+      ),
+      // 列标题
+      React.createElement('div',{style:{flexShrink:0,display:'flex',alignItems:'center',padding:'6px 16px 6px 19px',borderBottom:'1px solid #2A2A2C'}},
+        React.createElement('div',{style:{fontSize:'9px',fontWeight:700,letterSpacing:'0.12em',color:'#707077',flex:1}},'配方 / 产物'),
+        React.createElement('div',{style:{fontSize:'9px',fontWeight:700,letterSpacing:'0.12em',color:'#707077'}},'机器'),
+        React.createElement('div',{style:{width:'88px',textAlign:'right',fontSize:'9px',fontWeight:700,letterSpacing:'0.12em',color:'#707077'}},'速率')
+      ),
+      // 行区
+      React.createElement('div',{style:{flex:1,overflow:'auto',padding:'8px 14px 16px'}},
+        React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:'2px',minWidth:'560px'}},...rows)
+      )
+    );
+  }
+
+  // ===== 分栏视图（Finder 式 Miller columns + 详情预览）=====
+  setColPath(p){ this.setState({colPath:p, selectedNode:p[p.length-1]}); }
+  buildColumnView(T){
+    const nmap={}; T.nodes.forEach(n=>{nmap[n.uid]=n;});
+    const kids={}; T.edges.forEach(e=>{ (kids[e.f]=kids[e.f]||[]).push(e.t); });
+    const qtyOf={}; T.edges.forEach(e=>{ qtyOf[e.t]=e.qty; });
+    const root=T.nodes.find(n=>n.level===0);
+    if(!root) return React.createElement('div');
+    const collapsed=this.state.collapsed||{};
+    // 校验/修复路径（配方切换后 uid 可能失效）
+    let path=(this.state.colPath&&this.state.colPath.length?this.state.colPath:[root.uid]).filter(u=>nmap[u]);
+    if(!path.length||path[0]!==root.uid) path=[root.uid];
+    for(let i=1;i<path.length;i++){ const par=path[i-1]; if(!(kids[par]||[]).includes(path[i])){ path=path.slice(0,i); break; } }
+
+    const badge=n=>n.isTarget?{t:'目标',bg:'rgba(var(--accent-rgb),0.16)',bd:'var(--accent)',fg:'var(--accent)'}
+      :(n.isOil&&n.recipe==='adv'&&n.mode==='store')?{t:'副产',bg:'rgba(179,126,88,0.18)',bd:'#B37E58',fg:'#C29876'}
+      :n.isRaw?{t:'原料',bg:'#28282B',bd:'#4C4C52',fg:'#96969E'}:null;
+
+    // 信息密度卡片（节点图同款信息：名称/速率/机器/模块/信标/功耗）
+    const itemCard=(uid,colIdx,selUid)=>{
+      const n=nmap[uid]; const childN=(kids[uid]||[]).length; const hasC=childN>0;
+      const isCol=!!collapsed[uid];
+      const sel=uid===selUid; const c=n.color; const qty=qtyOf[uid]; const bd=badge(n);
+      const isFluid=this.FLUID.has(n.itemId);
+      const machineTxt=n.isOil?('炼油厂 ×'+this.fmtMach(n.machines)+(n.crackMachines>0?' +裂'+this.fmtMach(n.crackMachines):''))
+        : n.isRaw?n.machine : (n.machine+' ×'+this.fmtMach(n.machines));
+      // 第三行
+      let row3;
+      if(n.isRaw){
+        row3=React.createElement('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between'}},
+          React.createElement('div',{style:{fontSize:'9px',color:isFluid?'#8496B2':'#A6A6AD',fontFamily:isFluid?'Rajdhani, sans-serif':'JetBrains Mono, monospace'}},isFluid?'流体管道':((n.rate/this.BELT).toFixed(2)+' 黄带')),
+          React.createElement('div',{style:{fontSize:'9px',color:'#C09088',fontFamily:'JetBrains Mono, monospace'}},this.fmtNodePW(n.pw)));
+      } else if(n.isOil){
+        row3=React.createElement('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between'}},
+          React.createElement('div',{style:{fontSize:'9px',color:n.mode==='crack'?'#7FA98A':'var(--accent)',fontFamily:'Rajdhani, sans-serif'}},n.recipe==='adv'?(n.mode==='crack'?'高级·全裂化':'高级·储副产'):'基础处理'),
+          React.createElement('div',{style:{fontSize:'9px',color:'#C09088',fontFamily:'JetBrains Mono, monospace'}},this.fmtNodePW(n.pw)));
+      } else {
+        row3=React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'5px'}},
+          React.createElement('div',{style:{fontSize:'7px',fontWeight:700,color:'#8496B2',background:'#28282B',border:'1px solid #8A7D96',borderRadius:'2px',padding:'1px 3px',fontFamily:'Rajdhani, sans-serif'}},'塔'+this.state.beaconCount),
+          ...this.state.modules.map((m,i)=>React.createElement('div',{key:i,style:{width:'9px',height:'9px',borderRadius:'2px',background:this.MOD_C[m]||'#44444A',opacity:0.85}})),
+          React.createElement('div',{style:{flex:1}}),
+          React.createElement('div',{style:{fontSize:'9px',color:'#C09088',fontFamily:'JetBrains Mono, monospace'}},this.fmtNodePW(n.pw)));
+      }
+      return React.createElement('div',{key:uid,
+        onClick:()=>this.setColPath(path.slice(0,colIdx+1).concat(uid)),
+        style:{display:'flex',flexDirection:'column',gap:'5px',padding:'9px 10px',borderRadius:'6px',cursor:'pointer',
+          background:sel?'#313134':'#232326',border:'1px solid '+(sel?c:n.isRaw?'#39393E':'#3C3C40'),
+          boxShadow:sel?('0 0 0 1px '+c+'55'):'none'},
+        onMouseEnter:e=>{if(!sel)e.currentTarget.style.borderColor=c;},
+        onMouseLeave:e=>{if(!sel)e.currentTarget.style.borderColor=n.isRaw?'#39393E':'#3C3C40';}},
+        // 行1 名称
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+          React.createElement('div',{style:{width:'9px',height:'9px',borderRadius:'2px',background:c,flexShrink:0,opacity:n.isRaw?0.7:1}}),
+          React.createElement('div',{style:{flex:1,minWidth:0,fontSize:'12.5px',fontWeight:700,color:sel?'#EAEAEC':'#C6C6CB',fontFamily:'Rajdhani, sans-serif',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},n.name),
+          qty!=null?React.createElement('div',{style:{fontSize:'9px',color:'#88888F',fontFamily:'JetBrains Mono, monospace',flexShrink:0}},'×'+qty):null,
+          bd?React.createElement('div',{style:{fontSize:'7.5px',fontWeight:700,color:bd.fg,background:bd.bg,border:'1px solid '+bd.bd,borderRadius:'3px',padding:'1px 4px',flexShrink:0}},bd.t):null,
+          hasC?React.createElement('div',{onClick:e=>{e.stopPropagation();this.toggleCollapse(uid);},
+            title:isCol?'展开上游':'折叠上游',
+            style:{display:'flex',alignItems:'center',gap:'2px',flexShrink:0,marginLeft:'1px',padding:'1px 4px',borderRadius:'3px',cursor:'pointer',
+              background:isCol?c+'22':'transparent',border:'1px solid '+(isCol?c:'#4D4D53'),color:isCol?c:'#96969E',fontSize:'9px',fontWeight:700,fontFamily:'JetBrains Mono, monospace'}},
+            isCol?('+'+childN):'−'):null,
+          (hasC&&!isCol)?React.createElement('div',{style:{color:sel?c:'#7A7A82',fontSize:'14px',flexShrink:0,lineHeight:1}},'›'):null
+        ),
+        // 行2 速率 + 机器
+        React.createElement('div',{style:{display:'flex',alignItems:'baseline',justifyContent:'space-between'}},
+          React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:'15px',fontWeight:700,color:c}},this.fmtRate(n.rate),React.createElement('span',{style:{fontSize:'8px',color:'#727279'}},' /min')),
+          React.createElement('div',{style:{fontSize:'9px',color:'#94949C',fontFamily:'Rajdhani, sans-serif',whiteSpace:'nowrap'}},machineTxt)
+        ),
+        React.createElement('div',{style:{height:'1px',background:'#333337'}}),
+        row3
+      );
+    };
+
+    // 列工厂
+    const makeCol=(key,header,headColor,count,items,colIdx,selUid,shade)=>React.createElement('div',{key,style:{width:'212px',flexShrink:0,borderRight:'1px solid #37373A',display:'flex',flexDirection:'column',background:shade?'#202023':'#1C1C1E'}},
+      React.createElement('div',{style:{flexShrink:0,padding:'8px 12px 7px',borderBottom:'1px solid #2A2A2C',display:'flex',alignItems:'center',gap:'6px'}},
+        React.createElement('div',{style:{width:'7px',height:'7px',borderRadius:'2px',background:headColor,flexShrink:0}}),
+        React.createElement('div',{style:{fontSize:'10px',fontWeight:700,letterSpacing:'0.06em',color:'#9E9EA6',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},header),
+        React.createElement('div',{style:{flex:1}}),
+        React.createElement('div',{style:{fontSize:'9px',color:'#707077',fontFamily:'JetBrains Mono, monospace'}},count)
+      ),
+      React.createElement('div',{style:{flex:1,overflowY:'auto',padding:'8px',display:'flex',flexDirection:'column',gap:'6px'}},
+        ...items.map(u=>itemCard(u,colIdx,selUid))
+      )
+    );
+
+    const cols=[];
+    // 第一栏：主目标本体
+    cols.push(makeCol('col-root','目标产物',root.color,1,[root.uid],-1,path[0],false));
+    // 后续栏：path[i] 的原料（折叠节点停止下钻，与节点图/层级树共享）
+    for(let i=0;i<path.length;i++){
+      if(collapsed[path[i]]) break;
+      const cs=kids[path[i]]||[];
+      if(!cs.length) continue;
+      const parent=nmap[path[i]];
+      cols.push(makeCol('col'+i,parent.name+' 的原料',parent.color,cs.length,cs,i,path[i+1],i%2===0));
+    }
+
+    return React.createElement('div',{style:{position:'absolute',inset:0,display:'flex',flexDirection:'column',background:'#1C1C1E'}},
+      React.createElement('div',{style:{flexShrink:0,display:'flex',alignItems:'center',gap:'8px',padding:'10px 16px',borderBottom:'1px solid #37373A'}},
+        React.createElement('div',{style:{fontSize:'12px',fontWeight:700,letterSpacing:'0.1em',color:'#B0B0B7'}},'分栏视图'),
+        React.createElement('div',{style:{fontSize:'9px',fontWeight:600,letterSpacing:'0.1em',color:'#707077'}},'COLUMNS · 逐层下钻'),
+        React.createElement('div',{style:{flex:1}}),
+        React.createElement('div',{style:{fontSize:'10px',color:'#7F7F87',fontFamily:'Rajdhani, sans-serif'}},'点击卡片逐列深入 · 选中详情见右侧面板')
+      ),
+      React.createElement('div',{style:{flex:1,display:'flex',overflowX:'auto',overflowY:'hidden'}},
+        ...cols
+      )
+    );
+  }
+
+  // ===== 桑基图视图（流量正比缎带）=====
+  buildSankey(T){
+    const nmap={}; T.nodes.forEach(n=>{nmap[n.uid]=n;});
+    const kids={}; T.edges.forEach(e=>{ (kids[e.f]=kids[e.f]||[]).push(e.t); });
+    const root=T.nodes.find(n=>n.level===0);
+    if(!root) return React.createElement('div');
+    const sel=this.state.selectedNode, hov=this.state.hoveredNode, focus=sel||hov;
+    const maxRate=Math.max(...T.nodes.map(n=>n.rate));
+    const K=Math.min(0.6, 170/maxRate);          // 流量 → 像素高度
+    const Hh=r=>Math.max(9, r*K);
+    const COL=210, BARW=16, PAD=46;
+    const colX=l=>PAD+l*COL;
+    const lay={}; let cursor=PAD;
+    const place=(uid)=>{
+      const n=nmap[uid]; const h=Hh(n.rate); const cs=kids[uid]||[];
+      if(!cs.length){ lay[uid]={y:cursor,h}; cursor+=h+13; return; }
+      const cys=[];
+      cs.forEach((cu,i)=>{ if(i>0) cursor+=11; place(cu); cys.push(lay[cu].y+lay[cu].h/2); });
+      lay[uid]={y:(cys[0]+cys[cys.length-1])/2-h/2,h};
+    };
+    const allRoots=T.nodes.filter(n=>n.level===0);
+    allRoots.forEach((rt,i)=>{ if(i>0) cursor+=this.LINEGAP; place(rt.uid); });
+    const maxLevel=T.nodes.reduce((m,n)=>Math.max(m,n.level),0);
+    const svgW=colX(maxLevel)+BARW+150;
+    const svgH=Math.max(...Object.values(lay).map(l=>l.y+l.h))+PAD;
+    const labels=['目标产物','一级配方','二级配方','三级配方','四级配方','五级配方','六级配方','七级配方','八级配方'];
+
+    const ribbons=[];
+    T.nodes.forEach(p=>{
+      const cs=kids[p.uid]||[]; if(!cs.length) return;
+      const pl=lay[p.uid]; const x0=colX(p.level)+BARW;
+      const sum=cs.reduce((s,cu)=>s+nmap[cu].rate,0)||1;
+      let segTop=pl.y;
+      cs.forEach(cu=>{
+        const ch=nmap[cu]; const cl=lay[cu]; const x1=colX(ch.level);
+        const segH=pl.h*(ch.rate/sum);
+        const lit=focus&&(p.uid===focus||cu===focus);
+        const mx=(x0+x1)/2;
+        const d=`M ${x0} ${segTop} C ${mx} ${segTop} ${mx} ${cl.y} ${x1} ${cl.y} L ${x1} ${cl.y+cl.h} C ${mx} ${cl.y+cl.h} ${mx} ${segTop+segH} ${x0} ${segTop+segH} Z`;
+        ribbons.push(React.createElement('path',{key:'r'+cu,d,fill:ch.color,opacity:lit?0.55:(focus?0.1:0.24),stroke:ch.color,strokeOpacity:lit?0.7:0.3,strokeWidth:0.5}));
+        segTop+=segH;
+      });
+    });
+
+    const bars=[];
+    T.nodes.forEach(n=>{
+      const l=lay[n.uid]; const x=colX(n.level); const isSel=sel===n.uid;
+      const big=l.h>=15;
+      bars.push(React.createElement('g',{key:'b'+n.uid,
+        onClick:()=>this.setState(s=>({selectedNode:s.selectedNode===n.uid?null:n.uid})),
+        onMouseEnter:()=>this.setState({hoveredNode:n.uid}),
+        onMouseLeave:()=>this.setState({hoveredNode:null}),
+        style:{cursor:'pointer'}},
+        React.createElement('rect',{x:x-2,y:l.y-2,width:BARW+4,height:l.h+4,fill:'transparent'}),
+        React.createElement('rect',{x,y:l.y,width:BARW,height:l.h,rx:2,fill:n.color,opacity:n.isRaw?0.6:0.95,stroke:isSel?'#EAEAEC':'none',strokeWidth:isSel?1.5:0}),
+        React.createElement('text',{x:x+BARW+7,y:l.y+(big?l.h/2-3:l.h/2),fill:isSel?'#EAEAEC':'#C6C6CB',fontSize:big?10.5:9,fontWeight:700,fontFamily:'Rajdhani, sans-serif',dominantBaseline:'middle',style:{pointerEvents:'none'}},n.name),
+        big?React.createElement('text',{x:x+BARW+7,y:l.y+l.h/2+9,fill:n.color,fontSize:8.5,fontFamily:'JetBrains Mono, monospace',dominantBaseline:'middle',style:{pointerEvents:'none'}},this.fmtRate(n.rate)+'/m'):null
+      ));
+    });
+
+    return React.createElement('div',{ref:this.panRef,onMouseDown:e=>this.startPan(e),
+        style:{width:'100%',height:'100%',overflow:'auto',background:'#1C1C1E',cursor:'grab'}},
+      React.createElement('svg',{width:svgW,height:svgH,viewBox:`0 0 ${svgW} ${svgH}`,style:{display:'block',flexShrink:0}},
+        React.createElement('rect',{width:svgW,height:svgH,fill:'#1C1C1E'}),
+        ...Array.from({length:maxLevel+1},(_,i)=>
+          React.createElement('text',{key:'cl'+i,x:colX(i),y:24,fill:'#6A6A71',fontSize:9,fontWeight:'700',fontFamily:'Rajdhani, sans-serif',letterSpacing:1.5},labels[i]||(i+'级'))),
+        ...ribbons,
+        ...bars
+      )
+    );
+  }
+
+  // 新建/关闭 Plan
+  addPlan(){
+    const n=this.PLANS.length+1;
+    this.PLANS.push({id:'p'+Date.now(), name:'新计划 '+n, blocks:[]});
+    this.selectPlan(this.PLANS[this.PLANS.length-1].id);
+    this.openPicker();
+  }
+  closePlan(id){
+    if(this.PLANS.length<=1) return;
+    const i=this.PLANS.findIndex(p=>p.id===id); if(i<0) return;
+    this.PLANS.splice(i,1);
+    if(this.state.activePlan===id) this.selectPlan(this.PLANS[Math.max(0,i-1)].id);
+    else this.forceUpdate();
+  }
+
+  // ===== 顶层 Chrome 式 Tab Bar（最外层容器；每个 tab = 一个 Plan 页面）=====
+  buildTabBar(){
+    const pos=this.state.tabBarPos||'top';
+    const horiz=pos==='top';
+    const AC='var(--accent)';
+    const STRIP='#0E0E10', ACTIVE='#161618', BD='#333336';
+    const closeBtn=(active,pid)=>React.createElement('div',{title:'关闭计划',
+      onClick:e=>{e.stopPropagation();this.closePlan(pid);},
+      style:{width:16,height:16,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,lineHeight:1,color:active?'rgba(20,20,22,0.65)':'#67676E',flexShrink:0,cursor:'default'},
+      onMouseEnter:e=>{e.currentTarget.style.background=active?'rgba(20,20,22,0.18)':'#37373A';e.currentTarget.style.color=active?'#1B1B1D':'#E2E0D7';},
+      onMouseLeave:e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color=active?'rgba(20,20,22,0.65)':'#67676E';}},'×');
+    const tabs=this.PLANS.map(p=>{
+      const active=this.state.activePlan===p.id;
+      const dot=React.createElement('div',{style:{width:8,height:8,borderRadius:'50%',background:active?'#1B1B1D':'#4C4C52',flexShrink:0}});
+      const nm=React.createElement('div',{style:{flex:1,minWidth:0,fontSize:13,fontWeight:700,letterSpacing:'0.04em',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',color:active?'#1B1B1D':'#8E8E96'}},p.name);
+      const cnt=React.createElement('div',{style:{fontSize:9,color:active?'rgba(20,20,22,0.6)':'#4C4C52',fontFamily:'JetBrains Mono, monospace',flexShrink:0}},p.blocks.length+' block');
+      if(horiz){
+        return React.createElement('div',{key:p.id,onClick:()=>this.selectPlan(p.id),
+          style:{display:'flex',alignItems:'center',gap:8,padding:'0 10px 0 14px',height:32,minWidth:158,maxWidth:230,borderRadius:8,cursor:'pointer',position:'relative',alignSelf:'center',
+            background:active?AC:'transparent'},
+          onMouseEnter:e=>{if(!active)e.currentTarget.style.background='#141416';},
+          onMouseLeave:e=>{if(!active)e.currentTarget.style.background='transparent';}},
+          dot,nm,cnt,closeBtn(active,p.id));
+      }
+      return React.createElement('div',{key:p.id,onClick:()=>this.selectPlan(p.id),
+        style:{display:'flex',alignItems:'center',gap:8,padding:'9px 10px 9px 12px',borderRadius:7,cursor:'pointer',
+          background:active?AC:'transparent'},
+        onMouseEnter:e=>{if(!active)e.currentTarget.style.background='#141416';},
+        onMouseLeave:e=>{if(!active)e.currentTarget.style.background='transparent';}},
+        dot,nm,cnt,closeBtn(active,p.id));
+    });
+    const plus=React.createElement('div',{title:'新建计划',
+      onClick:()=>this.addPlan(),
+      style:{width:26,height:26,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',color:'#67676E',fontSize:16,cursor:'pointer',flexShrink:0,alignSelf:'center'},
+      onMouseEnter:e=>{e.currentTarget.style.background='#141416';},
+      onMouseLeave:e=>{e.currentTarget.style.background='transparent';}},'+');
+    const dockBtn=(mode,label)=>{
+      const on=pos===mode;
+      return React.createElement('div',{key:mode,onClick:()=>this.setState({tabBarPos:mode}),title:mode==='top'?'标签置顶横放':'标签置左竖放',
+        style:{padding:'3px 9px',borderRadius:5,fontSize:10,fontWeight:700,cursor:'pointer',letterSpacing:'0.05em',
+          background:on?AC:'transparent',border:'1px solid '+(on?AC:BD),color:on?'#1B1B1D':'#8E8E96'}},label);
+    };
+    const dock=React.createElement('div',{style:{display:'flex',gap:4,flexShrink:0,alignItems:'center',alignSelf:'center'}},dockBtn('top','⬒ 顶'),dockBtn('left','◧ 左'));
+    const logo=React.createElement('div',{style:{display:'flex',alignItems:'center',gap:7,flexShrink:0,padding:horiz?'0 14px 0 4px':'0 6px 10px',alignSelf:horiz?'center':'auto'}},
+      React.createElement('svg',{width:19,height:19,viewBox:'0 0 26 26',fill:'none'},
+        React.createElement('polygon',{points:'13,1 25,7.5 25,18.5 13,25 1,18.5 1,7.5',stroke:'var(--accent)',strokeWidth:1.5,fill:'none'}),
+        React.createElement('circle',{cx:13,cy:14,r:3.2,fill:'var(--accent)'})),
+      React.createElement('span',{style:{fontSize:14,fontWeight:700,letterSpacing:'0.12em',whiteSpace:'nowrap',color:'#E2E0D7'}},'FAC',React.createElement('span',{style:{color:'var(--accent)'}},'ULATOR')));
+    if(horiz){
+      return React.createElement('div',{style:{display:'flex',alignItems:'flex-end',gap:3,height:42,padding:'6px 12px 0',background:STRIP,flexShrink:0,fontFamily:'Rajdhani, sans-serif'}},
+        logo,
+        ...tabs,plus,
+        React.createElement('div',{style:{flex:1}}),dock);
+    }
+    return React.createElement('div',{style:{width:198,flexShrink:0,background:STRIP,borderRight:'1px solid '+BD,display:'flex',flexDirection:'column',gap:3,padding:'12px 8px 10px',fontFamily:'Rajdhani, sans-serif'}},
+      logo,
+      ...tabs,plus,
+      React.createElement('div',{style:{flex:1}}),
+      React.createElement('div',{style:{display:'flex',gap:4,justifyContent:'center'}},dockBtn('top','⬒ 顶'),dockBtn('left','◧ 左')));
+  }
+
+  // ===== 配方选择器（仿游戏百科排列：group 页签 → subgroup 分行 → 物品格）=====
+  buildRecipePicker(){
+    if(!this.state.pickerOpen) return null;
+    const P=window.FacData.picker; const g=this.state.pickerGroup; const q=(this.state.pickerSearch||'').trim();
+    const cell=id=>{
+      const rec=this.RECIPES[id];
+      const rname=window.FacData.names[id]||id;
+      return React.createElement('div',{key:id,title:rname+(rec?'\n默认配方：'+this.recipeIO(rec):''),
+        onClick:()=>this.pickItem(id),
+        style:{width:42,height:42,borderRadius:6,background:'#19191B',border:'1px solid #37373A',cursor:'pointer',
+          display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:3},
+        onMouseEnter:e=>{e.currentTarget.style.borderColor='var(--accent)';e.currentTarget.style.background='#232326';},
+        onMouseLeave:e=>{e.currentTarget.style.borderColor='#37373A';e.currentTarget.style.background='#19191B';}},
+        React.createElement('div',{style:{width:11,height:11,borderRadius:3,background:this.NC[id]}}),
+        React.createElement('div',{style:{fontSize:9.5,fontWeight:700,color:'#BBBBC1',lineHeight:1,maxWidth:38,overflow:'hidden',whiteSpace:'nowrap'}},rname.slice(0,3)));
+    };
+    let body;
+    if(q){
+      const hits=[];
+      P.groups.forEach(gr=>P.sections[gr.id].forEach(s=>s.items.forEach(id=>{ if((window.FacData.names[id]||id).includes(q)||id.includes(q)) hits.push(id); })));
+      body=React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},
+        hits.length?hits.map(cell):React.createElement('div',{style:{fontSize:11,color:'#8E8E96',padding:'12px 2px'}},'没有匹配「'+q+'」的配方'));
+    } else {
+      body=React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:10}},
+        ...(P.sections[g]||[]).map(sec=>React.createElement('div',{key:sec.sub,style:{display:'flex',flexWrap:'wrap',gap:6,paddingBottom:10,borderBottom:'1px solid #232326'}},...sec.items.map(cell))));
+    }
+    const tabs=P.groups.map(gr=>{
+      const on=!q&&gr.id===g;
+      return React.createElement('div',{key:gr.id,onClick:()=>this.setState({pickerGroup:gr.id,pickerSearch:''}),
+        style:{padding:'7px 15px',cursor:'pointer',fontSize:12.5,fontWeight:700,letterSpacing:'0.04em',borderRadius:7,
+          background:on?'var(--accent)':'transparent',color:on?'#1B1B1D':'#8E8E96'}},gr.name);
+    });
+    return React.createElement('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.58)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Rajdhani, sans-serif'},
+        onClick:()=>this.setState({pickerOpen:false})},
+      React.createElement('div',{style:{width:640,height:520,display:'flex',flexDirection:'column',borderRadius:11,overflow:'hidden',border:'1px solid #3C3C40',boxShadow:'0 24px 70px rgba(0,0,0,0.6)'},onClick:e=>e.stopPropagation()},
+        React.createElement('div',{style:{background:'#161618',padding:'12px 16px 0',borderBottom:'1px solid #333336'}},
+          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:10}},
+            React.createElement('div',{style:{fontSize:14,fontWeight:700,color:'#E2E0D7',letterSpacing:'0.05em'}},'选择目标物品'),
+            React.createElement('div',{style:{fontSize:10,color:'#67676E'}},'目标是物品与产率 · BOM 展开后节点为配方'),
+            React.createElement('div',{style:{flex:1}}),
+            React.createElement('input',{value:this.state.pickerSearch,placeholder:'搜索…',
+              onChange:e=>this.setState({pickerSearch:e.target.value}),
+              style:{width:150,background:'#19191B',border:'1px solid #37373A',borderRadius:6,padding:'5px 9px',fontSize:12,color:'#E2E0D7',outline:'none',fontFamily:'Rajdhani, sans-serif'}}),
+            React.createElement('div',{onClick:()=>this.setState({pickerOpen:false}),
+              style:{width:22,height:22,borderRadius:5,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'#8E8E96',border:'1px solid #37373A'}},'×')),
+          React.createElement('div',{style:{display:'flex',gap:2,paddingBottom:8}},...tabs)),
+        React.createElement('div',{style:{background:'#1B1B1D',padding:14,overflowY:'auto',overflowX:'hidden',flex:1,minHeight:0}},body)));
+  }
+
+  // ===== 底部层级总览 Dock（每级一列，横向对齐主视图列并随其滚动）=====
+  buildLevelsDock(T){
+    if(!T.nodes.length) return null;
+    const labels=['目标产物','一级配方','二级配方','三级配方','四级配方','五级配方','六级配方','七级配方','八级配方'];
+    const rows=[];
+    for(let L=0;L<=T.maxLevel;L++){
+      const ns=T.nodes.filter(n=>n.level===L);
+      const out={},inp={};
+      ns.forEach(n=>{out[n.itemId]=(out[n.itemId]||0)+n.rate;});
+      ns.forEach(n=>n.ings.forEach(gg=>{inp[gg.itemId]=(inp[gg.itemId]||0)+gg.rate;}));
+      rows.push({L,out,inp,machines:ns.reduce((s,n)=>s+n.machines,0),allRaw:ns.every(n=>n.isRaw)});
+    }
+    const nameOf=id=>(this.RECIPES[id]||this.RAW[id]||{}).name||window.FacData.names[id]||id;
+    const item=(id,r,em)=>React.createElement('div',{key:(em?'o':'i')+id,style:{display:'flex',alignItems:'center',gap:5,padding:'1.5px 0'}},
+      React.createElement('div',{style:{width:6,height:6,borderRadius:2,background:this.NC[id],flexShrink:0,opacity:em?1:0.55}}),
+      React.createElement('div',{style:{flex:1,minWidth:0,fontSize:10.5,fontWeight:em?700:600,color:em?'#CCCCD1':'#8E8E96',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},nameOf(id)),
+      React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:9,color:em?this.NC[id]:'#67676E',flexShrink:0}},this.fmtRate(r)));
+    const cols=rows.map(row=>{
+      const accent=row.L===0?'var(--accent)':row.allRaw?'#88AABE':'#8E8E96';
+      const outIds=Object.keys(row.out), inpIds=Object.keys(row.inp);
+      return React.createElement('div',{key:row.L,style:{width:this.COLSTEP,flexShrink:0,display:'flex',flexDirection:'column',padding:'7px 16px 6px 0'}},
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:4,flexShrink:0}},
+          React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:9,fontWeight:700,color:accent,background:'rgba(255,255,255,0.04)',border:'1px solid #333336',borderRadius:3,padding:'1px 5px'}},'L'+row.L),
+          React.createElement('div',{style:{fontSize:10,fontWeight:700,color:'#9F9D8F',letterSpacing:'0.04em',flex:1,overflow:'hidden',whiteSpace:'nowrap'}},labels[row.L]||row.L+'级'),
+          row.machines>0?React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:8.5,color:'#67676E'}},this.fmtMach(row.machines)+'台'):null),
+        React.createElement('div',{style:{flex:1,overflowY:'auto',minHeight:0}},
+          React.createElement('div',{style:{fontSize:8,fontWeight:700,letterSpacing:'0.1em',color:'#67676E',padding:'1px 0'}},'产出'),
+          ...outIds.map(id=>item(id,row.out[id],true)),
+          inpIds.length?React.createElement('div',{style:{fontSize:8,fontWeight:700,letterSpacing:'0.1em',color:'#67676E',padding:'3px 0 1px'}},'消耗'):null,
+          ...inpIds.map(id=>item(id,row.inp[id],false))));
+    });
+    return React.createElement('div',{style:{height:172,flexShrink:0,borderTop:'1px solid #2E2E31',background:'#161618',display:'flex',flexDirection:'column'}},
+      React.createElement('div',{style:{flexShrink:0,display:'flex',alignItems:'center',gap:8,padding:'6px 14px 0'}},
+        React.createElement('div',{style:{fontSize:10.5,fontWeight:700,letterSpacing:'0.08em',color:'#B0B0B7'}},'层级总览'),
+        React.createElement('div',{style:{fontSize:8.5,color:'#67676E',letterSpacing:'0.08em'}},'每列对齐主视图 · 随主视图横向滚动')),
+      React.createElement('div',{ref:el=>{this._lvl=el;},style:{flex:1,overflow:'hidden',minHeight:0}},
+        React.createElement('div',{style:{display:'flex',paddingLeft:20,width:(T.maxLevel+1)*this.COLSTEP+40,height:'100%'}},...cols)));
+  }
+
+  // ===== 侧边栏 宽/窄 =====
+  buildSideToggle(key){
+    const wide=this.state[key];
+    return React.createElement('div',{title:wide?'收窄侧栏':'展开侧栏',
+      onClick:()=>this.setState(s=>({[key]:!s[key]})),
+      style:{width:22,height:22,borderRadius:5,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0,
+        border:'1px solid #37373A',color:'#8E8E96',fontSize:12,lineHeight:1,margin:wide?'0':'0 auto'},
+      onMouseEnter:e=>{e.currentTarget.style.background='#28282B';e.currentTarget.style.color='#E2E0D7';},
+      onMouseLeave:e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#8E8E96';}},wide?'«':'»');
+  }
+  buildSideRail(){
+    const plan=this.PLANS.find(p=>p.id===this.state.activePlan)||this.PLANS[0];
+    return React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6,alignItems:'center'}},
+      ...plan.blocks.map(id=>{
+        const b=this.BLOCKS[id]; const active=this.state.activeBlock===id;
+        return React.createElement('div',{key:id,title:b.name,onClick:()=>this.selectBlock(id),
+          style:{width:26,height:26,borderRadius:6,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',
+            background:active?b.color:'transparent',border:'1px solid '+(active?b.color:'#37373A')}},
+          React.createElement('div',{style:{width:10,height:10,borderRadius:3,background:active?'#1B1B1D':b.color,opacity:active?0.85:0.6}}));
+      }));
+  }
+
+  // ===== 副产物配平账本（状态栏芯片 + 弹层，替代原侧栏卡片）=====
+  buildSolverChip(T){
+    const adv=this.state.petgasRecipe==='adv';
+    const oils=T.nodes.filter(n=>n.isOil&&n.recipe==='adv');
+    const {s:sBase}=this.modEffect(); const sMul=sBase+this.beaconSpeed(); const crackPerMin=30*sMul;
+    let hProd=0,lProd=0,hCons=0,lCons=0,hM=0,lM=0,byH=0,byL=0;
+    oils.forEach(n=>{
+      if(n.mode==='crack'){ const cyc=n.rate/97.5, hp=cyc*25, hc=hp/40, lt=cyc*45+hc*30, lc=lt/30;
+        hProd+=hp; lProd+=lt; hCons+=hc*40; lCons+=lc*30; hM+=hc/crackPerMin; lM+=lc/crackPerMin; }
+      else { hProd+=n.heavyBy; lProd+=n.lightBy; byH+=n.heavyBy; byL+=n.lightBy; }
+    });
+    const relevant=adv&&oils.length>0;
+    const balanced=byH+byL<0.01;
+    const stC=!relevant?'#67676E':balanced?'#7FA98A':'#C3A970';
+    const stTxt=!relevant?'配平 · 不适用':balanced?'配平 · 无堆积':'副产堆积中';
+    const open=this.state.solverOpen;
+    const row=(id,prod,cons)=>{
+      const net=prod-cons;
+      return React.createElement('div',{key:id,style:{display:'grid',gridTemplateColumns:'1fr 62px 62px 62px',gap:6,alignItems:'center',padding:'4px 0'}},
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},
+          React.createElement('div',{style:{width:7,height:7,borderRadius:2,background:this.NC[id]}}),
+          React.createElement('div',{style:{fontSize:11.5,fontWeight:700,color:'#DFDFE2'}},this.itemDisplayName(id))),
+        React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:'#9F9D8F',textAlign:'right'}},this.fmtRate(prod)),
+        React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:10.5,color:'#9F9D8F',textAlign:'right'}},this.fmtRate(cons)),
+        React.createElement('div',{style:{fontFamily:'JetBrains Mono, monospace',fontSize:10.5,fontWeight:700,textAlign:'right',color:Math.abs(net)<0.01?'#7FA98A':'#C3A970'}},(net>0.01?'+':'')+this.fmtRate(net)));
+    };
+    const modeBtn=(mode,label)=>{
+      const on=this.state.oilMode===mode;
+      return React.createElement('div',{key:mode,onClick:()=>this.setState({oilMode:mode}),
+        style:{flex:1,textAlign:'center',fontSize:10.5,fontWeight:700,cursor:'pointer',padding:'5px 4px',borderRadius:5,
+          background:on?'var(--accent)':'#19191B',border:'1px solid '+(on?'var(--accent)':'#37373A'),color:on?'#1B1B1D':'#8E8E96'}},label);
+    };
+    const panel=!open?null:React.createElement('div',{style:{position:'absolute',bottom:30,left:0,width:330,background:'#1B1B1D',border:'1px solid #3C3C40',borderRadius:9,padding:'12px 14px',boxShadow:'0 10px 30px rgba(0,0,0,0.5)',zIndex:60,cursor:'default'},onClick:e=>e.stopPropagation()},
+      React.createElement('div',{style:{display:'flex',alignItems:'center',gap:7,marginBottom:9}},
+        React.createElement('div',{style:{fontSize:9,fontWeight:700,color:'var(--accent)',background:'rgba(var(--accent-rgb),0.14)',border:'1px solid var(--accent)',borderRadius:3,padding:'1px 5px'}},'LP'),
+        React.createElement('div',{style:{fontSize:12.5,fontWeight:700,color:'#E2E0D7'}},'流体配平账本'),
+        React.createElement('div',{style:{flex:1}}),
+        React.createElement('div',{style:{fontSize:10,color:stC,fontWeight:700}},stTxt)),
+      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 62px 62px 62px',gap:6,padding:'2px 0 4px',borderBottom:'1px solid #333336'}},
+        ...['流体','产出/m','消耗/m','净剩'].map((t,i)=>React.createElement('div',{key:i,style:{fontSize:8.5,fontWeight:700,letterSpacing:'0.08em',color:'#67676E',textAlign:i?'right':'left'}},t))),
+      relevant?row('heavy-oil',hProd,hCons):React.createElement('div',{style:{fontSize:10.5,color:'#8E8E96',padding:'8px 0'}},'当前画布无高级原油处理，无需配平'),
+      relevant?row('light-oil',lProd,lCons):null,
+      relevant?React.createElement('div',{style:{borderTop:'1px solid #333336',marginTop:6,paddingTop:8}},
+        React.createElement('div',{style:{fontSize:8.5,fontWeight:700,letterSpacing:'0.08em',color:'#67676E',marginBottom:5}},'求解器选用的消耗链'),
+        this.state.oilMode==='crack'
+          ?React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:3}},
+            React.createElement('div',{style:{fontSize:11,color:'#BBBBC1'}},'重油裂化 · 化工厂 ×'+this.fmtMach(hM)),
+            React.createElement('div',{style:{fontSize:11,color:'#BBBBC1'}},'轻油裂化 · 化工厂 ×'+this.fmtMach(lM)))
+          :React.createElement('div',{style:{fontSize:11,color:'#C3A970'}},'未消耗 → 储液罐（重油 '+this.fmtRate(byH)+'/m · 轻油 '+this.fmtRate(byL)+'/m）')):null,
+      relevant?React.createElement('div',{style:{display:'flex',gap:6,marginTop:9}},modeBtn('crack','自动裂化配平'),modeBtn('store','保留副产')):null,
+      React.createElement('div',{style:{fontSize:8.5,color:'#67676E',marginTop:8,lineHeight:1.4}},'求解器搜索配方表 → 选消耗链 → 矩阵配平机器数（mod 配方自动纳入）'));
+    return React.createElement('div',{style:{position:'relative',display:'flex',alignItems:'center',gap:6,cursor:'pointer',userSelect:'none'},
+      onClick:()=>this.setState(s=>({solverOpen:!s.solverOpen}))},
+      React.createElement('div',{style:{width:5,height:5,borderRadius:'50%',background:stC,boxShadow:'0 0 5px '+stC+'88'}}),
+      React.createElement('span',{style:{fontSize:10,fontWeight:700,letterSpacing:'0.07em',color:'#67676E'}},'配平'),
+      React.createElement('span',{style:{fontSize:10.5,fontWeight:700,color:stC,fontFamily:'Rajdhani, sans-serif'}},stTxt.replace('配平 · ','')),
+      React.createElement('span',{style:{fontSize:8,color:'#67676E'}},open?'▼':'▲'),
+      panel);
+  }
+
+  // ===== Plan 标签栏 =====
+  buildPlanTabs(){
+    const els=this.PLANS.map(p=>{
+      const active=this.state.activePlan===p.id;
+      return React.createElement('div',{key:p.id,onClick:()=>this.selectPlan(p.id),
+        style:{display:'flex',alignItems:'center',gap:7,padding:'5px 14px',borderRadius:6,cursor:'pointer',
+          background:active?'#2E2E31':'transparent',border:'1px solid '+(active?'var(--accent)':'transparent')}},
+        React.createElement('div',{style:{width:6,height:6,borderRadius:'50%',background:active?'var(--accent)':'#707077'}}),
+        React.createElement('div',{style:{fontSize:13,fontWeight:700,letterSpacing:'0.05em',color:active?'#EAEAEC':'#96969E'}},p.name),
+        React.createElement('div',{style:{fontSize:9,color:active?'#8A7D96':'#67676E',fontFamily:'JetBrains Mono, monospace'}},p.blocks.length+' line')
+      );
+    });
+    els.push(React.createElement('div',{key:'add',title:'新建计划（示意）',
+      style:{width:26,height:26,borderRadius:6,border:'1px dashed #44444A',display:'flex',alignItems:'center',justifyContent:'center',color:'#707077',fontSize:16,cursor:'default'}},'+'));
+    return React.createElement('div',{style:{display:'flex',alignItems:'center',gap:5}},...els);
+  }
+
+  // ===== 生产块列表（侧栏：每个 block = 一块画布，点击像下沉一样整体切换画布；line 不可单独切换）=====
+  buildBlockList(){
+    const plan=this.PLANS.find(p=>p.id===this.state.activePlan)||this.PLANS[0];
+    const addBtn=React.createElement('div',{key:'__add',onClick:()=>this.openPicker(),
+      style:{cursor:'pointer',borderRadius:8,padding:'10px 11px',border:'1px dashed #4C4C52',color:'#8E8E96',
+        display:'flex',alignItems:'center',justifyContent:'center',gap:7,fontSize:12,fontWeight:700,letterSpacing:'0.05em'},
+      onMouseEnter:e=>{e.currentTarget.style.borderColor='var(--accent)';e.currentTarget.style.color='var(--accent)';},
+      onMouseLeave:e=>{e.currentTarget.style.borderColor='#4C4C52';e.currentTarget.style.color='#8E8E96';}},'＋ 添加生产块');
+    return React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:8}},
+      addBtn,
+      ...plan.blocks.map(id=>{
+        const b=this.BLOCKS[id]; const active=this.state.activeBlock===id;
+        const names=b.lines.map(ln=>(this.RECIPES[ln.item]||this.RAW[ln.item]||{}).name||ln.item).join(' · ');
+        return React.createElement('div',{key:id,onClick:()=>this.selectBlock(id),
+          style:{cursor:'pointer',borderRadius:8,padding:'10px 11px',background:active?b.color:'#232326',
+            border:'1px solid '+(active?b.color:'#39393E'),transition:'background .12s'},
+          onMouseEnter:e=>{ if(!active) e.currentTarget.style.background='#29292C'; },
+          onMouseLeave:e=>{ if(!active) e.currentTarget.style.background='#232326'; }},
+          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8}},
+            React.createElement('div',{style:{width:9,height:9,borderRadius:2,background:active?'#1B1B1D':b.color,flexShrink:0,opacity:0.85}}),
+            React.createElement('div',{style:{flex:1,minWidth:0,fontSize:13.5,fontWeight:700,color:active?'#1B1B1D':'#C6C6CB',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},b.name),
+            active?React.createElement('div',{style:{fontSize:8,fontWeight:700,letterSpacing:'0.06em',color:'#1B1B1D',background:'rgba(20,20,22,0.16)',borderRadius:3,padding:'1px 5px',flexShrink:0}},'画布'):null
+          ),
+          React.createElement('div',{style:{fontSize:9.5,color:active?'rgba(20,20,22,0.6)':'#7F7F87',marginTop:4,paddingLeft:17,lineHeight:1.4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},
+            b.lines.length+' 个主目标 · '+names)
+        );
+      })
+    );
+  }
+
+  // ===== 下钻面包屑（浏览器式后退/前进 + 路径）=====
+  buildBreadcrumb(){
+    const {navStack,navIdx}=this.state;
+    const canBack=navIdx>0, canFwd=navIdx<navStack.length-1;
+    const navBtn=(label,enabled,onClick)=>React.createElement('div',{onClick:enabled?onClick:undefined,
+      style:{width:26,height:24,borderRadius:5,display:'flex',alignItems:'center',justifyContent:'center',
+        background:enabled?'#2E2E31':'transparent',border:'1px solid '+(enabled?'#44444A':'#2B2B2E'),
+        color:enabled?'#B0B0B7':'#3A3A3E',fontSize:14,cursor:enabled?'pointer':'default',userSelect:'none'}},label);
+    const chips=[];
+    navStack.forEach((s,i)=>{
+      if(i>0) chips.push(React.createElement('div',{key:'sep'+i,style:{color:'#4D4D53',fontSize:12}},'›'));
+      const active=i===navIdx;
+      chips.push(React.createElement('div',{key:'c'+i,onClick:()=>this.navTo(i),
+        style:{padding:'3px 9px',borderRadius:5,cursor:'pointer',fontSize:12,fontWeight:700,maxWidth:170,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flexShrink:0,
+          background:active?'var(--accent)':'transparent',color:active?'#1B1B1D':'#96969E'}},
+        (i===0?'◎ ':'')+(s.name||s.root)));
+    });
+    return React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,width:'100%'}},
+      navBtn('←',canBack,()=>this.navBack()),
+      navBtn('→',canFwd,()=>this.navFwd()),
+      React.createElement('div',{style:{width:1,height:16,background:'#39393D'}}),
+      React.createElement('div',{style:{fontSize:9,fontWeight:700,letterSpacing:'0.1em',color:'#707077',flexShrink:0}},'下钻路径'),
+      React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,flexWrap:'nowrap',overflow:'hidden',minWidth:0,flexShrink:1}},...chips),
+      (navIdx===0&&this.curBlock())?React.createElement('div',{onClick:()=>this.openPicker('line'),
+        style:{display:'flex',alignItems:'center',gap:5,padding:'3px 10px',borderRadius:5,cursor:'pointer',fontSize:11.5,fontWeight:700,
+          border:'1px dashed #4C4C52',color:'#8E8E96',flexShrink:0},
+        onMouseEnter:e=>{e.currentTarget.style.borderColor='var(--accent)';e.currentTarget.style.color='var(--accent)';},
+        onMouseLeave:e=>{e.currentTarget.style.borderColor='#4C4C52';e.currentTarget.style.color='#8E8E96';}},'＋ 并列配方'):null,
+      React.createElement('div',{style:{flex:1}}),
+      navIdx>0?React.createElement('div',{style:{fontSize:9.5,color:'#7F7F87'}},'双击节点或「下沉」进入二级展开'):React.createElement('div',{style:{fontSize:9.5,color:'#707077'}},'悬停节点 → 点「下沉 ↧」展开该物品配方')
+    );
+  }
+
+  renderVals(){
+    const {activeTab,viewMode,targetRate,assemblerTier,beaconCount,selectedNode}=this.state;
+    const {s:sm,p:pm,w:wm}=this.modEffect();
+    const T=this.computeTree();
+    const target=T.nodes.find(n=>n.level===0);
+    const selNode=selectedNode?T.nodes.find(n=>n.uid===selectedNode):target;
+    const selC=selNode?selNode.color:'#818CF8';
+    const tabF=t=>({bg:activeTab===t?'rgba(var(--accent-rgb),0.1)':'transparent',c:activeTab===t?'var(--accent)':'#96969E'});
+    const vF=v=>({bg:viewMode===v?'var(--accent)':'transparent',c:viewMode===v?'#1B1B1D':'#8E8E96'});
+    const trF=t=>({bg:assemblerTier===t?'var(--accent)':'#28282B',bd:assemblerTier===t?'var(--accent)':'#44444A',c:assemblerTier===t?'#1B1B1D':'#8E8E96'});
+    const totalM=T.nodes.reduce((s,n)=>s+n.machines+(n.crackMachines||0),0);
+    const totalMW=T.nodes.reduce((s,n)=>s+n.pw,0)/1e6;
+    return {
+      tabBg_p:tabF('production').bg, tabCol_p:tabF('production').c,
+      tabBg_w:tabF('power').bg,      tabCol_w:tabF('power').c,
+      tabBg_r:tabF('research').bg,   tabCol_r:tabF('research').c,
+      tabBg_l:tabF('planning').bg,   tabCol_l:tabF('planning').c,
+      viewNBg:vF('nodes').bg,  viewNCol:vF('nodes').c,
+      viewTBg:vF('tree').bg,   viewTCol:vF('tree').c,
+      viewCBg:vF('columns').bg, viewCCol:vF('columns').c,
+      viewSBg:vF('sankey').bg, viewSCol:vF('sankey').c,
+      layCBg:(this.state.layoutMode==='center'?'var(--accent)':'transparent'), layCCol:(this.state.layoutMode==='center'?'#1B1B1D':'#8E8E96'),
+      layFBg:(this.state.layoutMode==='first'?'var(--accent)':'transparent'),  layFCol:(this.state.layoutMode==='first'?'#1B1B1D':'#8E8E96'),
+      isProdNodes:  activeTab==='production'&&viewMode==='nodes',
+      isProdTree:   activeTab==='production'&&viewMode==='tree',
+      isProdColumns:activeTab==='production'&&viewMode==='columns',
+      isProdSankey: activeTab==='production'&&viewMode==='sankey',
+      isPow:  activeTab==='power', isRes:  activeTab==='research', isPlan: activeTab==='planning',
+      tier1Bg:trF(1).bg,tier1Bd:trF(1).bd,tier1Col:trF(1).c,
+      tier2Bg:trF(2).bg,tier2Bd:trF(2).bd,tier2Col:trF(2).c,
+      tier3Bg:trF(3).bg,tier3Bd:trF(3).bd,tier3Col:trF(3).c,
+      targetRate:this.lineRate(this.selLineIdx()), beaconCount,
+      speedMult:sm.toFixed(2), prodBonus:Math.round((pm-1)*100), powerMult:wm.toFixed(1),
+      totalM:totalM.toFixed(1),
+      totalPow:this.fmtMW(totalMW),
+      eff:`${Math.min(99,Math.round(78+sm*12))}%`,
+      nodeCount:T.nodes.length,
+      selColor:selC,
+      selName:selNode?selNode.name:'—',
+      selMachine:selNode?selNode.machine:'—',
+      selMach:selNode?this.fmtMach(selNode.machines):'—',
+      selLevel:selNode?selNode.level:'—',
+      selRate:selNode?`${this.fmtRate(selNode.rate)}/min`:'—',
+      selPow:selNode?this.fmtNodePW(selNode.pw):'—',
+      graph:this.buildGraph(T),
+      treeView:this.buildTreeView(T),
+      columnView:this.buildColumnView(T),
+      sankeyView:this.buildSankey(T),
+      modSlots:this.buildModSlots(),
+      shellDir:this.state.tabBarPos==='left'?'row':'column',
+      tabBar:this.buildTabBar(),
+      sideAWide:this.state.sideAWide, sideANarrow:!this.state.sideAWide,
+      sideAW:this.state.sideAWide?'218px':'46px',
+      sideAToggle:this.buildSideToggle('sideAWide'),
+      sideRail:this.buildSideRail(),
+      levelsDock:this.buildLevelsDock(T),
+      recipePicker:this.buildRecipePicker(),
+      solverChip:this.buildSolverChip(T),
+      blockList:this.buildBlockList(),
+      breadcrumb:this.buildBreadcrumb(),
+      setP:()=>this.setState({activeTab:'production'}),
+      setW:()=>this.setState({activeTab:'power'}),
+      setR:()=>this.setState({activeTab:'research'}),
+      setL:()=>this.setState({activeTab:'planning'}),
+      setNodes:()=>this.setState({viewMode:'nodes'}),
+      setTree:()=>this.setState({viewMode:'tree'}),
+      setColumns:()=>this.setState({viewMode:'columns'}),
+      setSankey:()=>this.setState({viewMode:'sankey'}),
+      setLayCenter:()=>this.setState({layoutMode:'center'}),
+      setLayFirst:()=>this.setState({layoutMode:'first'}),
+      incRate:()=>this.setState(s=>{ const i=this.selLineIdx(); const k=s.activeBlock+':'+i; const bl=this.BLOCKS[s.activeBlock]; if(!bl||!bl.lines[i]) return {}; const cur=s.lineRates[k]!=null?s.lineRates[k]:bl.lines[i].rate; return {lineRates:Object.assign({},s.lineRates,{[k]:Math.min(300,cur+5)})}; }),
+      decRate:()=>this.setState(s=>{ const i=this.selLineIdx(); const k=s.activeBlock+':'+i; const bl=this.BLOCKS[s.activeBlock]; if(!bl||!bl.lines[i]) return {}; const cur=s.lineRates[k]!=null?s.lineRates[k]:bl.lines[i].rate; return {lineRates:Object.assign({},s.lineRates,{[k]:Math.max(5,cur-5)})}; }),
+      incBcn:()=>this.setState(s=>({beaconCount:Math.min(16,s.beaconCount+1)})),
+      decBcn:()=>this.setState(s=>({beaconCount:Math.max(0,s.beaconCount-1)})),
+      setT1:()=>this.setState({assemblerTier:1}),
+      setT2:()=>this.setState({assemblerTier:2}),
+      setT3:()=>this.setState({assemblerTier:3}),
+    };
+  }
+}
+</script>
+</body>
+</html>

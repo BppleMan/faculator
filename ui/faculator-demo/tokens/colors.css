@@ -1,0 +1,53 @@
+/* Faculator 色彩令牌 —— 暖炭钢 + 金琥珀(参考截图风格) */
+:root {
+  /* 基底 · 暖炭 */
+  --bg-0: #0F0E0C;   /* 页面最深底 */
+  --bg-1: #14130F;   /* 页面底 */
+  --bg-2: #191813;   /* 面板面 */
+  --bg-3: #1F1D17;   /* 悬起面/表头 */
+  --bg-4: #26231C;   /* 高亮面 */
+  --plate-hi: #1E1C16;
+  --plate-lo: #15130F;
+  --inset-lo: #0C0B09;  /* 凹槽/读数底 */
+
+  /* 线 · 板缝(外黑内高光) */
+  --line-0: #000000;
+  --line-1: #24211A;
+  --line-2: #2E2A21;
+  --line-3: #3A352A;
+  --line-4: #4E4738;
+  --steel-edge: rgba(233,215,170,0.06);
+
+  /* 文本 */
+  --text-1: #D9D0BC;
+  --text-2: #A69D89;
+  --text-3: #746C5A;
+  --text-4: #4C463A;
+
+  /* 金琥珀 · 主强调 */
+  --amber: #C08A2E;
+  --amber-hi: #DCA943;
+  --amber-dim: #77571C;
+  --amber-ink: #1C1304;
+  --amber-glow: rgba(192,138,46,0.28);
+  --amber-tint: rgba(192,138,46,0.10);
+
+  /* 语义 */
+  --ok: #6FBF5E;      --ok-tint: rgba(111,191,94,0.09);
+  --info: #7BA3B8;    --info-tint: rgba(123,163,184,0.09);
+  --danger: #C25445;  --danger-tint: rgba(194,84,69,0.10);
+  --warn: #C08A2E;    --warn-tint: rgba(192,138,46,0.10);
+
+  /* 语义别名 */
+  --surface-page: var(--bg-1);
+  --surface-panel: var(--bg-2);
+  --surface-raised: var(--bg-3);
+  --surface-inset: var(--inset-lo);
+  --text-title: var(--text-1);
+  --text-body: var(--text-2);
+  --text-label: var(--text-3);
+  --text-faint: var(--text-4);
+  --accent: var(--amber);
+  --accent-strong: var(--amber-hi);
+  --focus-ring: 0 0 0 1px var(--amber), 0 0 8px var(--amber-glow);
+}

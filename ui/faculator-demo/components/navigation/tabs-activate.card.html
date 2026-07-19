@@ -1,0 +1,295 @@
+<!-- @dsCard group="Explorations" viewport="740x940" subtitle="合拢激活 6 版 · A 场记板 / B 闸刀 / C 图章 / D 走带键 / E 扳道岔 / F 保险箱盘" name="TabBar · 合拢激活" -->
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../_card_loader.js"></script>
+<style>body{margin:0;background:var(--tex-page);padding:14px 16px;font-family:var(--font-display);color:var(--text-1)}*{box-sizing:border-box}.lbl{font-size:9px;letter-spacing:0.16em;color:var(--text-4);font-weight:700;font-family:var(--font-mono)}</style>
+</head><body><div id="root"></div>
+<script type="text/x-app">
+const W = 130;
+const AM = '#DCA943', GN = '#6FBF5E', OR = '#E8935A', RD = '#C25445';
+const STEEL  = 'var(--tex-noise), linear-gradient(180deg, #302B22, #1C1913)';
+const EASE = 'cubic-bezier(0.2, 0.9, 0.25, 1)';
+const PANEL = {fontSize:12,color:'var(--text-2)',padding:'9px 12px',background:'var(--tex-noise), linear-gradient(180deg, #2A2620, #1E1C16)',border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 0 rgba(233,215,170,0.1), 0 2px 4px rgba(0,0,0,0.5)'};
+let seq = 3;
+const START = [{id:1,label:'基地规划'},{id:2,label:'新建计划'}];
+
+const AC = { ctx: null };
+function sound(){
+  try {
+    if (!AC.ctx) AC.ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const ctx = AC.ctx; if (ctx.state==='suspended') ctx.resume();
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator(); o.type='square';
+    o.frequency.setValueAtTime(340, t); o.frequency.exponentialRampToValueAtTime(90, t+0.05);
+    const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.2; bp.frequency.value=950;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.085, t+0.006); g.gain.exponentialRampToValueAtTime(0.0001, t+0.09);
+    o.connect(bp); bp.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.1);
+    const len=0.05, buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*len),ctx.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2)*0.5; }
+    const s=ctx.createBufferSource(); s.buffer=buf;
+    const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=2600;
+    const g2=ctx.createGain(); g2.gain.setValueAtTime(0.04,t); g2.gain.exponentialRampToValueAtTime(0.0001,t+len);
+    s.connect(hp); hp.connect(g2); g2.connect(ctx.destination); s.start(t);
+  } catch(e){}
+}
+function useTabs(){
+  const [tabs,setTabs] = React.useState(START);
+  const [cur,setCur] = React.useState(1);
+  const pick = (id) => { if (id===cur) return; setCur(id); sound(); };
+  const add = () => { seq++; const t={id:seq,label:'计划 '+String(seq).padStart(2,'0')}; setTabs(ts=>[...ts,t]); setCur(seq); sound(); };
+  const close = (id) => setTabs(ts=>{ const nx=ts.filter(t=>t.id!==id);
+    if (id===cur && nx.length) setCur(nx[Math.max(0, ts.findIndex(t=>t.id===id)-1)].id); return nx; });
+  return {tabs,cur,pick,add,close};
+}
+function CloseBtn({onClick, active}){
+  return <span onClick={(e)=>{e.stopPropagation();onClick();}} style={{
+    width:14,height:14,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:11,lineHeight:1,cursor:'pointer',borderRadius:2,color:active?'var(--text-3)':'var(--text-4)',
+    background:'#0A0908',border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 2px rgba(0,0,0,0.8)'}}
+    onMouseEnter={e=>{e.currentTarget.style.color='var(--danger)'}}
+    onMouseLeave={e=>{e.currentTarget.style.color=active?'var(--text-3)':'var(--text-4)'}}>&#215;</span>;
+}
+function AddBtn({onClick}){
+  return <span onClick={onClick} style={{
+    width:22,height:22,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',
+    fontSize:14,fontWeight:700,cursor:'pointer',borderRadius:2,color:'var(--text-2)',
+    background:'var(--tex-noise), radial-gradient(ellipse 90% 70% at 50% 18%, #2E2A22, #1E1C16 60%, #16140F)',
+    border:'1px solid var(--line-0)',boxShadow:'inset 0 1px 1px rgba(233,215,170,0.15), 0 1px 0 #050403, 0 2px 2px rgba(0,0,0,0.7)',userSelect:'none'}}>+</span>;
+}
+function Lamp({a, label, off, on}){
+  const c = on||GN;
+  return <div style={{display:'flex',alignItems:'center',gap:6,minWidth:0}}>
+    <span className={a?'fx-lamp-blink':''} style={{width:5,height:5,borderRadius:'50%',flexShrink:0,
+      background:a?c:'#242118',boxShadow:a?'0 0 6px '+c:'inset 0 1px 1px rgba(0,0,0,0.85)',transition:'background 150ms, box-shadow 150ms'}}></span>
+    <span style={{fontFamily:'var(--font-mono)',fontSize:8,fontWeight:700,letterSpacing:'0.14em',whiteSpace:'nowrap',
+      color:a?c:'var(--text-4)',textShadow:a?'0 0 5px '+c+'88':'none',transition:'color 150ms'}}>{a?label:off}</span>
+  </div>;
+}
+function Title({t,a,color}){
+  return <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12,fontWeight:700,letterSpacing:'0.03em',
+    color:a?(color||'var(--text-1)'):'var(--text-3)',textShadow:a&&color?'0 0 8px '+color+'88':'none'}}>{t.label}</span>;
+}
+function Demo({name,note,children}){
+  return <div style={{display:'flex',flexDirection:'column',gap:6}}>
+    <div style={{display:'flex',gap:10,alignItems:'baseline'}}><span style={{fontSize:12,fontWeight:700,color:'var(--amber)'}}>{name}</span><span className="lbl">{note}</span></div>
+    {children}
+  </div>;
+}
+
+/* A · 场记板 — 打板合拢开拍,ROLLING */
+function BarA(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+10, UH=52, H=UH+14;
+  const stick = 'repeating-linear-gradient(-52deg, #E4D8BC 0 9px, #17140F 9px 18px)';
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',left:x,top:12,width:W,height:UH,cursor:'pointer',userSelect:'none'}}>
+          <div style={{position:'absolute',inset:0,borderRadius:3,background:'var(--tex-noise), linear-gradient(180deg,#242019,#131110)',border:'1px solid var(--line-0)',
+            boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.18), 0 0 10px '+AM+'2E':'inset 0 1px 0 rgba(233,215,170,0.1), inset 0 -3px 5px rgba(0,0,0,0.5)',transition:'box-shadow 200ms'}}>
+            <div style={{position:'absolute',top:8,left:9,right:8,display:'flex',alignItems:'center',gap:6}}>
+              <span style={{fontFamily:'var(--font-mono)',fontSize:8,fontWeight:700,color:'var(--text-4)',letterSpacing:'0.1em'}}>SCN</span>
+              <Title t={t} a={a}/><CloseBtn active={a} onClick={()=>close(t.id)}/>
+            </div>
+            <div style={{position:'absolute',bottom:6,left:9,right:8,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <span style={{fontFamily:'var(--font-mono)',fontSize:8,fontWeight:700,color:'var(--text-4)',letterSpacing:'0.08em'}}>{'TAKE '+String(i+1).padStart(2,'0')+' · ROLL A'}</span>
+              <Lamp a={a} label="ROLLING" off="待打板"/>
+            </div>
+          </div>
+          <div style={{position:'absolute',left:0,top:-9,width:W,height:11,transformOrigin:'4px bottom',
+            transform:'rotate('+(a?0:-19)+'deg)',transition:'transform 300ms '+EASE,
+            borderRadius:2,background:stick,border:'1px solid #000',boxShadow:a?'0 2px 5px rgba(0,0,0,0.7)':'0 5px 9px rgba(0,0,0,0.6)'}}></div>
+          <div style={{position:'absolute',left:-1,top:-3,width:8,height:8,borderRadius:'50%',background:'radial-gradient(circle at 40% 35%,#6A6048,#241F16)',border:'1px solid #000'}}></div>
+        </div>;})}
+      <span style={{position:'absolute',top:24,left:6+tabs.length*STEP}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* B · 闸刀开关 — 刀闸拨下入夹口,合闸电弧 */
+function BarB(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+10, UH=56, H=UH+8;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',left:x,top:6,width:W,height:UH,cursor:'pointer',userSelect:'none'}}>
+          <div style={{position:'absolute',inset:0,borderRadius:4,background:STEEL,border:'1px solid var(--line-0)',
+            boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.2), 0 0 10px '+AM+'33':'inset 0 1px 0 rgba(233,215,170,0.12), inset 0 -3px 5px rgba(0,0,0,0.5)',transition:'box-shadow 200ms'}}></div>
+          <div style={{position:'absolute',left:9,top:16,width:13,height:13,borderRadius:'50%',background:'radial-gradient(circle at 40% 35%,#6A6048,#241F16)',border:'1px solid #000',boxShadow:'inset 0 -1px 2px #000'}}></div>
+          <div style={{position:'absolute',right:12,top:12,width:15,height:22,display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
+            <div style={{height:5,borderRadius:2,background:'linear-gradient(180deg,#9a8850,#4a3f22)',boxShadow:a?'0 0 7px '+AM:'inset 0 0 2px #000'}}></div>
+            <div style={{height:5,borderRadius:2,background:'linear-gradient(180deg,#9a8850,#4a3f22)',boxShadow:a?'0 0 7px '+AM:'inset 0 0 2px #000'}}></div>
+          </div>
+          <div style={{position:'absolute',right:14,top:19,width:10,height:8,borderRadius:'50%',background:'radial-gradient(circle,'+AM+',transparent 70%)',opacity:a?0.9:0,transition:'opacity 160ms'}}></div>
+          <div style={{position:'absolute',left:15,top:15,width:W-40,height:15,transformOrigin:'6px 50%',
+            transform:'rotate('+(a?0:-38)+'deg)',transition:'transform 320ms '+EASE,
+            borderRadius:2,background:'var(--tex-noise), linear-gradient(180deg,#CFC2A0,#8a7f60)',border:'1px solid #000',
+            boxShadow:a?'0 0 9px '+AM+'88, inset 0 1px 0 rgba(255,255,255,0.4)':'0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3)',
+            display:'flex',alignItems:'center',padding:'0 7px'}}>
+            <span style={{flex:1,fontSize:11,fontWeight:700,letterSpacing:'0.02em',color:'#241d10',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.label}</span>
+          </div>
+          <div style={{position:'absolute',left:9,bottom:5,right:8,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <Lamp a={a} label="合闸" off="断开 ↑"/><CloseBtn active={a} onClick={()=>close(t.id)}/>
+          </div>
+        </div>;})}
+      <span style={{position:'absolute',top:18,left:6+tabs.length*STEP}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* C · 橡皮图章 — 按压盖章,琥珀印记落纸 */
+function BarC(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+8, UH=64, H=UH+4;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',left:x,top:4,width:W,height:UH,cursor:'pointer',userSelect:'none',
+          borderRadius:4,background:STEEL,border:'1px solid var(--line-0)',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.2), 0 0 9px '+AM+'2E':'inset 0 1px 0 rgba(233,215,170,0.12), inset 0 -3px 5px rgba(0,0,0,0.5)',transition:'box-shadow 200ms'}}>
+          <div style={{position:'absolute',top:7,left:9,right:8,display:'flex',alignItems:'center',gap:6}}>
+            <Title t={t} a={a}/><CloseBtn active={a} onClick={()=>close(t.id)}/>
+          </div>
+          {/* 纸 + 印记 */}
+          <div style={{position:'absolute',left:9,top:26,width:78,height:26,borderRadius:2,background:'linear-gradient(180deg,#efe7d4,#dbd1ba)',border:'1px solid rgba(0,0,0,0.3)',overflow:'hidden',boxShadow:'inset 0 1px 0 rgba(255,255,255,0.6)'}}>
+            <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <span style={{border:'1.5px solid '+AM,color:AM,fontFamily:'var(--font-mono)',fontSize:9,fontWeight:700,letterSpacing:'0.12em',padding:'2px 6px',borderRadius:2,
+                transform:'rotate(-7deg) scale('+(a?1:0.55)+')',opacity:a?0.92:0,transition:'opacity 200ms, transform 260ms '+EASE}}>已核准</span>
+            </div>
+          </div>
+          {/* 图章 */}
+          <div style={{position:'absolute',right:12,top:20,width:30,transform:'translateY('+(a?7:0)+'px)',transition:'transform 200ms '+EASE}}>
+            <div style={{height:14,margin:'0 4px',borderRadius:'8px 8px 3px 3px',background:'radial-gradient(ellipse 80% 70% at 50% 30%,#4a4230,#241f16)',border:'1px solid #000',boxShadow:'inset 0 1px 1px rgba(233,215,170,0.3)'}}></div>
+            <div style={{height:5,margin:'0 11px',background:'#0C0B09',borderLeft:'1px solid #000',borderRight:'1px solid #000'}}></div>
+            <div style={{height:11,borderRadius:'2px 2px 3px 3px',background:'linear-gradient(180deg,#3a342a,#201c14)',border:'1px solid #000',boxShadow:a?'0 0 7px '+AM+'66':'0 2px 3px rgba(0,0,0,0.6)'}}></div>
+          </div>
+          <div style={{position:'absolute',left:9,bottom:5}}><Lamp a={a} label="已盖章" off="待盖章 ↓"/></div>
+        </div>;})}
+      <span style={{position:'absolute',top:22,left:6+tabs.length*STEP}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* D · 走带键 — 磁带机机械键按下自锁,PLAY */
+function BarD(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+8, UH=56, H=UH+8;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',left:x,top:6,width:W,height:UH,cursor:'pointer',userSelect:'none'}}>
+          <div style={{position:'absolute',left:0,right:0,top:6,bottom:0,borderRadius:4,background:'#0C0B09',boxShadow:'inset 0 2px 4px #000'}}></div>
+          <div style={{position:'absolute',left:0,right:0,top:0,height:UH-6,borderRadius:4,transform:'translateY('+(a?7:0)+'px)',transition:'transform 160ms '+EASE,
+            background:STEEL,border:'1px solid var(--line-0)',
+            boxShadow:a?'inset 0 2px 6px rgba(0,0,0,0.6), 0 0 9px '+GN+'22':'inset 0 1px 0 rgba(233,215,170,0.22), 0 4px 0 #0a0908, 0 6px 8px rgba(0,0,0,0.6)',
+            display:'flex',flexDirection:'column',justifyContent:'center',gap:5,padding:'0 9px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:7}}>
+              <span style={{width:16,height:16,flexShrink:0,borderRadius:2,display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:8,
+                background:a?'radial-gradient(circle,'+GN+'44,#141210)':'#141210',border:'1px solid #000',color:a?GN:'var(--text-4)',boxShadow:a?'0 0 5px '+GN+'66':'none'}}>&#9654;</span>
+              <Title t={t} a={a}/><CloseBtn active={a} onClick={()=>close(t.id)}/>
+            </div>
+            <Lamp a={a} label="PLAY 运行" off="待按 ↓"/>
+          </div>
+        </div>;})}
+      <span style={{position:'absolute',top:16,left:6+tabs.length*STEP}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* E · 扳道岔 — 扳下道岔杆,信号臂落下放行 */
+function BarE(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+8, UH=58, H=UH+6;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',left:x,top:4,width:W,height:UH,cursor:'pointer',userSelect:'none',
+          borderRadius:4,background:STEEL,border:'1px solid var(--line-0)',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.2), 0 0 9px '+GN+'22':'inset 0 1px 0 rgba(233,215,170,0.12), inset 0 -3px 5px rgba(0,0,0,0.5)',transition:'box-shadow 200ms'}}>
+          {/* 道岔杆 */}
+          <div style={{position:'absolute',left:16,bottom:8,width:6,height:30,transformOrigin:'bottom center',
+            transform:'rotate('+(a?26:-26)+'deg)',transition:'transform 300ms '+EASE}}>
+            <div style={{position:'absolute',left:0,right:0,top:0,bottom:0,borderRadius:3,background:'linear-gradient(90deg,#4a4234,#26221a)',border:'1px solid #000'}}></div>
+            <div style={{position:'absolute',left:'50%',top:-5,width:11,height:11,marginLeft:-5.5,borderRadius:'50%',background:'radial-gradient(circle at 40% 35%,'+AM+',#7a5a1c)',border:'1px solid #000',boxShadow:a?'0 0 6px '+AM:'none'}}></div>
+          </div>
+          <div style={{position:'absolute',left:12,bottom:5,width:14,height:4,borderRadius:2,background:'#0C0B09',border:'1px solid #000'}}></div>
+          {/* 标签 */}
+          <div style={{position:'absolute',left:34,top:9,right:8,display:'flex',alignItems:'center',gap:6}}>
+            <Title t={t} a={a}/><CloseBtn active={a} onClick={()=>close(t.id)}/>
+          </div>
+          <div style={{position:'absolute',left:34,bottom:7}}><Lamp a={a} label="放行" off="停车" on={GN}/></div>
+          {/* 信号机 */}
+          <div style={{position:'absolute',right:14,top:10,bottom:8,width:14}}>
+            <div style={{position:'absolute',left:6,top:0,bottom:0,width:3,background:'linear-gradient(180deg,#3a352a,#201c14)',border:'1px solid #000'}}></div>
+            <div style={{position:'absolute',left:8,top:2,width:20,height:5,transformOrigin:'left center',transform:'rotate('+(a?42:0)+'deg)',transition:'transform 300ms '+EASE,
+              borderRadius:2,background:a?'linear-gradient(90deg,#7a8f5a,#3f4a26)':'linear-gradient(90deg,#8a3a30,#4a1c17)',border:'1px solid #000',
+              boxShadow:a?'0 0 6px '+GN+'88':'0 0 6px '+RD+'66'}}>
+              <span style={{position:'absolute',right:2,top:'50%',width:3,height:3,marginTop:-1.5,borderRadius:'50%',background:'#0C0B09'}}></span>
+            </div>
+          </div>
+        </div>;})}
+      <span style={{position:'absolute',top:16,left:6+tabs.length*STEP}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+/* F · 保险箱转盘 — 拨盘转到位,门闩弹开解锁 */
+function BarF(){
+  const {tabs,cur,pick,add,close} = useTabs();
+  const STEP=W+8, UH=60, H=UH+4, R=36;
+  return <div style={{display:'flex',flexDirection:'column'}}>
+    <div style={{position:'relative',height:H}}>
+      {tabs.map((t,i)=>{ const a=t.id===cur, x=6+i*STEP;
+        return <div key={t.id} onClick={()=>pick(t.id)} style={{position:'absolute',left:x,top:4,width:W,height:UH,cursor:'pointer',userSelect:'none',
+          borderRadius:4,background:STEEL,border:'1px solid var(--line-0)',
+          boxShadow:a?'inset 0 1px 0 rgba(233,215,170,0.2), 0 0 9px '+AM+'2E':'inset 0 1px 0 rgba(233,215,170,0.12), inset 0 -3px 5px rgba(0,0,0,0.5)',transition:'box-shadow 200ms',
+          display:'flex',alignItems:'center',gap:9,padding:'0 9px'}}>
+          {/* 转盘 */}
+          <div style={{position:'relative',width:R,height:R,flexShrink:0}}>
+            <div style={{position:'absolute',left:'50%',top:-2,marginLeft:-4,width:0,height:0,borderLeft:'4px solid transparent',borderRight:'4px solid transparent',borderTop:'6px solid '+(a?GN:'#6a6350')}}></div>
+            <div style={{position:'absolute',inset:0,borderRadius:'50%',background:'var(--tex-noise), radial-gradient(circle at 42% 34%, #46402f, #1c1810 72%)',border:'1px solid #000',
+              boxShadow:a?'0 0 8px '+AM+'55, inset 0 1px 1px rgba(233,215,170,0.3)':'inset 0 1px 1px rgba(233,215,170,0.2), 0 2px 4px rgba(0,0,0,0.6)',
+              transform:'rotate('+(a?-140:0)+'deg)',transition:'transform 360ms '+EASE}}>
+              <div style={{position:'absolute',inset:3,borderRadius:'50%',background:'repeating-conic-gradient(rgba(0,0,0,0.55) 0 3deg, transparent 3deg 12deg)'}}></div>
+              <div style={{position:'absolute',left:'50%',top:4,width:3,height:R/2-4,marginLeft:-1.5,borderRadius:2,background:AM,boxShadow:a?'0 0 5px '+AM:'none'}}></div>
+            </div>
+            <div style={{position:'absolute',left:'50%',top:'50%',width:8,height:8,margin:'-4px 0 0 -4px',borderRadius:'50%',background:'radial-gradient(circle at 40% 35%,#6A6048,#241F16)',border:'1px solid #000'}}></div>
+          </div>
+          <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column',gap:6}}>
+            <div style={{display:'flex',alignItems:'center',gap:6}}><Title t={t} a={a}/><CloseBtn active={a} onClick={()=>close(t.id)}/></div>
+            {/* 门闩 */}
+            <div style={{position:'relative',height:12,borderRadius:2,background:'#0C0B09',border:'1px solid #000',boxShadow:'inset 0 1px 2px #000',overflow:'hidden'}}>
+              <div style={{position:'absolute',top:1,bottom:1,left:1,width:26,borderRadius:1,background:a?'linear-gradient(90deg,#7a8f5a,#3f4a26)':'linear-gradient(90deg,#8a7a4a,#4a3f22)',
+                transform:'translateX('+(a?0:24)+'px)',transition:'transform 280ms '+EASE,boxShadow:a?'0 0 6px '+GN+'88':'inset 0 1px 0 rgba(233,215,170,0.3)'}}></div>
+              <span style={{position:'absolute',right:5,top:2,fontFamily:'var(--font-mono)',fontSize:7,fontWeight:700,color:a?GN:'var(--text-4)'}}>{a?'解锁':'上锁'}</span>
+            </div>
+          </div>
+        </div>;})}
+      <span style={{position:'absolute',top:20,left:6+tabs.length*STEP}}><AddBtn onClick={add}/></span>
+    </div>
+    <div style={{...PANEL,marginTop:6}}>{tabs.find(t=>t.id===cur)?.label||'—'}</div>
+  </div>;
+}
+
+function App(){
+  return <div style={{display:'flex',flexDirection:'column',gap:18}}>
+    <Demo name="A · 场记板" note="打板合拢开拍,ROLLING"><BarA/></Demo>
+    <Demo name="B · 闸刀开关" note="刀闸拨下入夹口,合闸电弧"><BarB/></Demo>
+    <Demo name="C · 橡皮图章" note="按压盖章,琥珀印记落纸"><BarC/></Demo>
+    <Demo name="D · 走带键" note="磁带机机械键按下自锁,PLAY"><BarD/></Demo>
+    <Demo name="E · 扳道岔" note="扳下道岔杆,信号臂落下放行"><BarE/></Demo>
+    <Demo name="F · 保险箱转盘" note="拨盘转到位,门闩弹开解锁"><BarF/></Demo>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>
